@@ -25,9 +25,9 @@
     </script>
     
     <style>
-        body { font-family: 'Manrope', sans-serif; background-color: #f0f4f8; }
+        body { font-family: 'Manrope', sans-serif; background-color: #f8fafc; }
         .glass-sidebar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-right: 1px solid #e2e8f0; }
-        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .glass-panel { background: white; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); }
         
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -36,9 +36,9 @@
         .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
         
         /* LISTA COMPACTA */
-        .compact-row { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; }
+        .compact-row { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; }
         .compact-row:last-child { border-bottom: none; }
-        .compact-row:hover { background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transform: scale-[1.005]; }
+        .compact-row:hover { background-color: #f8fafc; }
         
         /* CHIPS & TAGS */
         .chip { border: 1px solid #e2e8f0; background: white; color: #475569; font-size: 11px; font-weight: 600; transition: all 0.1s; border-radius: 20px; }
@@ -48,12 +48,26 @@
         .cat-tag { font-size: 10px; padding: 2px 8px; border-radius: 6px; background: #f1f5f9; color: #64748b; border: 1px solid transparent; }
         .cat-tag:hover { border-color: #cbd5e1; color: #334155; background: white; }
 
-        /* INPUTS SUAVES (TC) */
-        .tc-input { background: transparent; border: none; border-bottom: 1px solid transparent; font-weight: 800; color: #1e293b; text-align: right; width: 60px; padding: 0; transition: all 0.2s; }
-        .tc-input:focus { outline: none; border-bottom-color: #0e757c; }
-        .tc-input:hover { border-bottom-color: #cbd5e1; }
-        /* Eliminar flechas de number input */
+        /* INPUTS TC SUPER LIMPIOS */
+        /* Eliminamos flechas y bordes por defecto */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .tc-input { 
+            -moz-appearance: textfield; 
+            background: transparent; 
+            border: none; 
+            padding: 0; 
+            margin: 0; 
+            font-weight: 700; 
+            color: #334155; 
+            text-align: right; 
+            width: 40px; 
+            font-size: 12px;
+            height: 100%;
+        }
+        .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
+        
+        /* Header Elements Height Fix */
+        .h-header-el { height: 32px; }
     </style>
 </head>
 
@@ -62,10 +76,10 @@
     <aside class="glass-sidebar w-16 hover:w-56 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-4 shadow-xl">
         <div class="flex flex-col gap-6">
             <div class="flex items-center justify-center h-10 px-2 group-hover:justify-start group-hover:px-4 transition-all">
-                <div class="bg-primary size-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary/30">
-                    <span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+                <div class="bg-primary size-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md">
+                    <span class="material-symbols-outlined text-lg">account_balance_wallet</span>
                 </div>
-                <h1 class="font-bold text-lg text-primary ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden delay-75 tracking-tight">FinanceFlow</h1>
+                <h1 class="font-bold text-base text-primary ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden delay-75 tracking-tight">FinanceFlow</h1>
             </div>
 
             <nav class="flex flex-col gap-1 px-2" id="main-nav">
@@ -102,183 +116,171 @@
 
     <main class="flex-1 ml-16 p-4 lg:p-6 h-screen overflow-hidden relative flex flex-col">
         
-        <header class="flex justify-between items-end mb-3 shrink-0 gap-4">
-            <div class="flex items-center gap-4">
-                <h2 class="text-2xl font-extrabold tracking-tight text-slate-800 leading-none" id="pageTitle">Panel de Control</h2>
+        <header class="flex justify-between items-center mb-3 shrink-0 gap-4 h-header-el">
+            <div class="flex items-center gap-4 h-full">
+                <h2 class="text-xl font-extrabold tracking-tight text-slate-800 leading-none" id="pageTitle">Panel de Control</h2>
                 
-                <div class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-sm hover:border-primary/30 transition-colors relative group">
-                    <button onclick="changeMonth(-1)" class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">chevron_left</span></button>
-                    <div class="relative min-w-[90px] text-center">
-                        <span class="text-xs font-bold uppercase text-slate-600 tracking-wide" id="monthTxt">...</span>
+                <div class="flex items-center gap-1 bg-white px-2 rounded-md border border-slate-200 shadow-sm hover:border-primary/30 transition-colors relative group h-full">
+                    <button onclick="changeMonth(-1)" class="text-slate-400 hover:text-primary flex items-center"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+                    <div class="relative min-w-[80px] text-center flex items-center justify-center h-full">
+                        <span class="text-[11px] font-bold uppercase text-slate-600 tracking-wide" id="monthTxt">...</span>
                         <input type="month" id="datePicker" class="d-picker" onchange="manualDate()">
                     </div>
-                    <button onclick="changeMonth(1)" class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">chevron_right</span></button>
+                    <button onclick="changeMonth(1)" class="text-slate-400 hover:text-primary flex items-center"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
                 </div>
             </div>
             
-            <div class="flex items-center gap-3 bg-white px-4 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-                <span class="material-symbols-outlined text-slate-400 text-lg">currency_exchange</span>
+            <div class="flex items-center gap-3 bg-white px-3 rounded-md border border-slate-200 shadow-sm h-full">
+                <span class="material-symbols-outlined text-slate-400 text-sm">currency_exchange</span>
                 
-                <div class="flex items-center gap-1.5 border-r border-slate-200 pr-3">
-                    <span class="text-[10px] font-bold text-slate-500">USD</span>
-                    <span class="text-[10px] text-slate-300">→</span>
-                    <div class="flex items-baseline">
-                        <span class="text-[10px] text-slate-400 mr-0.5">$</span>
+                <div class="flex items-center gap-1 border-r border-slate-100 pr-2 h-full">
+                    <span class="text-[10px] font-bold text-slate-400">USD</span>
+                    <div class="flex items-center h-full">
+                        <span class="text-[10px] text-slate-300 mr-0.5">$</span>
                         <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="tc-input" placeholder="0">
                     </div>
                 </div>
 
-                <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-500">COP</span>
-                    <span class="text-[10px] text-slate-300">→</span>
-                    <div class="flex items-baseline">
-                        <span class="text-[10px] text-slate-400 mr-0.5">$</span>
+                <div class="flex items-center gap-1 h-full">
+                    <span class="text-[10px] font-bold text-slate-400">COP</span>
+                    <div class="flex items-center h-full">
+                        <span class="text-[10px] text-slate-300 mr-0.5">$</span>
                         <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="tc-input" placeholder="0">
                     </div>
                 </div>
             </div>
         </header>
 
-        <div id="view-dashboard" class="view-container animate-fade-in flex flex-col flex-1 min-h-0 gap-4">
+        <div id="view-dashboard" class="view-container animate-fade-in flex flex-col flex-1 min-h-0 gap-3">
             
-            <section class="grid grid-cols-4 gap-4 shrink-0">
-                <div class="glass-panel p-4 rounded-2xl flex flex-col justify-center">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Balance Neto</p>
-                    <h3 class="text-2xl font-black text-slate-800 tracking-tight" id="k-bal">$0</h3>
+            <section class="grid grid-cols-4 gap-3 shrink-0">
+                <div class="glass-panel p-3 rounded-xl flex flex-col justify-center">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Balance Neto</p>
+                    <h3 class="text-xl font-black text-slate-800 tracking-tight" id="k-bal">$0</h3>
                 </div>
-                <div class="glass-panel p-4 rounded-2xl flex flex-col justify-center">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Estimado USD</p>
-                    <h3 class="text-xl font-bold text-primary" id="k-usd">$0</h3>
+                <div class="glass-panel p-3 rounded-xl flex flex-col justify-center">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Estimado USD</p>
+                    <h3 class="text-lg font-bold text-primary" id="k-usd">$0</h3>
                 </div>
-                <div class="glass-panel p-4 rounded-2xl flex flex-col justify-center border-l-4 border-l-success">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ingresos</p>
-                    <h3 class="text-xl font-bold text-success" id="k-inc">$0</h3>
+                <div class="glass-panel p-3 rounded-xl flex flex-col justify-center border-l-4 border-l-success">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Ingresos</p>
+                    <h3 class="text-lg font-bold text-success" id="k-inc">$0</h3>
                 </div>
-                <div class="glass-panel p-4 rounded-2xl flex flex-col justify-center border-l-4 border-l-danger">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Gastos</p>
-                    <h3 class="text-xl font-bold text-danger" id="k-exp">$0</h3>
+                <div class="glass-panel p-3 rounded-xl flex flex-col justify-center border-l-4 border-l-danger">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Gastos</p>
+                    <h3 class="text-lg font-bold text-danger" id="k-exp">$0</h3>
                 </div>
             </section>
 
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 flex-1 min-h-0">
-                <section class="flex flex-col glass-panel rounded-2xl overflow-hidden h-full">
-                    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/30 shrink-0">
-                        <h4 class="text-xs font-bold text-slate-700 flex items-center gap-2"><span class="material-symbols-outlined text-success text-base">arrow_circle_up</span> Ingresos</h4>
-                        <span class="bg-success/10 text-success text-[10px] font-bold px-2 py-0.5 rounded-full" id="c-inc">0</span>
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-3 flex-1 min-h-0">
+                <section class="flex flex-col glass-panel rounded-xl overflow-hidden h-full">
+                    <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                        <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5"><span class="material-symbols-outlined text-success text-sm">arrow_circle_up</span> Ingresos</h4>
+                        <span class="bg-success/10 text-success text-[9px] font-bold px-1.5 py-0.5 rounded-full" id="c-inc">0</span>
                     </div>
                     <div class="flex-1 overflow-y-auto custom-scrollbar p-0" id="list-inc"></div>
                 </section>
-                <section class="flex flex-col glass-panel rounded-2xl overflow-hidden h-full">
-                    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/30 shrink-0">
-                        <h4 class="text-xs font-bold text-slate-700 flex items-center gap-2"><span class="material-symbols-outlined text-danger text-base">arrow_circle_down</span> Gastos</h4>
-                        <span class="bg-danger/10 text-danger text-[10px] font-bold px-2 py-0.5 rounded-full" id="c-exp">0</span>
+                <section class="flex flex-col glass-panel rounded-xl overflow-hidden h-full">
+                    <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                        <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5"><span class="material-symbols-outlined text-danger text-sm">arrow_circle_down</span> Gastos</h4>
+                        <span class="bg-danger/10 text-danger text-[9px] font-bold px-1.5 py-0.5 rounded-full" id="c-exp">0</span>
                     </div>
                     <div class="flex-1 overflow-y-auto custom-scrollbar p-0" id="list-exp"></div>
                 </section>
-                <section class="flex flex-col glass-panel rounded-2xl overflow-hidden h-full">
-                    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/30 shrink-0">
-                        <h4 class="text-xs font-bold text-slate-700 flex items-center gap-2"><span class="material-symbols-outlined text-primary text-base">pie_chart</span> Asignación</h4>
+                <section class="flex flex-col glass-panel rounded-xl overflow-hidden h-full">
+                    <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                        <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-sm">pie_chart</span> Asignación</h4>
                     </div>
-                    <div class="flex-1 overflow-y-auto custom-scrollbar p-3 flex flex-col gap-2" id="list-alloc"></div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar p-2 flex flex-col gap-2" id="list-alloc"></div>
                 </section>
             </div>
         </div>
 
         <div id="view-analytics" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
-            <div class="glass-panel rounded-2xl p-5 flex flex-col h-[360px]">
-                <div class="flex justify-between items-center mb-4"><h3 class="text-sm font-bold text-slate-700">Gastos por Categoría</h3><button onclick="resetCharts()" class="text-[10px] text-primary font-bold hover:underline hidden" id="resetBtn">VOLVER</button></div>
-                <div class="flex items-center gap-6 flex-1 min-h-0 overflow-hidden"><div class="relative h-[220px] w-[220px] shrink-0"><canvas id="chartExp"></canvas></div><div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legExp"></div></div>
+            <div class="glass-panel rounded-xl p-4 flex flex-col h-[360px]">
+                <div class="flex justify-between items-center mb-4"><h3 class="text-xs font-bold text-slate-700">Gastos por Categoría</h3><button onclick="resetCharts()" class="text-[10px] text-primary font-bold hover:underline hidden" id="resetBtn">VOLVER</button></div>
+                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden"><div class="relative h-[200px] w-[200px] shrink-0"><canvas id="chartExp"></canvas></div><div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legExp"></div></div>
             </div>
-            <div class="glass-panel rounded-2xl p-5 flex flex-col h-[360px]">
-                <div class="flex justify-between items-center mb-4"><h3 class="text-sm font-bold text-slate-700">Ingresos por Concepto</h3></div>
-                <div class="flex items-center gap-6 flex-1 min-h-0 overflow-hidden"><div class="relative h-[220px] w-[220px] shrink-0"><canvas id="chartInc"></canvas></div><div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legInc"></div></div>
+            <div class="glass-panel rounded-xl p-4 flex flex-col h-[360px]">
+                <div class="flex justify-between items-center mb-4"><h3 class="text-xs font-bold text-slate-700">Ingresos por Concepto</h3></div>
+                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden"><div class="relative h-[200px] w-[200px] shrink-0"><canvas id="chartInc"></canvas></div><div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legInc"></div></div>
             </div>
         </div>
 
         <div id="view-strategy" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
-             <div class="glass-panel rounded-2xl p-6 flex flex-col">
-                 <h3 class="text-sm font-bold text-slate-700 mb-6">Regla 50/30/20</h3>
-                 <div class="flex-1 relative flex justify-center items-center"><canvas id="chartRadar" style="max-height: 300px;"></canvas></div>
+             <div class="glass-panel rounded-xl p-5 flex flex-col">
+                 <h3 class="text-xs font-bold text-slate-700 mb-4">Regla 50/30/20</h3>
+                 <div class="flex-1 relative flex justify-center items-center"><canvas id="chartRadar" style="max-height: 280px;"></canvas></div>
              </div>
-             <div class="glass-panel rounded-2xl p-6 flex flex-col">
-                 <div class="flex justify-between items-center mb-6">
-                     <h3 class="text-sm font-bold text-slate-700">Portafolio</h3>
-                     <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-md">Total: $0 USD</span>
+             <div class="glass-panel rounded-xl p-5 flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                     <h3 class="text-xs font-bold text-slate-700">Portafolio</h3>
+                     <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded">Total: $0 USD</span>
                  </div>
-                 <div class="flex-1 flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-                     <div class="size-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-3xl text-primary">hub</span>
+                 <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                     <div class="size-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-3">
+                        <span class="material-symbols-outlined text-2xl text-primary">hub</span>
                      </div>
-                     <p class="text-sm font-bold text-slate-700">Conexión API Lista</p>
-                     <p class="text-xs text-slate-400 mt-2 max-w-[200px]">Los datos de inversiones deben procesarse en el Google Script para alimentar esta vista.</p>
+                     <p class="text-xs font-bold text-slate-700">Conexión API</p>
                  </div>
              </div>
         </div>
 
-        <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 pt-2">
-            
-            <div class="glass-panel rounded-2xl p-5 flex flex-col h-full overflow-hidden">
-                <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-lg text-primary">folder_open</span> Gestión de Categorías
+        <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 pt-1">
+            <div class="glass-panel rounded-xl p-4 flex flex-col h-full overflow-hidden">
+                <h3 class="text-xs font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base text-primary">folder_open</span> Gestión de Categorías
                 </h3>
-                
-                <div class="flex gap-2 mb-4 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                <div class="flex gap-2 mb-3 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
                     <input type="text" id="newCatName" placeholder="Nueva Categoría..." class="flex-1 bg-transparent border-none text-xs px-2 focus:ring-0 font-medium">
-                    <select id="newCatType" class="bg-white border-none rounded-lg text-xs px-2 py-1.5 text-slate-600 shadow-sm"><option value="exp">Gasto</option><option value="inc">Ingreso</option></select>
-                    <button onclick="manualAddCat()" class="bg-slate-800 text-white size-7 rounded-lg hover:bg-slate-700 flex items-center justify-center shadow-md">+</button>
+                    <select id="newCatType" class="bg-white border-none rounded-md text-[10px] px-2 py-1 text-slate-600 shadow-sm"><option value="exp">Gasto</option><option value="inc">Ingreso</option></select>
+                    <button onclick="manualAddCat()" class="bg-slate-800 text-white size-6 rounded-md hover:bg-slate-700 flex items-center justify-center shadow-sm text-xs">+</button>
                 </div>
-
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3" id="adminTreeContainer">
-                    </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2" id="adminTreeContainer"></div>
             </div>
 
-            <div class="glass-panel rounded-2xl p-5 flex flex-col h-full overflow-hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-sm font-bold text-slate-800">Recurrentes</h3>
+            <div class="glass-panel rounded-xl p-4 flex flex-col h-full overflow-hidden">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-bold text-slate-800">Recurrentes</h3>
                     <div class="flex gap-2">
                         <button onclick="populateRecurringDefaults()" class="text-slate-400 text-[10px] font-bold hover:text-primary transition-colors">SUGERIR</button>
-                        <button onclick="addRecurrenteRow()" class="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-bold hover:bg-primary hover:text-white transition-colors">+ AGREGAR</button>
+                        <button onclick="addRecurrenteRow()" class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold hover:bg-primary hover:text-white transition-colors">+ AGREGAR</button>
                     </div>
                 </div>
-                
-                <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-xl border border-slate-100 p-2 mb-4" id="recurrente-table-body"></div>
-                
-                <div class="grid grid-cols-2 gap-3 mt-auto">
-                    <button onclick="saveRecurrentesConfig()" class="py-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 shadow-sm">Guardar Config</button>
-                    <button onclick="executeRecurrentes()" class="py-2.5 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-700 shadow-md">Ejecutar Mes</button>
-                    
-                    <div class="col-span-2 border-t border-slate-100 my-2"></div>
-                    
-                    <div class="col-span-2 bg-slate-100 p-3 rounded-xl flex items-center justify-between">
-                         <label class="block text-[10px] font-bold text-slate-400 uppercase">Clonar Mes Anterior</label>
-                         <div class="flex gap-2">
-                            <input type="month" id="cloneSrc" class="bg-white border-none rounded-lg px-2 py-1 text-xs shadow-sm w-32">
-                            <button onclick="cloneMonth()" class="text-primary font-bold text-xs hover:underline">Copiar</button>
+                <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-lg border border-slate-100 p-2 mb-3" id="recurrente-table-body"></div>
+                <div class="grid grid-cols-2 gap-2 mt-auto">
+                    <button onclick="saveRecurrentesConfig()" class="py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 shadow-sm">Guardar</button>
+                    <button onclick="executeRecurrentes()" class="py-2 rounded-lg bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700 shadow-sm">Ejecutar</button>
+                    <div class="col-span-2 border-t border-slate-100 my-1"></div>
+                    <div class="col-span-2 bg-slate-100 p-2 rounded-lg flex items-center justify-between">
+                         <label class="block text-[9px] font-bold text-slate-400 uppercase">Clonar Mes</label>
+                         <div class="flex gap-1">
+                            <input type="month" id="cloneSrc" class="bg-white border-none rounded-md px-1 py-0.5 text-[10px] shadow-sm w-24">
+                            <button onclick="cloneMonth()" class="text-primary font-bold text-[10px] hover:underline">Copiar</button>
                         </div>
                     </div>
-
-                    <button onclick="clearMonth()" class="col-span-2 border border-red-100 text-red-400 py-2 rounded-xl text-[10px] font-bold uppercase hover:bg-red-50 hover:text-red-500 transition-colors">Borrar Mes Actual</button>
+                    <button onclick="clearMonth()" class="col-span-2 border border-red-100 text-red-400 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-red-50 hover:text-red-500 transition-colors">Borrar Mes Actual</button>
                 </div>
             </div>
         </div>
     </main>
 
-    <button onclick="openModal()" class="fixed bottom-8 right-8 size-14 bg-slate-900 text-white rounded-2xl shadow-2xl shadow-slate-900/40 flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
-        <span class="material-symbols-outlined text-3xl">add</span>
+    <button onclick="openModal()" class="fixed bottom-6 right-6 size-12 bg-slate-900 text-white rounded-xl shadow-xl shadow-slate-900/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
+        <span class="material-symbols-outlined text-2xl">add</span>
     </button>
 
     <div id="modalOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
-        <div class="relative z-10 w-full max-w-[400px] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in mx-4 max-h-[90vh]">
-            <div class="flex items-center justify-between px-6 pt-6 pb-2 shrink-0">
-                <h1 class="text-xl font-bold text-slate-800" id="mTitle">Nuevo</h1>
-                <button onclick="closeModal()" class="size-8 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 transition-colors">
-                    <span class="material-symbols-outlined text-lg">close</span>
+        <div class="relative z-10 w-full max-w-[380px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in mx-4 max-h-[90vh]">
+            <div class="flex items-center justify-between px-5 pt-5 pb-2 shrink-0">
+                <h1 class="text-lg font-bold text-slate-800" id="mTitle">Nuevo</h1>
+                <button onclick="closeModal()" class="size-7 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 transition-colors">
+                    <span class="material-symbols-outlined text-base">close</span>
                 </button>
             </div>
             
-            <form id="txForm" class="p-6 overflow-y-auto custom-scrollbar flex-1">
-                <div class="grid grid-cols-2 p-1.5 bg-slate-100 rounded-xl mb-5">
+            <form id="txForm" class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl mb-4">
                     <button type="button" id="btnExp" onclick="setType('exp')" class="flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-danger border border-slate-100">Gasto</button>
                     <button type="button" id="btnInc" onclick="setType('inc')" class="flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">Ingreso</button>
                 </div>
@@ -286,63 +288,62 @@
 
                 <div class="flex gap-3 mb-4">
                     <div class="flex-1 relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-light text-xl">$</span>
-                        <input type="number" id="fAmt" step="0.01" class="w-full pl-7 pr-3 py-3 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-primary rounded-xl text-xl font-bold text-slate-800 outline-none text-right transition-all" placeholder="0" required oninput="calcConversion()">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-light text-lg">$</span>
+                        <input type="number" id="fAmt" step="0.01" class="w-full pl-6 pr-3 py-2.5 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-primary rounded-xl text-lg font-bold text-slate-800 outline-none text-right transition-all" placeholder="0" required oninput="calcConversion()">
                     </div>
-                    <div class="w-24">
-                        <select id="fCurr" onchange="calcConversion()" class="w-full h-full bg-slate-100 border-transparent rounded-xl text-xs font-bold focus:border-primary focus:ring-0 text-center">
+                    <div class="w-20">
+                        <select id="fCurr" onchange="calcConversion()" class="w-full h-full bg-slate-100 border-transparent rounded-xl text-[11px] font-bold focus:border-primary focus:ring-0 text-center pl-1 pr-6">
                             <option value="ARS">ARS</option>
                             <option value="USD">USD</option>
                             <option value="COP">COP</option>
                         </select>
                     </div>
                 </div>
-                <div id="convPreview" class="hidden text-right text-xs text-slate-500 font-medium -mt-2 mb-4 bg-slate-50 p-2 rounded-lg inline-block float-right">
+                <div id="convPreview" class="hidden text-right text-[10px] text-slate-500 font-medium -mt-2 mb-4 bg-slate-50 px-2 py-1 rounded inline-block float-right">
                     = <span id="convResult" class="text-slate-800 font-bold">$0 ARS</span>
                 </div>
                 <div class="clear-both"></div>
 
-                <div class="mb-4">
+                <div class="mb-3">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Fecha</label>
-                    <input type="date" id="fDate" class="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/20" required>
+                    <input type="date" id="fDate" class="w-full px-3 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20" required>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Categoría</label>
-                    <div class="flex flex-wrap gap-2" id="chipBox"></div>
+                <div class="mb-3">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Categoría</label>
+                    <div class="flex flex-wrap gap-1.5" id="chipBox"></div>
                     <input type="hidden" id="fCat">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1" id="lblDesc">Concepto</label>
-                    <div class="flex flex-wrap gap-2 mb-2" id="conceptBox"></div>
-                    <input type="text" id="fDesc" class="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400" placeholder="Detalle..." required>
+                <div class="mb-3">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1" id="lblDesc">Concepto</label>
+                    <div class="flex flex-wrap gap-1.5 mb-2" id="conceptBox"></div>
+                    <input type="text" id="fDesc" class="w-full px-3 py-2.5 bg-slate-50 border-none rounded-xl text-xs focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400" placeholder="Detalle..." required>
                 </div>
 
-                <div class="mb-6" id="linkRow">
-                    <label class="block text-[10px] font-bold text-primary uppercase mb-2 ml-1">Pagar con (Fuente)</label>
-                    <div id="linkChipsContainer" class="flex flex-wrap gap-2"></div>
+                <div class="mb-4" id="linkRow">
+                    <label class="block text-[10px] font-bold text-primary uppercase mb-1 ml-1">Pagar con (Fuente)</label>
+                    <div id="linkChipsContainer" class="flex flex-wrap gap-1.5"></div>
                     <input type="hidden" id="fLink">
                 </div>
 
-                <div class="flex items-center gap-3 mb-6 p-3 border border-slate-100 rounded-xl bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer" onclick="document.getElementById('fExec').click()">
-                    <input type="checkbox" id="fExec" class="size-5 text-primary rounded border-slate-300 focus:ring-primary bg-white">
+                <div class="flex items-center gap-3 mb-5 p-2.5 border border-slate-100 rounded-xl bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer" onclick="document.getElementById('fExec').click()">
+                    <input type="checkbox" id="fExec" class="size-4 text-primary rounded border-slate-300 focus:ring-primary bg-white">
                     <div>
-                        <span class="block text-xs font-bold text-slate-700 select-none">Marcar como Ejecutado</span>
-                        <span class="block text-[10px] text-slate-400">Congela el valor de la moneda</span>
+                        <span class="block text-[11px] font-bold text-slate-700 select-none">Marcar como Ejecutado</span>
+                        <span class="block text-[9px] text-slate-400">Congela el valor de la moneda</span>
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-3">
-                    <button type="submit" class="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-lg shadow-slate-900/20 active:scale-95 transition-all">GUARDAR</button>
-                    <button type="button" id="btnDel" onclick="delTx()" class="text-xs text-red-500 font-bold hover:bg-red-50 py-2 rounded-lg transition-colors hidden">Eliminar Registro</button>
+                <div class="flex flex-col gap-2">
+                    <button type="submit" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-lg shadow-slate-900/20 active:scale-95 transition-all">GUARDAR</button>
+                    <button type="button" id="btnDel" onclick="delTx()" class="text-[10px] text-red-500 font-bold hover:bg-red-50 py-2 rounded-lg transition-colors hidden">Eliminar Registro</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // === URL ORIGINAL MANTENIDA ===
         const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec";
         
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
@@ -464,13 +465,13 @@
                         <div class="shrink-0 flex items-center justify-center size-6">${statusIcon}</div>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm font-bold text-slate-800 truncate leading-tight">${t.desc} ${currBadge} ${linkText}</p>
-                                <p class="text-sm font-bold ${t.type=='inc'?'text-success':'text-danger'} ml-2">$${fmt(t.amount)}</p>
+                                <p class="text-xs font-bold text-slate-800 truncate leading-tight">${t.desc} ${currBadge} ${linkText}</p>
+                                <p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ml-2">$${fmt(t.amount)}</p>
                             </div>
                             <div class="flex items-center justify-between mt-1">
                                 <div class="flex gap-2">
-                                    <span class="text-[10px] text-slate-500 bg-slate-100 px-1.5 rounded">${t.cat || 'Gral'}</span>
-                                    <span class="text-[10px] text-slate-400 font-medium">${t.date.split('-')[2]}</span>
+                                    <span class="text-[9px] text-slate-500 bg-slate-100 px-1.5 rounded">${t.cat || 'Gral'}</span>
+                                    <span class="text-[9px] text-slate-400 font-medium">${t.date.split('-')[2]}</span>
                                 </div>
                                 ${t.type=='exp'?`<span class="text-[9px] font-bold ${rb>=0?'text-emerald-600':'text-rose-600'} opacity-60">Q: $${fmt(rb)}</span>`:''}
                             </div>
@@ -488,9 +489,9 @@
                 const spent = subs.reduce((a,b)=>a+b.amount,0);
                 const pct = Math.min(100, (spent/inc.amount)*100);
                 let barColor = pct > 90 ? 'bg-danger' : 'bg-primary';
-                let rows = ''; if (subs.length > 0) subs.forEach(s => rows += `<div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc}</span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`); else rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>';
+                let rows = ''; if (subs.length > 0) subs.forEach(s => rows += `<div class="flex justify-between py-1.5 text-[9px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc}</span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`); else rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>';
                 const card = document.createElement('div');
-                card.innerHTML = `<div class="rounded-xl border border-slate-200 bg-white mb-2 shadow-sm overflow-hidden"><div class="p-3 bg-slate-50/50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors" onclick="this.parentElement.querySelector('.alloc-details').classList.toggle('hidden')"><div><p class="text-xs font-bold text-slate-700">${inc.desc}</p><p class="text-[10px] text-slate-400 font-medium mt-0.5">Usado: $${fmt(spent)} de $${fmt(inc.amount)}</p></div><div class="text-right"><span class="text-[10px] font-bold text-slate-600">${Math.round(pct)}%</span></div></div><div class="w-full h-1 bg-slate-100"><div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%;"></div></div><div class="alloc-details hidden bg-white py-1">${rows}</div></div>`;
+                card.innerHTML = `<div class="rounded-xl border border-slate-200 bg-white mb-2 shadow-sm overflow-hidden"><div class="p-3 bg-slate-50/50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors" onclick="this.parentElement.querySelector('.alloc-details').classList.toggle('hidden')"><div><p class="text-[11px] font-bold text-slate-700">${inc.desc}</p><p class="text-[9px] text-slate-400 font-medium mt-0.5">Usado: $${fmt(spent)} de $${fmt(inc.amount)}</p></div><div class="text-right"><span class="text-[9px] font-bold text-slate-600">${Math.round(pct)}%</span></div></div><div class="w-full h-1 bg-slate-100"><div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%;"></div></div><div class="alloc-details hidden bg-white py-1">${rows}</div></div>`;
                 lA.appendChild(card);
             });
         }
@@ -523,7 +524,7 @@
                 <div class="mb-2">
                     <div class="flex items-center gap-2 mb-2 px-1">
                         <span class="material-symbols-outlined text-sm ${color}">${icon}</span>
-                        <h4 class="font-bold text-xs text-slate-500 uppercase tracking-wide">${title}</h4>
+                        <h4 class="font-bold text-[10px] text-slate-500 uppercase tracking-wide">${title}</h4>
                     </div>
                     <div class="space-y-1">`;
                 
@@ -533,8 +534,8 @@
                     <details class="group bg-slate-50 rounded-lg border border-slate-100 overflow-hidden open:bg-white open:shadow-sm transition-all">
                         <summary class="flex justify-between items-center p-2 cursor-pointer hover:bg-slate-100 transition-colors">
                             <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-slate-400 text-lg group-open:text-primary transition-colors">folder</span>
-                                <span class="text-xs font-bold text-slate-700">${c}</span>
+                                <span class="material-symbols-outlined text-slate-400 text-base group-open:text-primary transition-colors">folder</span>
+                                <span class="text-[11px] font-bold text-slate-700">${c}</span>
                                 <span class="text-[9px] text-slate-400 bg-white px-1.5 rounded-full border border-slate-100">${concepts.length}</span>
                             </div>
                             <button onclick="delCat('${type}','${c}')" class="text-slate-300 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button>
@@ -589,7 +590,7 @@
             const cats = type === 'inc' ? (appData.cats.inc || []) : (appData.cats.exp || []);
             cats.forEach(c => {
                 const chip = document.createElement('div');
-                chip.className = `chip px-3 py-1.5 cursor-pointer select-none ${document.getElementById('fCat').value === c ? 'active' : ''}`;
+                chip.className = `chip px-3 py-1 cursor-pointer select-none ${document.getElementById('fCat').value === c ? 'active' : ''}`;
                 chip.innerText = c;
                 chip.onclick = () => {
                     document.getElementById('fCat').value = c;
