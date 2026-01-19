@@ -20,7 +20,7 @@
                     colors: {
                         "primary": "#0e757c",
                         "primary-hover": "#0b5e63",
-                        "background-light": "#f0f2f2", /* Fondo un poco más oscuro para contraste */
+                        "background-light": "#f0f2f2",
                         "background-dark": "#112021",
                         "surface": "#ffffff",
                         "success": "#558055",
@@ -232,6 +232,7 @@
         <div id="view-admin" class="view-container animate-fade-in hidden-view flex justify-center pt-10">
             <div class="w-full max-w-sm bg-white border border-slate-200 rounded-xl shadow-sm p-6">
                 <h3 class="text-base font-bold mb-4 text-slate-800">Gestión de Datos</h3>
+                
                 <div class="mb-4">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Importar mes anterior</label>
                     <div class="flex gap-2">
@@ -239,6 +240,16 @@
                         <button onclick="cloneMonth()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Copiar</button>
                     </div>
                 </div>
+
+                <div class="mb-4 pt-4 border-t border-slate-100">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Automatización</label>
+                    <button onclick="loadRecurrentes()" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm">
+                        <span class="material-symbols-outlined text-base">update</span>
+                        Cargar Gastos Fijos (Templates)
+                    </button>
+                    <p class="text-[9px] text-slate-400 mt-1 text-center">Carga sueldo, alquiler, gym, etc. como pendientes.</p>
+                </div>
+
                 <div class="h-px bg-slate-100 my-4"></div>
                 <button onclick="clearMonth()" class="w-full border border-red-200 text-red-500 hover:bg-red-50 py-2 rounded-lg text-xs font-bold transition-colors uppercase">
                     Eliminar datos del mes actual
@@ -325,7 +336,19 @@
     </div>
 
     <script>
+        // CONFIGURACIÓN: RECURRENTES (Ajusta los valores)
+        const RECURRENTES = [
+            { desc: 'Sueldo Famiq', amount: 2500000, type: 'inc', cat: 'Ingresos' },
+            { desc: 'Alquiler', amount: 450000, type: 'exp', cat: 'Esenciales' },
+            { desc: 'Gimnasio', amount: 45000, type: 'exp', cat: 'Personal' },
+            { desc: 'Internet', amount: 35000, type: 'exp', cat: 'Esenciales' },
+            { desc: 'Spotify/Netflix', amount: 15000, type: 'exp', cat: 'Personal' },
+            { desc: 'Inversión', amount: 500000, type: 'exp', cat: 'Ahorro' }
+        ];
+
+        // NO OLVIDES PONER TU URL AQUI ABAJO
         const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec"; 
+        
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
 
@@ -371,7 +394,6 @@
                 }
 
                 const el = document.createElement('div');
-                // LOGICA DE TACHADO SI ESTA EJECUTADO
                 const styles = t.exec ? "opacity-50 grayscale" : "";
                 const strike = t.exec ? "line-through decoration-slate-400 decoration-2" : "";
                 
@@ -405,7 +427,7 @@
             document.getElementById('c-inc').innerText = txs.filter(t=>t.type=='inc').length;
             document.getElementById('c-exp').innerText = txs.filter(t=>t.type=='exp').length;
 
-            /* --- LOGICA DE ASIGNACION (FIXED) --- */
+            /* ASIGNACIÓN LOGIC */
             const incs = txs.filter(t=>t.type=='inc');
             if(!incs.length) lA.innerHTML = '<div class="text-center text-slate-400 text-[10px] py-4">Sin datos</div>';
             
@@ -418,7 +440,6 @@
                 if(pct > 90) barColor = 'bg-warning';
                 if(spent > inc.amount) barColor = 'bg-danger';
 
-                // Generar filas para cada gasto vinculado
                 let rows = '';
                 if (subs.length > 0) {
                     subs.forEach(s => {
@@ -437,7 +458,7 @@
                     <div class="rounded-lg border border-slate-100 bg-white mb-1 shadow-sm overflow-hidden">
                         <div class="p-2 bg-slate-50/30 flex justify-between items-center cursor-pointer hover:bg-slate-50" onclick="this.parentElement.querySelector('.alloc-details').classList.toggle('hidden')">
                             <div>
-                                <p class="text-xs font-bold text-slate-700">${inc.desc}</p>
+                                <p class="text-xs font-bold text-slate-700 ${inc.exec ? 'line-through opacity-60' : ''}">${inc.desc}</p>
                                 <p class="text-[10px] text-slate-400 font-medium mt-0.5">Usado: $${fmt(spent)} de $${fmt(inc.amount)}</p>
                             </div>
                             <div class="text-right">
@@ -567,6 +588,29 @@
                 s.add(new Option(`${i.desc} (Disp: $${fmt(i.amount-sp)})`, i.id));
             });
             if(sel)s.value=sel;
+        }
+
+        /* NUEVA FUNCIÓN: CARGA RECURRENTES */
+        function loadRecurrentes() {
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth() + 1;
+            const targetDate = `${y}-${m.toString().padStart(2, '0')}-01`;
+            let count = 0;
+
+            RECURRENTES.forEach(rec => {
+                const exists = appData.txs.some(t => !t.deletedAt && t.desc === rec.desc && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
+                if (!exists) {
+                    appData.txs.push({
+                        id: Date.now() + Math.random(),
+                        date: targetDate, amount: rec.amount, type: rec.type, cat: rec.cat, desc: rec.desc,
+                        exec: false, linkId: null, deletedAt: null
+                    });
+                    count++;
+                }
+            });
+
+            if (count > 0) { saveData(); alert(`✅ Cargados ${count} movimientos.`); } 
+            else { alert('ℹ️ Ya estaban cargados.'); }
         }
 
         document.getElementById('txForm').onsubmit=e=>{
