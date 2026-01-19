@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>FinanceFlow PRO | Javi</title>
+    <title>FinanceFlow OS | Javi</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -34,7 +34,7 @@
         .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
         .compact-row { padding-top: 0.35rem; padding-bottom: 0.35rem; }
         
-        /* CHIPS STYLES */
+        /* CHIPS */
         .chip { transition: all 0.2s; border: 1px solid #e2e8f0; background: white; color: #64748b; font-size: 11px; }
         .chip:hover { border-color: #0e757c; color: #0e757c; transform: translateY(-1px); }
         .chip.active { background: #0e757c; color: white; border-color: #0e757c; font-weight: 700; box-shadow: 0 2px 4px rgba(14, 117, 124, 0.25); }
@@ -47,7 +47,7 @@
         .chip-concept { font-size: 10px; padding: 3px 8px; background: #f1f5f9; border-radius: 6px; cursor: pointer; color: #64748b; border: 1px solid transparent; }
         .chip-concept:hover { background: #e2e8f0; color: #334155; }
         
-        /* TREE & ADMIN */
+        /* TREE */
         details > summary { list-style: none; cursor: pointer; }
         details > summary::-webkit-details-marker { display: none; }
     </style>
@@ -80,6 +80,10 @@
                 <button onclick="nav('admin', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">settings</span>
                     <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ajustes</span>
+                </button>
+                <button onclick="hardReset()" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2">
+                    <span class="material-symbols-outlined text-xl shrink-0">sync</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Sincronizar</span>
                 </button>
             </nav>
         </div>
@@ -172,55 +176,67 @@
         </div>
 
         <div id="view-strategy" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col"><h3 class="text-xs font-bold text-slate-600 uppercase mb-4">Radar de Salud Financiera</h3><div class="flex-1 relative flex justify-center items-center"><canvas id="chartRadar" style="max-height: 280px;"></canvas></div><p class="text-[10px] text-center text-slate-400 mt-2">Comparativa vs Modelo Ideal</p></div>
+             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col"><h3 class="text-xs font-bold text-slate-600 uppercase mb-4">Radar de Salud Financiera</h3><div class="flex-1 relative flex justify-center items-center"><canvas id="chartRadar" style="max-height: 280px;"></canvas></div><p class="text-[10px] text-center text-slate-400 mt-2">Comparativa vs Modelo Ideal</p></div>
              <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col"><div class="flex justify-between items-center mb-4"><h3 class="text-xs font-bold text-slate-600 uppercase">Portafolio Inversiones</h3><span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded">Total: $0 USD</span></div><div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50"><span class="material-symbols-outlined text-4xl text-slate-300 mb-2">hub</span><p class="text-xs font-bold text-slate-500">Conexión API</p><p class="text-[10px] text-slate-400 mt-1">Configura CEDEARs y Crypto</p></div></div>
         </div>
 
         <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0 pt-2">
             
-            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden col-span-1 lg:col-span-2">
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
                 <h3 class="text-xs font-bold text-slate-800 uppercase mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">account_tree</span> Gestión de Categorías
                 </h3>
-                
-                <div class="flex gap-2 mb-4 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                    <input type="text" id="newCatName" placeholder="Nueva Categoría Principal..." class="flex-1 bg-white border border-slate-200 rounded text-xs px-2 py-1.5 focus:border-primary focus:outline-none">
-                    <select id="newCatType" class="bg-white border border-slate-200 rounded text-xs px-2 py-1.5">
-                        <option value="exp">Gasto</option>
-                        <option value="inc">Ingreso</option>
-                    </select>
-                    <button onclick="manualAddCat()" class="bg-primary text-white text-xs font-bold px-3 rounded hover:bg-primary-dark shadow-sm">Agregar</button>
+                <div class="flex gap-2 mb-3 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    <input type="text" id="newCatName" placeholder="Nueva..." class="flex-1 bg-white border border-slate-200 rounded text-xs px-2 py-1.5 focus:border-primary focus:outline-none">
+                    <select id="newCatType" class="bg-white border border-slate-200 rounded text-xs px-2 py-1.5"><option value="exp">Gasto</option><option value="inc">Ingreso</option></select>
+                    <button onclick="manualAddCat()" class="bg-slate-800 text-white text-xs font-bold px-2 rounded hover:bg-slate-700">+</button>
                 </div>
-
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2" id="adminTreeContainer">
-                    </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2" id="adminTreeContainer"></div>
             </div>
 
-            <div class="flex flex-col gap-4 h-full overflow-hidden">
-                <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex-shrink-0">
-                    <h3 class="text-xs font-bold text-slate-800 uppercase mb-3">Tasas (Base 1 USD)</h3>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center p-2 border border-slate-100 rounded">
-                            <span class="text-xs font-bold text-slate-600">ARS</span>
-                            <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded font-bold">
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
+                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">build</span> Herramientas
+                </h3>
+                
+                <div class="mb-4 pb-4 border-b border-slate-100">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Tasas de Cambio</label>
+                    <div class="flex gap-2 mb-2">
+                        <div class="flex-1 flex justify-between items-center p-2 border border-slate-100 rounded">
+                            <span class="text-[10px] font-bold text-slate-600">ARS</span>
+                            <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="w-16 text-right text-xs border-slate-200 rounded font-bold">
                         </div>
-                        <div class="flex justify-between items-center p-2 border border-slate-100 rounded">
-                            <span class="text-xs font-bold text-slate-600">COP</span>
-                            <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded font-bold">
+                        <div class="flex-1 flex justify-between items-center p-2 border border-slate-100 rounded">
+                            <span class="text-[10px] font-bold text-slate-600">COP</span>
+                            <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="w-16 text-right text-xs border-slate-200 rounded font-bold">
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col flex-1 overflow-hidden">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-xs font-bold text-slate-800 uppercase">Recurrentes</h3>
-                        <button onclick="addRecurrenteRow()" class="text-primary text-[10px] font-bold hover:underline">+ AGREGAR</button>
+                <div class="mb-4 pb-4 border-b border-slate-100">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Clonar Mes Anterior</label>
+                    <div class="flex gap-2">
+                        <input type="month" id="cloneSrc" class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs">
+                        <button onclick="cloneMonth()" class="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary-dark shadow-sm">Copiar</button>
                     </div>
-                    <div class="flex-1 overflow-y-auto custom-scrollbar space-y-1" id="recurrente-table-body"></div>
-                    <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
-                        <button onclick="saveRecurrentesConfig()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded text-[10px] font-bold">GUARDAR</button>
-                        <button onclick="executeRecurrentes()" class="flex-1 bg-slate-800 text-white py-2 rounded text-[10px] font-bold">EJECUTAR</button>
-                    </div>
+                    <p class="text-[9px] text-slate-400 mt-1">Copia gastos e ingresos al mes actual.</p>
+                </div>
+
+                <div class="mt-auto">
+                    <button onclick="clearMonth()" class="w-full border border-red-200 text-red-500 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-red-50 mb-2">Borrar Mes Actual</button>
+                    <button onclick="hardReset()" class="w-full bg-slate-100 text-slate-500 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-200">Resetear Datos Fábrica</button>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-bold text-slate-800 uppercase">Recurrentes</h3>
+                    <button onclick="addRecurrenteRow()" class="text-primary text-[10px] font-bold hover:underline">+ AGREGAR</button>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar space-y-1" id="recurrente-table-body"></div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                    <button onclick="saveRecurrentesConfig()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded text-[10px] font-bold">GUARDAR</button>
+                    <button onclick="executeRecurrentes()" class="flex-1 bg-slate-800 text-white py-2 rounded text-[10px] font-bold">EJECUTAR</button>
                 </div>
             </div>
         </div>
@@ -309,8 +325,8 @@
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
 
-        // DATOS INICIALES (Con respaldo LocalStorage)
-        let appData = { 
+        // Javi's Context Defaults
+        const defaultData = { 
             txs: [], 
             cats: { 
                 exp:['Esenciales','Deudas','Fitness','Viaje Italia','Inversiones','Proyectos'], 
@@ -329,78 +345,106 @@
             recurrentes: [], 
             monthlyRates: {} 
         };
+
+        let appData = JSON.parse(JSON.stringify(defaultData)); // Deep copy
         
         let currentDate = new Date(); currentDate.setDate(1);
         let editId=null, cExp=null, cInc=null, drillCat=null, cRadar=null;
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-        window.onload = () => { 
-            loadLocal(); // Carga primero de LocalStorage
+        window.onload = () => { initApp(); };
+
+        function initApp() {
+            loadLocal();
             updateDateUI(); 
-            // forceSync(); // Desactivado para priorizar tu gestión manual local
             Chart.defaults.font.family = "'Inter', sans-serif";
             renderAdminTree();
-        };
-
-        // --- SISTEMA DE PERSISTENCIA LOCAL ---
-        function saveLocal() {
-            localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData));
         }
+
+        // --- SISTEMA DE PERSISTENCIA LOCAL (CORE) ---
+        function saveLocal() { localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData)); }
+        
         function loadLocal() {
             const stored = localStorage.getItem('financeFlowData_Javi');
             if(stored) {
-                const data = JSON.parse(stored);
-                if(data) appData = data;
-                // Asegurar estructura
-                if(!appData.cats) appData.cats = { exp:[], inc:[] };
-                if(!appData.concepts) appData.concepts = {};
+                try {
+                    const parsed = JSON.parse(stored);
+                    if(parsed && parsed.cats) appData = parsed; // Carga solo si es válido
+                } catch(e) { console.error("Error reading local data", e); }
+            } else {
+                saveLocal(); // First run: save defaults
             }
             loadMonthData();
         }
         
-        // Simulación API Save (ahora guarda Local también)
+        function hardReset() {
+            if(confirm("¿Restaurar configuración de fábrica? Se borrarán datos locales.")) {
+                appData = JSON.parse(JSON.stringify(defaultData));
+                saveLocal();
+                location.reload();
+            }
+        }
+
         async function saveData() {
-            saveLocal(); // Backup inmediato
-            try { 
-                // await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); 
-            } catch(e){ console.log('Offline mode'); }
+            saveLocal();
+            // await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); 
             loadMonthData(); 
         }
 
-        // --- GESTIÓN MANUAL EN ADMIN ---
+        // --- CLONAR MES (RECUPERADO) ---
+        function cloneMonth() {
+            const srcVal = document.getElementById('cloneSrc').value;
+            if(!srcVal) return alert("Selecciona mes origen");
+            if(!confirm("¿Copiar movimientos del mes seleccionado al mes actual?")) return;
+            
+            const [y, m] = srcVal.split('-').map(Number);
+            const targetDate = `${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}-01`;
+            
+            const srcTxs = appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
+            
+            if(srcTxs.length === 0) return alert("No hay datos en el mes origen");
+
+            let newTxs = [];
+            // Map old IDs to new IDs for linking
+            let idMap = {};
+
+            // 1. Clone Income first to establish IDs
+            srcTxs.filter(t => t.type === 'inc').forEach(t => {
+                const newId = Date.now() + Math.random();
+                idMap[t.id] = newId;
+                newTxs.push({ ...t, id: newId, date: targetDate, exec: false });
+            });
+
+            // 2. Clone Expenses and relink
+            srcTxs.filter(t => t.type === 'exp').forEach(t => {
+                const newId = Date.now() + Math.random();
+                newTxs.push({ 
+                    ...t, 
+                    id: newId, 
+                    date: targetDate, 
+                    exec: false, 
+                    linkId: t.linkId ? (idMap[t.linkId] || null) : null // Link to NEW income id
+                });
+            });
+
+            appData.txs.push(...newTxs);
+            saveData();
+            alert(`Se copiaron ${newTxs.length} movimientos.`);
+        }
+
+        // --- GESTIÓN MANUAL EN ADMIN (Arbol) ---
         function renderAdminTree() {
             const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
-            
             const buildBranch = (title, type) => {
                 const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
                 let html = `<div class="mb-4"><h4 class="font-bold text-xs text-slate-700 bg-slate-100 p-2 rounded mb-2 border border-slate-200">${title}</h4><div class="space-y-2">`;
-                
                 cats.forEach(c => {
                     const concepts = appData.concepts[c] || [];
-                    html += `
-                    <div class="border border-slate-200 rounded-lg p-2 bg-white">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs font-bold text-primary cursor-pointer hover:underline">📁 ${c}</span>
-                            <button onclick="delCat('${type}','${c}')" class="text-[10px] text-red-400 hover:text-red-600 bg-red-50 px-2 py-0.5 rounded">Eliminar Cat</button>
-                        </div>
-                        <div class="flex flex-wrap gap-1 mb-2">
-                            ${concepts.map(con => `
-                                <span class="text-[10px] bg-slate-50 border border-slate-100 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 group">
-                                    ${con} 
-                                    <button onclick="delConcept('${c}','${con}')" class="text-red-300 hover:text-red-500 hidden group-hover:block ml-1 font-bold">×</button>
-                                </span>
-                            `).join('')}
-                        </div>
-                        <div class="flex gap-1">
-                            <input type="text" id="newCon_${c}" placeholder="Subcategoría..." class="w-full text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50 focus:bg-white focus:border-primary outline-none">
-                            <button onclick="manualAddConcept('${c}')" class="text-[10px] bg-slate-200 text-slate-600 px-2 rounded hover:bg-slate-300">+</button>
-                        </div>
-                    </div>`;
+                    html += `<div class="border border-slate-200 rounded-lg p-2 bg-white"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-primary cursor-pointer hover:underline">📁 ${c}</span><button onclick="delCat('${type}','${c}')" class="text-[10px] text-red-400 hover:text-red-600 bg-red-50 px-2 py-0.5 rounded">Eliminar</button></div><div class="flex flex-wrap gap-1 mb-2">${concepts.map(con => `<span class="text-[10px] bg-slate-50 border border-slate-100 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 group">${con} <button onclick="delConcept('${c}','${con}')" class="text-red-300 hover:text-red-500 hidden group-hover:block ml-1 font-bold">×</button></span>`).join('')}</div><div class="flex gap-1"><input type="text" id="newCon_${c}" placeholder="Subcategoría..." class="w-full text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50 focus:bg-white focus:border-primary outline-none"><button onclick="manualAddConcept('${c}')" class="text-[10px] bg-slate-200 text-slate-600 px-2 rounded hover:bg-slate-300">+</button></div></div>`;
                 });
                 html += `</div></div>`;
                 container.innerHTML += html;
             };
-
             buildBranch("Gastos", "exp");
             buildBranch("Ingresos", "inc");
         }
@@ -409,50 +453,30 @@
             const name = document.getElementById('newCatName').value.trim();
             const type = document.getElementById('newCatType').value;
             if(!name) return alert('Escribe un nombre');
-            
-            if(type === 'exp') {
-                if(!appData.cats.exp.includes(name)) appData.cats.exp.push(name);
-            } else {
-                if(!appData.cats.inc.includes(name)) appData.cats.inc.push(name);
-            }
+            if(type === 'exp') { if(!appData.cats.exp.includes(name)) appData.cats.exp.push(name); } else { if(!appData.cats.inc.includes(name)) appData.cats.inc.push(name); }
             if(!appData.concepts[name]) appData.concepts[name] = [];
-            
-            document.getElementById('newCatName').value = '';
-            saveData();
-            renderAdminTree();
+            document.getElementById('newCatName').value = ''; saveData(); renderAdminTree();
         }
-
         function manualAddConcept(catName) {
-            const input = document.getElementById(`newCon_${catName}`);
-            const val = input.value.trim();
+            const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim();
             if(!val) return;
-            
             if(!appData.concepts[catName]) appData.concepts[catName] = [];
             if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val);
-            
-            saveData();
-            renderAdminTree();
+            saveData(); renderAdminTree();
         }
-
         function delCat(type, name) {
             if(confirm(`¿Eliminar categoría "${name}" y todo su contenido?`)) {
-                if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name);
-                else appData.cats.inc = appData.cats.inc.filter(x => x !== name);
-                delete appData.concepts[name];
-                saveData();
-                renderAdminTree();
+                if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name);
+                delete appData.concepts[name]; saveData(); renderAdminTree();
             }
         }
         function delConcept(cat, name) {
             if(confirm(`¿Eliminar subcategoría "${name}"?`)) {
-                appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name);
-                saveData();
-                renderAdminTree();
+                appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); renderAdminTree();
             }
         }
 
-
-        // --- RESTO DEL CÓDIGO (CORE) ---
+        // --- CORE RENDER ---
         function loadMonthData() {
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
             const key = `${y}-${m.toString().padStart(2,'0')}`;
@@ -462,7 +486,7 @@
 
             const txs = appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
             txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
-            renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin(); renderAdminTree();
+            renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin();
         }
 
         function renderLists(txs) {
