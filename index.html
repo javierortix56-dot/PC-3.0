@@ -323,7 +323,27 @@
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
 
-        let appData = { txs: [], cats: { exp:['Esenciales','Deudas','Personal','Ahorro'], inc:['Sueldo','Venta'] }, concepts: {'Esenciales': ['Luz','Gas','Internet','Alquiler'], 'Deudas': ['Visa','Master'], 'Ingresos': ['Sueldo','Venta']}, recurrentes: [], monthlyRates: {} };
+        // DATOS INICIALES PERSONALIZADOS (Javi Context)
+        let appData = { 
+            txs: [], 
+            cats: { 
+                exp:['Esenciales','Deudas','Fitness','Viaje Italia','Inversiones','Proyectos'], 
+                inc:['Sueldo Famiq','Honorarios','Rentas','Otros'] 
+            }, 
+            concepts: {
+                'Esenciales': ['Alquiler','Expensas','Supermercado','Luz','Gas','Internet'],
+                'Deudas': ['Prestamo 11M','Visa','Mastercard'],
+                'Fitness': ['Cuota Gym','Proteína','Creatina','Ropa Deportiva'],
+                'Viaje Italia': ['Fondo Ahorro','Pasajes','Alojamiento'],
+                'Inversiones': ['Plan 500 USD','CEDEARs','Crypto'],
+                'Proyectos': ['ALEJEN Pediátrica','App Finance'],
+                'Sueldo Famiq': ['Mensual','Bono'],
+                'Honorarios': ['Consultas Dra','Particulares']
+            }, 
+            recurrentes: [], 
+            monthlyRates: {} 
+        };
+        
         let currentDate = new Date(); currentDate.setDate(1);
         let editId=null, cExp=null, cInc=null, drillCat=null, cRadar=null;
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -332,10 +352,15 @@
 
         async function forceSync() {
             try { 
-                const r = await fetch(API_URL); appData = await r.json(); 
-                if(!appData.recurrentes) appData.recurrentes=[]; if(!appData.monthlyRates) appData.monthlyRates={};
-                if(!appData.cats) appData.cats={ exp:['Esenciales','Deudas','Personal','Ahorro'], inc:['Sueldo','Venta'] };
-                if(!appData.concepts) appData.concepts={};
+                const r = await fetch(API_URL); 
+                const data = await r.json(); 
+                // Solo sobreescribir si la API trae datos reales, sino usar defaults
+                if(data.txs && data.txs.length > 0) appData.txs = data.txs;
+                if(data.cats) appData.cats = data.cats;
+                if(data.concepts) appData.concepts = data.concepts;
+                if(data.recurrentes) appData.recurrentes = data.recurrentes;
+                if(data.monthlyRates) appData.monthlyRates = data.monthlyRates;
+                
                 loadMonthData(); 
             } catch(e){ console.error(e); }
         }
@@ -416,8 +441,8 @@
             renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), txs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
             if(cRadar) cRadar.destroy();
             const totalInc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0) || 1;
-            const savings = txs.filter(t=>t.cat=='Ahorro').reduce((a,b)=>a+b.amount,0);
-            const fixed = txs.filter(t=>t.cat=='Esenciales').reduce((a,b)=>a+b.amount,0);
+            const savings = txs.filter(t=>t.cat=='Inversiones' || t.cat=='Viaje Italia').reduce((a,b)=>a+b.amount,0);
+            const fixed = txs.filter(t=>t.cat=='Esenciales' || t.cat=='Deudas').reduce((a,b)=>a+b.amount,0);
             cRadar = new Chart(document.getElementById('chartRadar'), { type: 'radar', data: { labels: ['Ahorro (20%)', 'Fijos (50%)', 'Ocio (30%)'], datasets: [{ label: 'Tu Mes', data: [Math.min(100, (savings/totalInc)*100), Math.min(100, (fixed/totalInc)*100), 100-((savings+fixed)/totalInc)*100], fill: true, backgroundColor: 'rgba(14, 117, 124, 0.2)', borderColor: '#0e757c' }] }, options: { scales: { r: { min: 0, max: 100, ticks: { display: false } } }, plugins: { legend: { position: 'top' } } } });
         }
 
