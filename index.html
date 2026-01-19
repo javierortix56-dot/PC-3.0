@@ -35,12 +35,10 @@
         .active-nav { background-color: rgba(14, 117, 124, 0.08); color: #0e757c; border-right: 3px solid #0e757c; }
         .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
         
-        /* LISTA COMPACTA */
         .compact-row { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; }
         .compact-row:last-child { border-bottom: none; }
         .compact-row:hover { background-color: #f8fafc; }
         
-        /* CHIPS & TAGS */
         .chip { border: 1px solid #e2e8f0; background: white; color: #475569; font-size: 11px; font-weight: 600; transition: all 0.1s; border-radius: 20px; }
         .chip:hover { border-color: #0e757c; color: #0e757c; }
         .chip.active { background: #0e757c; color: white; border-color: #0e757c; box-shadow: 0 2px 4px rgba(14,117,124,0.3); }
@@ -48,9 +46,9 @@
         .cat-tag { font-size: 10px; padding: 2px 8px; border-radius: 6px; background: #f1f5f9; color: #64748b; border: 1px solid transparent; }
         .cat-tag:hover { border-color: #cbd5e1; color: #334155; background: white; }
 
-        /* INPUTS TC SUPER LIMPIOS */
-        /* Eliminamos flechas y bordes por defecto */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* CORRECCIÓN TC: Ancho suficiente para cifras altas como COP */
         .tc-input { 
             -moz-appearance: textfield; 
             background: transparent; 
@@ -60,13 +58,12 @@
             font-weight: 700; 
             color: #334155; 
             text-align: right; 
-            width: 40px; 
+            width: 55px; 
             font-size: 12px;
             height: 100%;
         }
         .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
         
-        /* Header Elements Height Fix */
         .h-header-el { height: 32px; }
     </style>
 </head>
@@ -130,21 +127,21 @@
                 </div>
             </div>
             
-            <div class="flex items-center gap-3 bg-white px-3 rounded-md border border-slate-200 shadow-sm h-full">
+            <div class="flex items-center gap-3 bg-white px-3 rounded-md border border-slate-200 shadow-sm h-full shrink-0">
                 <span class="material-symbols-outlined text-slate-400 text-sm">currency_exchange</span>
                 
-                <div class="flex items-center gap-1 border-r border-slate-100 pr-2 h-full">
+                <div class="flex items-center gap-2 border-r border-slate-100 pr-3 h-full">
                     <span class="text-[10px] font-bold text-slate-400">USD</span>
                     <div class="flex items-center h-full">
-                        <span class="text-[10px] text-slate-300 mr-0.5">$</span>
+                        <span class="text-[10px] text-slate-300 mr-1">$</span>
                         <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="tc-input" placeholder="0">
                     </div>
                 </div>
 
-                <div class="flex items-center gap-1 h-full">
+                <div class="flex items-center gap-2 h-full">
                     <span class="text-[10px] font-bold text-slate-400">COP</span>
                     <div class="flex items-center h-full">
-                        <span class="text-[10px] text-slate-300 mr-0.5">$</span>
+                        <span class="text-[10px] text-slate-300 mr-1">$</span>
                         <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="tc-input" placeholder="0">
                     </div>
                 </div>
@@ -215,7 +212,7 @@
              <div class="glass-panel rounded-xl p-5 flex flex-col">
                  <div class="flex justify-between items-center mb-4">
                      <h3 class="text-xs font-bold text-slate-700">Portafolio</h3>
-                     <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded">Total: $0 USD</span>
+                     <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded" id="totalStrategyUSD">Total: $0 USD</span>
                  </div>
                  <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                      <div class="size-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-3">
@@ -510,6 +507,7 @@
             balEl.className = `text-2xl font-black tracking-tight ${bal >= 0 ? 'text-emerald-700' : 'text-rose-700'}`;
             
             document.getElementById('k-usd').innerText='USD '+fmt(bal/tc); 
+            document.getElementById('totalStrategyUSD').innerText = `Total: $${fmt(bal/tc)} USD`;
         }
 
         function renderAdminTree() {
@@ -649,6 +647,7 @@
         function editTx(id){const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');document.getElementById('fDate').value=t.date; document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;document.getElementById('fAmt').value = t.origAmt || t.amount; document.getElementById('fCurr').value = t.origCurr || 'ARS';setType(t.type); setTimeout(() => {document.getElementById('fCat').value = t.cat;renderChips(t.type); if(t.type === 'exp') { document.getElementById('fLink').value = t.linkId || ""; renderLinkChips(t.linkId);}renderConcepts(t.cat);}, 50);calcConversion();document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');}
         function resetForm(){ document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null; }
         function delTx(){ if(confirm('Eliminar?')){ appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
+        
         function renderCharts(txs) {
             renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', true, cExp, i=>cExp=i);
             renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), txs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
@@ -659,6 +658,7 @@
             const variable = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0) - (savings + fixed);
             cRadar = new Chart(document.getElementById('chartRadar'), { type: 'radar', data: { labels: ['Fijos (50%)', 'Ocio (30%)', 'Ahorro (20%)'], datasets: [{ label: 'Ideal', data: [50, 30, 20], borderColor: '#cbd5e1', borderDash: [5,5], fill: false, pointRadius: 0 }, { label: 'Real', data: [Math.min(100, (fixed/totalInc)*100), Math.min(100, (variable/totalInc)*100), Math.min(100, (savings/totalInc)*100)], backgroundColor: 'rgba(14, 117, 124, 0.2)', borderColor: '#0e757c', fill: true }] }, options: { scales: { r: { min: 0, max: 100, ticks: { display: false } } }, plugins: { legend: { position: 'top' } } } });
         }
+
         function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
             if(inst) inst.destroy();
             let map={}; if(drill && drillCat) { document.getElementById('resetBtn').classList.remove('hidden'); data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount); } else { if(drill) document.getElementById('resetBtn').classList.add('hidden'); data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; }); }
@@ -666,6 +666,7 @@
             setInst(new Chart(cvs, { type:'doughnut', data:{ labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:2}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{display:false}}, onClick:(e,el)=>{if(drill&&!drillCat&&el.length){drillCat=ent[el[0].index][0]; loadMonthData();}} } }));
             leg.innerHTML = ''; ent.forEach((e,i) => { const pct = Math.round((e[1]/tot)*100); leg.innerHTML += `<div class="flex items-center justify-between text-[10px] py-1.5 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}"><div class="flex items-center gap-1.5 min-w-0"><span class="size-2 rounded-full shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span><span class="text-slate-600 font-medium truncate">${e[0]}</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-slate-400">${pct}%</span><span class="font-bold text-slate-800">$${fmt(e[1])}</span></div></div>`; });
         }
+
         function resetCharts() { drillCat=null; loadMonthData(); }
         function manualAddCat() { const n = document.getElementById('newCatName').value.trim(); const t = document.getElementById('newCatType').value; if(!n) return alert('Nombre?'); if(t === 'exp') { if(!appData.cats.exp.includes(n)) appData.cats.exp.push(n); } else { if(!appData.cats.inc.includes(n)) appData.cats.inc.push(n); } if(!appData.concepts[n]) appData.concepts[n] = []; document.getElementById('newCatName').value = ''; saveData(); }
         function manualAddConcept(catName) { const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim(); if(!val) return; if(!appData.concepts[catName]) appData.concepts[catName] = []; if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val); saveData(); }
