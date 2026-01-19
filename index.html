@@ -39,7 +39,7 @@
         .chip:hover { border-color: #0e757c; color: #0e757c; transform: translateY(-1px); }
         .chip.active { background: #0e757c; color: white; border-color: #0e757c; font-weight: 700; box-shadow: 0 2px 4px rgba(14, 117, 124, 0.25); }
         
-        /* LINK CHIPS (Source) */
+        /* LINK CHIPS */
         .link-chip { border: 1px dashed #cbd5e1; background: #f8fafc; color: #475569; }
         .link-chip.active { background: #0f172a; color: white; border-style: solid; border-color: #0f172a; }
         
@@ -47,7 +47,7 @@
         .chip-concept { font-size: 10px; padding: 3px 8px; background: #f1f5f9; border-radius: 6px; cursor: pointer; color: #64748b; border: 1px solid transparent; }
         .chip-concept:hover { background: #e2e8f0; color: #334155; }
         
-        /* TREE VIEW */
+        /* TREE & ADMIN */
         details > summary { list-style: none; cursor: pointer; }
         details > summary::-webkit-details-marker { display: none; }
     </style>
@@ -100,13 +100,12 @@
                 <div class="flex items-center gap-1 text-slate-500 relative cursor-pointer hover:text-primary transition-colors mt-0.5">
                     <button onclick="changeMonth(-1)" class="hover:bg-slate-200 rounded p-0.5"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
                     <div class="relative">
-                        <span class="text-xs font-bold uppercase tracking-wide flex items-center gap-1"><span id="monthTxt">CARGANDO...</span></span>
+                        <span class="text-xs font-bold uppercase tracking-wide flex items-center gap-1"><span id="monthTxt">...</span></span>
                         <input type="month" id="datePicker" class="d-picker" onchange="manualDate()">
                     </div>
                     <button onclick="changeMonth(1)" class="hover:bg-slate-200 rounded p-0.5"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
                 </div>
             </div>
-
             <div class="flex items-center bg-white border border-slate-200 rounded-lg shadow-sm h-9 overflow-hidden">
                 <div class="flex items-center gap-1.5 px-3 bg-slate-50 h-full border-r border-slate-100">
                     <span class="material-symbols-outlined text-slate-400 text-sm">currency_exchange</span>
@@ -163,77 +162,65 @@
 
         <div id="view-analytics" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
             <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col h-[320px]">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-xs font-bold text-slate-600 uppercase">Gastos por Categoría</h3>
-                    <button onclick="resetCharts()" class="text-[10px] text-primary font-bold hover:underline hidden" id="resetBtn">VOLVER</button>
-                </div>
-                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden">
-                    <div class="relative h-[180px] w-[180px] shrink-0"><canvas id="chartExp"></canvas></div>
-                    <div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legExp"></div>
-                </div>
+                <div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-600 uppercase">Gastos por Categoría</h3><button onclick="resetCharts()" class="text-[10px] text-primary font-bold hover:underline hidden" id="resetBtn">VOLVER</button></div>
+                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden"><div class="relative h-[180px] w-[180px] shrink-0"><canvas id="chartExp"></canvas></div><div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legExp"></div></div>
             </div>
             <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col h-[320px]">
                 <div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-600 uppercase">Ingresos por Concepto</h3></div>
-                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden">
-                    <div class="relative h-[180px] w-[180px] shrink-0"><canvas id="chartInc"></canvas></div>
-                    <div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legInc"></div>
-                </div>
+                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden"><div class="relative h-[180px] w-[180px] shrink-0"><canvas id="chartInc"></canvas></div><div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legInc"></div></div>
             </div>
         </div>
 
         <div id="view-strategy" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
-                <h3 class="text-xs font-bold text-slate-600 uppercase mb-4">Radar de Salud Financiera</h3>
-                <div class="flex-1 relative flex justify-center items-center"><canvas id="chartRadar" style="max-height: 280px;"></canvas></div>
-                <p class="text-[10px] text-center text-slate-400 mt-2">Comparativa vs Modelo Ideal</p>
-            </div>
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xs font-bold text-slate-600 uppercase">Portafolio Inversiones</h3>
-                    <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded">Total: $0 USD</span>
-                </div>
-                <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                    <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">hub</span>
-                    <p class="text-xs font-bold text-slate-500">Conexión API</p>
-                    <p class="text-[10px] text-slate-400 mt-1">Configura CEDEARs y Crypto</p>
-                </div>
-            </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col"><h3 class="text-xs font-bold text-slate-600 uppercase mb-4">Radar de Salud Financiera</h3><div class="flex-1 relative flex justify-center items-center"><canvas id="chartRadar" style="max-height: 280px;"></canvas></div><p class="text-[10px] text-center text-slate-400 mt-2">Comparativa vs Modelo Ideal</p></div>
+             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col"><div class="flex justify-between items-center mb-4"><h3 class="text-xs font-bold text-slate-600 uppercase">Portafolio Inversiones</h3><span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded">Total: $0 USD</span></div><div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50"><span class="material-symbols-outlined text-4xl text-slate-300 mb-2">hub</span><p class="text-xs font-bold text-slate-500">Conexión API</p><p class="text-[10px] text-slate-400 mt-1">Configura CEDEARs y Crypto</p></div></div>
         </div>
 
         <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0 pt-2">
             
-            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
-                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-sm">account_tree</span> Gestión de Categorías</h3>
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2" id="adminTreeContainer">
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden col-span-1 lg:col-span-2">
+                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">account_tree</span> Gestión de Categorías
+                </h3>
+                
+                <div class="flex gap-2 mb-4 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    <input type="text" id="newCatName" placeholder="Nueva Categoría Principal..." class="flex-1 bg-white border border-slate-200 rounded text-xs px-2 py-1.5 focus:border-primary focus:outline-none">
+                    <select id="newCatType" class="bg-white border border-slate-200 rounded text-xs px-2 py-1.5">
+                        <option value="exp">Gasto</option>
+                        <option value="inc">Ingreso</option>
+                    </select>
+                    <button onclick="manualAddCat()" class="bg-primary text-white text-xs font-bold px-3 rounded hover:bg-primary-dark shadow-sm">Agregar</button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2" id="adminTreeContainer">
                     </div>
             </div>
 
-            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
-                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3">Tasas (Base 1 USD)</h3>
-                <div class="space-y-2 overflow-y-auto custom-scrollbar flex-1">
-                    <div class="flex justify-between items-center p-2 border border-slate-100 rounded">
-                        <span class="text-xs font-bold text-slate-600">ARS</span>
-                        <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded font-bold">
-                    </div>
-                    <div class="flex justify-between items-center p-2 border border-slate-100 rounded">
-                        <span class="text-xs font-bold text-slate-600">COP</span>
-                        <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded font-bold">
+            <div class="flex flex-col gap-4 h-full overflow-hidden">
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex-shrink-0">
+                    <h3 class="text-xs font-bold text-slate-800 uppercase mb-3">Tasas (Base 1 USD)</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center p-2 border border-slate-100 rounded">
+                            <span class="text-xs font-bold text-slate-600">ARS</span>
+                            <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded font-bold">
+                        </div>
+                        <div class="flex justify-between items-center p-2 border border-slate-100 rounded">
+                            <span class="text-xs font-bold text-slate-600">COP</span>
+                            <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded font-bold">
+                        </div>
                     </div>
                 </div>
-                <div class="mt-2 pt-2 border-t border-slate-100">
-                     <button onclick="clearMonth()" class="w-full text-red-500 py-1 rounded-lg text-[10px] font-bold uppercase hover:bg-red-50">Borrar Mes Actual</button>
-                </div>
-            </div>
 
-            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-xs font-bold text-slate-800 uppercase">Recurrentes</h3>
-                    <button onclick="addRecurrenteRow()" class="text-primary text-[10px] font-bold hover:underline">+ AGREGAR</button>
-                </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar space-y-1" id="recurrente-table-body"></div>
-                <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
-                    <button onclick="saveRecurrentesConfig()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded text-[10px] font-bold">GUARDAR</button>
-                    <button onclick="executeRecurrentes()" class="flex-1 bg-slate-800 text-white py-2 rounded text-[10px] font-bold">EJECUTAR</button>
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col flex-1 overflow-hidden">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-xs font-bold text-slate-800 uppercase">Recurrentes</h3>
+                        <button onclick="addRecurrenteRow()" class="text-primary text-[10px] font-bold hover:underline">+ AGREGAR</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar space-y-1" id="recurrente-table-body"></div>
+                    <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
+                        <button onclick="saveRecurrentesConfig()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded text-[10px] font-bold">GUARDAR</button>
+                        <button onclick="executeRecurrentes()" class="flex-1 bg-slate-800 text-white py-2 rounded text-[10px] font-bold">EJECUTAR</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -300,8 +287,7 @@
 
                 <div class="mb-4" id="linkRow">
                     <label class="block text-[10px] font-bold text-primary uppercase mb-1">Pagar con (Fuente)</label>
-                    <div id="linkChipsContainer" class="flex flex-wrap gap-2">
-                        </div>
+                    <div id="linkChipsContainer" class="flex flex-wrap gap-2"></div>
                     <input type="hidden" id="fLink">
                 </div>
 
@@ -323,7 +309,7 @@
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
 
-        // DATOS INICIALES PERSONALIZADOS (Javi Context)
+        // DATOS INICIALES (Con respaldo LocalStorage)
         let appData = { 
             txs: [], 
             cats: { 
@@ -348,27 +334,125 @@
         let editId=null, cExp=null, cInc=null, drillCat=null, cRadar=null;
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-        window.onload = () => { updateDateUI(); forceSync(); Chart.defaults.font.family = "'Inter', sans-serif"; };
+        window.onload = () => { 
+            loadLocal(); // Carga primero de LocalStorage
+            updateDateUI(); 
+            // forceSync(); // Desactivado para priorizar tu gestión manual local
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            renderAdminTree();
+        };
 
-        async function forceSync() {
-            try { 
-                const r = await fetch(API_URL); 
-                const data = await r.json(); 
-                // Solo sobreescribir si la API trae datos reales, sino usar defaults
-                if(data.txs && data.txs.length > 0) appData.txs = data.txs;
-                if(data.cats) appData.cats = data.cats;
-                if(data.concepts) appData.concepts = data.concepts;
-                if(data.recurrentes) appData.recurrentes = data.recurrentes;
-                if(data.monthlyRates) appData.monthlyRates = data.monthlyRates;
-                
-                loadMonthData(); 
-            } catch(e){ console.error(e); }
+        // --- SISTEMA DE PERSISTENCIA LOCAL ---
+        function saveLocal() {
+            localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData));
+        }
+        function loadLocal() {
+            const stored = localStorage.getItem('financeFlowData_Javi');
+            if(stored) {
+                const data = JSON.parse(stored);
+                if(data) appData = data;
+                // Asegurar estructura
+                if(!appData.cats) appData.cats = { exp:[], inc:[] };
+                if(!appData.concepts) appData.concepts = {};
+            }
+            loadMonthData();
         }
         
+        // Simulación API Save (ahora guarda Local también)
         async function saveData() {
-            try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); loadMonthData(); } catch(e){ alert('Error guardando'); }
+            saveLocal(); // Backup inmediato
+            try { 
+                // await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); 
+            } catch(e){ console.log('Offline mode'); }
+            loadMonthData(); 
         }
 
+        // --- GESTIÓN MANUAL EN ADMIN ---
+        function renderAdminTree() {
+            const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
+            
+            const buildBranch = (title, type) => {
+                const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
+                let html = `<div class="mb-4"><h4 class="font-bold text-xs text-slate-700 bg-slate-100 p-2 rounded mb-2 border border-slate-200">${title}</h4><div class="space-y-2">`;
+                
+                cats.forEach(c => {
+                    const concepts = appData.concepts[c] || [];
+                    html += `
+                    <div class="border border-slate-200 rounded-lg p-2 bg-white">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-primary cursor-pointer hover:underline">📁 ${c}</span>
+                            <button onclick="delCat('${type}','${c}')" class="text-[10px] text-red-400 hover:text-red-600 bg-red-50 px-2 py-0.5 rounded">Eliminar Cat</button>
+                        </div>
+                        <div class="flex flex-wrap gap-1 mb-2">
+                            ${concepts.map(con => `
+                                <span class="text-[10px] bg-slate-50 border border-slate-100 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 group">
+                                    ${con} 
+                                    <button onclick="delConcept('${c}','${con}')" class="text-red-300 hover:text-red-500 hidden group-hover:block ml-1 font-bold">×</button>
+                                </span>
+                            `).join('')}
+                        </div>
+                        <div class="flex gap-1">
+                            <input type="text" id="newCon_${c}" placeholder="Subcategoría..." class="w-full text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50 focus:bg-white focus:border-primary outline-none">
+                            <button onclick="manualAddConcept('${c}')" class="text-[10px] bg-slate-200 text-slate-600 px-2 rounded hover:bg-slate-300">+</button>
+                        </div>
+                    </div>`;
+                });
+                html += `</div></div>`;
+                container.innerHTML += html;
+            };
+
+            buildBranch("Gastos", "exp");
+            buildBranch("Ingresos", "inc");
+        }
+
+        function manualAddCat() {
+            const name = document.getElementById('newCatName').value.trim();
+            const type = document.getElementById('newCatType').value;
+            if(!name) return alert('Escribe un nombre');
+            
+            if(type === 'exp') {
+                if(!appData.cats.exp.includes(name)) appData.cats.exp.push(name);
+            } else {
+                if(!appData.cats.inc.includes(name)) appData.cats.inc.push(name);
+            }
+            if(!appData.concepts[name]) appData.concepts[name] = [];
+            
+            document.getElementById('newCatName').value = '';
+            saveData();
+            renderAdminTree();
+        }
+
+        function manualAddConcept(catName) {
+            const input = document.getElementById(`newCon_${catName}`);
+            const val = input.value.trim();
+            if(!val) return;
+            
+            if(!appData.concepts[catName]) appData.concepts[catName] = [];
+            if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val);
+            
+            saveData();
+            renderAdminTree();
+        }
+
+        function delCat(type, name) {
+            if(confirm(`¿Eliminar categoría "${name}" y todo su contenido?`)) {
+                if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name);
+                else appData.cats.inc = appData.cats.inc.filter(x => x !== name);
+                delete appData.concepts[name];
+                saveData();
+                renderAdminTree();
+            }
+        }
+        function delConcept(cat, name) {
+            if(confirm(`¿Eliminar subcategoría "${name}"?`)) {
+                appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name);
+                saveData();
+                renderAdminTree();
+            }
+        }
+
+
+        // --- RESTO DEL CÓDIGO (CORE) ---
         function loadMonthData() {
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
             const key = `${y}-${m.toString().padStart(2,'0')}`;
@@ -384,7 +468,6 @@
         function renderLists(txs) {
             const lI=document.getElementById('list-inc'), lE=document.getElementById('list-exp'), lA=document.getElementById('list-alloc');
             lI.innerHTML=''; lE.innerHTML=''; lA.innerHTML=''; let rb=0;
-
             txs.forEach(t => {
                 if(t.type=='inc') rb+=t.amount; else rb-=t.amount;
                 let currBadge = (t.origCurr && t.origCurr !== 'ARS') ? `<span class="bg-blue-50 text-blue-600 text-[9px] px-1 rounded ml-1 font-bold">${t.origAmt} ${t.origCurr}</span>` : '';
@@ -393,35 +476,16 @@
                     const source = appData.txs.find(x => x.id == t.linkId);
                     if(source) linkText = `<span class="flex items-center gap-0.5 bg-slate-100 text-[9px] px-1 rounded text-slate-500"><span class="material-symbols-outlined text-[9px]">link</span>${source.desc.substring(0,8)}..</span>`;
                 }
-
                 const el = document.createElement('div');
                 const styles = t.exec ? "opacity-50 grayscale" : "";
                 const strike = t.exec ? "line-through decoration-slate-400 decoration-2" : "";
                 el.className = `compact-row group flex items-center justify-between px-2 hover:bg-slate-50 transition-colors cursor-pointer border-b border-dashed border-slate-100 last:border-0 ${styles}`;
                 el.onclick = () => editTx(t.id);
-                el.innerHTML = `
-                    <div class="flex items-center gap-2 overflow-hidden">
-                        <div class="size-6 rounded bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                            <span class="material-symbols-outlined text-sm ${t.type=='inc'?'text-success':'text-danger'}">circle</span>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center"><p class="text-xs font-bold text-slate-700 truncate leading-tight ${strike}">${t.desc}</p>${currBadge}</div>
-                            <div class="flex items-center gap-2 mt-0.5">
-                                <span class="text-[10px] text-slate-400 bg-slate-50 px-1 rounded">${t.cat || 'Gral'}</span>
-                                <span class="text-[10px] text-slate-400">${t.date.split('-')[2]}</span>
-                                ${linkText}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-right shrink-0 ml-2">
-                        <p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ${strike}">$${fmt(t.amount)}</p>
-                        ${t.type=='exp'?`<p class="text-[9px] font-bold ${rb>=0?'text-success/70':'text-danger/70'}">Q:$${fmt(rb)}</p>`:''}
-                    </div>`;
+                el.innerHTML = `<div class="flex items-center gap-2 overflow-hidden"><div class="size-6 rounded bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100"><span class="material-symbols-outlined text-sm ${t.type=='inc'?'text-success':'text-danger'}">circle</span></div><div class="min-w-0"><div class="flex items-center"><p class="text-xs font-bold text-slate-700 truncate leading-tight ${strike}">${t.desc}</p>${currBadge}</div><div class="flex items-center gap-2 mt-0.5"><span class="text-[10px] text-slate-400 bg-slate-50 px-1 rounded">${t.cat || 'Gral'}</span><span class="text-[10px] text-slate-400">${t.date.split('-')[2]}</span>${linkText}</div></div></div><div class="text-right shrink-0 ml-2"><p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ${strike}">$${fmt(t.amount)}</p>${t.type=='exp'?`<p class="text-[9px] font-bold ${rb>=0?'text-success/70':'text-danger/70'}">Q:$${fmt(rb)}</p>`:''}</div>`;
                 (t.type=='inc'?lI:lE).appendChild(el);
             });
             document.getElementById('c-inc').innerText = txs.filter(t=>t.type=='inc').length;
             document.getElementById('c-exp').innerText = txs.filter(t=>t.type=='exp').length;
-
             const incs = txs.filter(t=>t.type=='inc');
             if(!incs.length) lA.innerHTML = '<div class="text-center text-slate-400 text-[10px] py-4">Sin datos</div>';
             incs.forEach(inc => {
@@ -435,7 +499,6 @@
                 lA.appendChild(card);
             });
         }
-
         function renderCharts(txs) {
             renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', true, cExp, i=>cExp=i);
             renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), txs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
@@ -445,7 +508,6 @@
             const fixed = txs.filter(t=>t.cat=='Esenciales' || t.cat=='Deudas').reduce((a,b)=>a+b.amount,0);
             cRadar = new Chart(document.getElementById('chartRadar'), { type: 'radar', data: { labels: ['Ahorro (20%)', 'Fijos (50%)', 'Ocio (30%)'], datasets: [{ label: 'Tu Mes', data: [Math.min(100, (savings/totalInc)*100), Math.min(100, (fixed/totalInc)*100), 100-((savings+fixed)/totalInc)*100], fill: true, backgroundColor: 'rgba(14, 117, 124, 0.2)', borderColor: '#0e757c' }] }, options: { scales: { r: { min: 0, max: 100, ticks: { display: false } } }, plugins: { legend: { position: 'top' } } } });
         }
-
         function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
             if(inst) inst.destroy();
             let map={}; if(drill && drillCat) { document.getElementById('resetBtn').classList.remove('hidden'); data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount); } else { if(drill) document.getElementById('resetBtn').classList.add('hidden'); data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; }); }
@@ -454,11 +516,8 @@
             leg.innerHTML = ''; ent.forEach((e,i) => { const pct = Math.round((e[1]/tot)*100); leg.innerHTML += `<div class="flex items-center justify-between text-[10px] py-1.5 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}"><div class="flex items-center gap-1.5 min-w-0"><span class="size-2 rounded-full shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span><span class="text-slate-600 font-medium truncate">${e[0]}</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-slate-400">${pct}%</span><span class="font-bold text-slate-800">$${fmt(e[1])}</span></div></div>`; });
         }
         function resetCharts() { drillCat=null; loadMonthData(); }
-
-        /* MODAL LOGIC */
         function openModal(){ editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); }
         function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
-
         function renderConcepts(catKey) {
             const box = document.getElementById('conceptBox'); box.innerHTML = '';
             const list = appData.concepts[catKey] || [];
@@ -468,7 +527,6 @@
                 box.appendChild(el);
             });
         }
-
         function setType(t){
             document.getElementById('fType').value=t;
             const btnExp = document.getElementById('btnExp'); const btnInc = document.getElementById('btnInc');
@@ -487,7 +545,6 @@
             }
             document.getElementById('fCat').value = ''; document.getElementById('conceptBox').innerHTML = '';
         }
-
         function renderChips(type) {
             const container = document.getElementById('chipBox'); container.innerHTML = '';
             const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
@@ -504,20 +561,15 @@
                 container.appendChild(chip);
             });
         }
-
-        /* NEW: LINK CHIPS */
         function renderLinkChips(selectedId){
             const container = document.getElementById('linkChipsContainer'); container.innerHTML = '';
             const y=currentDate.getFullYear(), m=currentDate.getMonth()+1;
             const incs = appData.txs.filter(t=>!t.deletedAt && t.type=='inc' && parseInt(t.date.split('-')[1])==m);
-            
             if(incs.length === 0) { container.innerHTML = '<span class="text-[10px] text-slate-400 italic">No hay ingresos este mes</span>'; return; }
-
             incs.forEach(i => {
                 const sp=appData.txs.filter(x=>!x.deletedAt && x.type=='exp' && x.linkId==i.id && x.id!=editId).reduce((a,b)=>a+b.amount,0);
                 const bal = i.amount - sp;
-                if(bal < 1 && i.id != selectedId) return; // Hide exhausted links
-
+                if(bal < 1 && i.id != selectedId) return; 
                 const chip = document.createElement('div');
                 chip.className = `link-chip text-[9px] px-2 py-1 rounded cursor-pointer select-none ${selectedId == i.id ? 'active' : ''}`;
                 chip.innerHTML = `<b>${i.desc}</b> <span class="opacity-70">($${fmt(bal)})</span>`;
@@ -528,14 +580,12 @@
                 };
                 container.appendChild(chip);
             });
-            // Option for Unassigned
             const none = document.createElement('div');
             none.className = `link-chip text-[9px] px-2 py-1 rounded cursor-pointer select-none ${!selectedId ? 'active' : ''}`;
             none.innerText = "Sin Asignar";
             none.onclick = () => { document.getElementById('fLink').value = ""; document.querySelectorAll('.link-chip').forEach(x => x.classList.remove('active')); none.classList.add('active'); };
             container.appendChild(none);
         }
-
         function calcConversion() {
             const amt = parseFloat(document.getElementById('fAmt').value) || 0;
             const curr = document.getElementById('fCurr').value;
@@ -547,20 +597,16 @@
             document.getElementById('convPreview').classList.toggle('hidden', curr === 'ARS');
             return final;
         }
-
         document.getElementById('txForm').onsubmit=e=>{
             e.preventDefault();
             let cat=document.getElementById('fCat').value;
             const type = document.getElementById('fType').value;
             if(!cat) return alert('Selecciona categoría');
             const desc=document.getElementById('fDesc').value;
-            
-            // Auto-learn Concept
             if(cat) {
                 if(!appData.concepts[cat]) appData.concepts[cat] = [];
                 if(!appData.concepts[cat].includes(desc)) appData.concepts[cat].push(desc);
             }
-
             const tx={
                 id:editId||Date.now(), date:document.getElementById('fDate').value,
                 amount: calcConversion(), origAmt: parseFloat(document.getElementById('fAmt').value), origCurr: document.getElementById('fCurr').value,
@@ -570,7 +616,6 @@
             if(editId){ const i=appData.txs.findIndex(x=>x.id==editId); appData.txs[i]=tx; } else appData.txs.push(tx);
             saveData(); closeModal();
         }
-
         function editTx(id){
             const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;
             document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');
@@ -579,7 +624,7 @@
             setType(t.type); 
             setTimeout(() => {
                 document.getElementById('fCat').value = t.cat;
-                renderChips(t.type); // Re-render to highlight correct active
+                renderChips(t.type); 
                 if(t.type === 'exp') { 
                     document.getElementById('fLink').value = t.linkId || ""; 
                     renderLinkChips(t.linkId);
@@ -589,37 +634,6 @@
             calcConversion();
             document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');
         }
-
-        /* NEW ADMIN TREE LOGIC */
-        function renderAdminTree() {
-            const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
-            
-            // Helper to build tree branch
-            const buildBranch = (title, type) => {
-                const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
-                let html = `<details open class="mb-2"><summary class="font-bold text-xs text-slate-700 bg-slate-100 p-1 rounded flex justify-between"><span>${title}</span> <button onclick="addCat('${type}')" class="text-primary font-extrabold">+</button></summary><div class="pl-2 pt-1 border-l border-slate-200 ml-1">`;
-                
-                cats.forEach(c => {
-                    const concepts = appData.concepts[c] || [];
-                    html += `<details class="mb-1"><summary class="text-[11px] text-slate-600 cursor-pointer hover:text-primary flex justify-between items-center group"><span>📁 ${c}</span> <button onclick="delCat('${type}','${c}')" class="text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 px-2">x</button></summary><div class="pl-4 flex flex-wrap gap-1 mt-1">`;
-                    concepts.forEach(con => {
-                        html += `<span class="text-[10px] bg-white border border-slate-200 px-1 rounded text-slate-500 flex items-center gap-1 group/chip">${con} <button onclick="delConcept('${c}','${con}')" class="text-red-300 hover:text-red-500 hidden group-hover/chip:block">×</button></span>`;
-                    });
-                    html += `</div></details>`;
-                });
-                html += `</div></details>`;
-                container.innerHTML += html;
-            };
-
-            buildBranch("Gastos", "exp");
-            buildBranch("Ingresos", "inc");
-        }
-
-        function addCat(type) { const n=prompt("Nombre Categoría:"); if(n){ if(type=='exp') appData.cats.exp.push(n); else appData.cats.inc.push(n); saveData(); } }
-        function delCat(type, name) { if(confirm(`Borrar ${name}?`)) { if(type=='exp') appData.cats.exp = appData.cats.exp.filter(x=>x!=name); else appData.cats.inc = appData.cats.inc.filter(x=>x!=name); saveData(); } }
-        function delConcept(cat, name) { if(confirm(`Borrar concepto ${name}?`)) { appData.concepts[cat] = appData.concepts[cat].filter(x=>x!=name); saveData(); } }
-
-        /* COMMON */
         function resetForm(){ document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null; }
         function delTx(){ if(confirm('Eliminar?')){ appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
         function updateKPIs(txs){ const tc=parseFloat(document.getElementById('headerRateDisplay').value)||1200; const i=txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0); const e=txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0); document.getElementById('k-inc').innerText='$'+fmt(i); document.getElementById('k-exp').innerText='$'+fmt(e); document.getElementById('k-bal').innerText='$'+fmt(i-e); document.getElementById('k-usd').innerText='USD '+fmt((i-e)/tc); }
@@ -627,14 +641,11 @@
         function manualDate(){ const[y,m]=document.getElementById('datePicker').value.split('-'); currentDate.setFullYear(y); currentDate.setMonth(m-1); updateDateUI(); loadMonthData(); }
         function updateDateUI(){ document.getElementById('monthTxt').innerText=`${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`; document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`; }
         function saveMonthlyRates() { const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; saveData(); updateKPIs(appData.txs); }
-        
-        // Recurrentes (Admin)
         function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-100 py-1'; d.innerHTML=`<input value="${r.desc}" onchange="appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded p-1"><input type="number" value="${r.amount}" onchange="appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded p-1 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="appData.recurrentes.splice(${i},1);renderRecurrentesAdmin()" class="text-red-500 font-bold px-2">x</button>`; b.appendChild(d);}); }
         function addRecurrenteRow() { appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
         function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
         function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS'}); c++; }}); if(c>0){saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
         function clearMonth(){ if(confirm('Borrar MES actual?')){ const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
-
         function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } }
     </script>
 </body>
