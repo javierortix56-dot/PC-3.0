@@ -3,13 +3,11 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>FinanceFlow OS | Javi</title>
+    <title>FinanceFlow PRO | Javi</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     
     <script>
@@ -17,20 +15,8 @@
             darkMode: "class",
             theme: {
                 extend: {
-                    colors: {
-                        "primary": "#0e757c",
-                        "primary-hover": "#0b5e63",
-                        "background-light": "#f0f2f2",
-                        "background-dark": "#112021",
-                        "surface": "#ffffff",
-                        "success": "#558055",
-                        "danger": "#b91c1c",
-                        "warning": "#D4A373"
-                    },
-                    fontFamily: {
-                        "display": ["Manrope", "sans-serif"],
-                        "body": ["Inter", "sans-serif"]
-                    }
+                    colors: { "primary": "#0e757c", "primary-dark": "#085055", "success": "#558055", "danger": "#b91c1c", "warning": "#D4A373" },
+                    fontFamily: { "display": ["Manrope", "sans-serif"], "body": ["Inter", "sans-serif"] }
                 }
             }
         }
@@ -38,333 +24,292 @@
     
     <style>
         body { font-family: 'Manrope', sans-serif; }
-        
-        /* Glass Sidebar */
-        .glass-sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            border-right: 1px solid #e2e8f0;
-        }
-        .dark .glass-sidebar {
-            background: rgba(17, 32, 33, 0.95);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* Scrollbars Finos */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
         .hidden-view { display: none !important; }
         .active-nav { background-color: rgba(14, 117, 124, 0.1); color: #0e757c; border-right: 3px solid #0e757c; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
-        
         .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
-        
-        /* Compact Mode Tweaks */
         .compact-row { padding-top: 0.35rem; padding-bottom: 0.35rem; }
     </style>
 </head>
 
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 h-screen flex overflow-hidden selection:bg-primary/20">
+<body class="bg-[#f0f2f2] text-slate-900 h-screen flex overflow-hidden selection:bg-primary/20">
 
-    <aside class="glass-sidebar w-16 hover:w-56 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-4 shadow-xl">
+    <aside class="w-16 hover:w-56 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-4 bg-white shadow-xl border-r border-slate-200">
         <div class="flex flex-col gap-6">
-            <div class="flex items-center justify-center h-10 px-2 group-hover:justify-start group-hover:px-4 transition-all">
+            <div class="flex items-center justify-center h-10 group-hover:justify-start group-hover:px-4 transition-all">
                 <div class="bg-primary size-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md">
                     <span class="material-symbols-outlined text-lg">account_balance_wallet</span>
                 </div>
-                <h1 class="font-bold text-base text-primary ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden delay-75">
-                    FinanceFlow
-                </h1>
+                <h1 class="font-bold text-base text-primary ml-3 opacity-0 group-hover:opacity-100 transition-opacity overflow-hidden whitespace-nowrap">FinanceFlow OS</h1>
             </div>
-
             <nav class="flex flex-col gap-1 px-2" id="main-nav">
                 <button onclick="nav('dashboard', this)" id="nav-dashboard" class="active-nav flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">dashboard</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Operaciones</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Operaciones</span>
                 </button>
-                <button onclick="nav('analytics', this)" id="nav-analytics" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
+                <button onclick="nav('analytics', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">query_stats</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Análisis</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Análisis 360</span>
                 </button>
-                <button onclick="nav('admin', this)" id="nav-admin" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
+                <button onclick="nav('admin', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">settings</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Ajustes</span>
-                </button>
-                <button onclick="forceSync()" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
-                    <span class="material-symbols-outlined text-xl shrink-0">sync</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Sincronizar</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ajustes</span>
                 </button>
             </nav>
         </div>
-
         <div class="px-2">
-            <button onclick="openModal()" class="flex items-center justify-center w-full h-10 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all mb-4 group-hover:justify-start group-hover:px-3">
+            <button onclick="openModal()" class="flex items-center justify-center w-full h-10 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all group-hover:justify-start group-hover:px-3 mb-4 overflow-hidden">
                 <span class="material-symbols-outlined text-xl">add</span>
-                <span class="ml-3 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Nuevo</span>
+                <span class="ml-3 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Nuevo</span>
             </button>
-            
-            <div class="flex items-center gap-3 pt-3 border-t border-slate-200 px-1 overflow-hidden">
-                <div class="size-8 rounded-full bg-slate-200 shrink-0">
-                    <img class="w-full h-full object-cover rounded-full" src="https://ui-avatars.com/api/?name=Javi&background=0e757c&color=fff" alt="User"/>
-                </div>
-                <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                    <p class="text-xs font-bold text-slate-700">Javi</p>
-                    <p class="text-[10px] text-slate-400">Finanzas Personales</p>
-                </div>
-            </div>
         </div>
     </aside>
 
-    <main class="flex-1 ml-16 p-4 lg:p-6 h-screen overflow-hidden relative flex flex-col">
+    <main class="flex-1 ml-16 p-4 lg:p-6 h-screen overflow-hidden flex flex-col relative">
         
         <header class="flex justify-between items-center mb-4 shrink-0">
             <div class="flex flex-col">
-                <h2 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white" id="pageTitle">Panel de Control</h2>
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Panel de Control</h2>
                 <div class="flex items-center gap-1 text-slate-500 relative cursor-pointer hover:text-primary transition-colors mt-0.5">
                     <button onclick="changeMonth(-1)" class="hover:bg-slate-200 rounded p-0.5"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
                     <div class="relative">
-                        <span class="text-xs font-bold uppercase tracking-wide flex items-center gap-1">
-                            <span id="monthTxt">CARGANDO...</span>
-                        </span>
+                        <span class="text-xs font-bold uppercase tracking-wide flex items-center gap-1"><span id="monthTxt">...</span></span>
                         <input type="month" id="datePicker" class="d-picker" onchange="manualDate()">
                     </div>
                     <button onclick="changeMonth(1)" class="hover:bg-slate-200 rounded p-0.5"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
                 </div>
             </div>
 
-            <div class="flex items-center bg-white dark:bg-background-dark border border-slate-200 rounded-lg shadow-sm h-9 overflow-hidden">
-                <div class="flex items-center gap-1.5 px-3 bg-slate-50 h-full border-r border-slate-100">
-                    <span class="material-symbols-outlined text-slate-400 text-sm">currency_exchange</span>
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">USD TC</p>
-                </div>
-                <div class="flex items-center pl-2 pr-1 h-full">
-                    <span class="text-xs font-bold text-slate-400 mr-1">$</span>
-                    <input type="number" id="usdRate" value="1200" onchange="updateTC()" class="w-14 bg-transparent text-sm font-bold text-slate-700 focus:outline-none focus:ring-0 border-none p-0">
-                </div>
+            <div class="flex items-center bg-white border border-slate-200 rounded-lg shadow-sm h-9 px-3 gap-2">
+                <span class="material-symbols-outlined text-slate-400 text-sm">public</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Base: ARS</span>
             </div>
         </header>
 
         <section class="grid grid-cols-4 gap-3 mb-4 shrink-0">
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
-                <p class="text-[10px] font-bold text-slate-400 uppercase">Balance Neto</p>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Balance (ARS)</p>
                 <h3 class="text-lg font-extrabold text-slate-800" id="k-bal">$0</h3>
             </div>
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                 <p class="text-[10px] font-bold text-slate-400 uppercase">Estimado USD</p>
                 <h3 class="text-lg font-extrabold text-primary" id="k-usd">$0</h3>
             </div>
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                 <p class="text-[10px] font-bold text-slate-400 uppercase">Ingresos</p>
                 <h3 class="text-lg font-extrabold text-success" id="k-inc">$0</h3>
             </div>
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                 <p class="text-[10px] font-bold text-slate-400 uppercase">Gastos</p>
                 <h3 class="text-lg font-extrabold text-danger" id="k-exp">$0</h3>
             </div>
         </section>
 
-        <div id="view-dashboard" class="view-container animate-fade-in grid grid-cols-1 xl:grid-cols-3 gap-4 flex-1 min-h-0">
-            
-            <section class="flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden h-full">
-                <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
-                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-success text-sm">arrow_circle_up</span> Ingresos
-                    </h4>
+        <div id="view-dashboard" class="view-container grid grid-cols-1 xl:grid-cols-3 gap-4 flex-1 min-h-0">
+            <section class="bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-full">
+                <div class="px-3 py-2 border-b bg-slate-50/50 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1"><span class="material-symbols-outlined text-sm text-success">arrow_upward</span>Ingresos</span>
                     <span class="bg-success/10 text-success text-[10px] font-bold px-1.5 rounded" id="c-inc">0</span>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1" id="list-inc">
-                    </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1" id="list-inc"></div>
             </section>
-
-            <section class="flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden h-full">
-                <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
-                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-danger text-sm">arrow_circle_down</span> Gastos
-                    </h4>
+            <section class="bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-full">
+                <div class="px-3 py-2 border-b bg-slate-50/50 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1"><span class="material-symbols-outlined text-sm text-danger">arrow_downward</span>Gastos</span>
                     <span class="bg-danger/10 text-danger text-[10px] font-bold px-1.5 rounded" id="c-exp">0</span>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1" id="list-exp">
-                    </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1" id="list-exp"></div>
             </section>
-
-            <section class="flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden h-full">
-                <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
-                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-primary text-sm">pie_chart</span> Asignación
-                    </h4>
+            <section class="bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-full">
+                <div class="px-3 py-2 border-b bg-slate-50/50 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1"><span class="material-symbols-outlined text-sm text-primary">pie_chart</span>Asignación</span>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 flex flex-col gap-2" id="list-alloc">
-                    </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2" id="list-alloc"></div>
             </section>
         </div>
 
-        <div id="view-analytics" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
-            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col h-[320px]">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-xs font-bold text-slate-600 uppercase">Gastos por Categoría</h3>
-                    <button onclick="resetCharts()" class="text-[10px] text-primary font-bold hover:underline">RESET</button>
-                </div>
-                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden">
-                    <div class="relative h-[180px] w-[180px] shrink-0">
-                        <canvas id="chartExp"></canvas>
+        <div id="view-analytics" class="view-container hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+            
+            <div class="flex flex-col gap-4 h-full">
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col flex-1 min-h-0">
+                    <div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-600 uppercase">Gastos por Categoría</h3></div>
+                    <div class="flex items-center gap-4 flex-1 overflow-hidden">
+                        <div class="relative h-[140px] w-[140px] shrink-0"><canvas id="chartExp"></canvas></div>
+                        <div class="flex-1 h-full overflow-y-auto custom-scrollbar" id="legExp"></div>
                     </div>
-                    <div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legExp"></div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col flex-1 min-h-0">
+                    <div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-600 uppercase">Financial Twin (Benchmarking)</h3></div>
+                    <div class="flex-1 relative flex justify-center">
+                        <canvas id="chartRadar"></canvas>
+                    </div>
+                    <p class="text-[9px] text-center text-slate-400 mt-1">Comparativa vs Perfil Ideal Ingeniero</p>
                 </div>
             </div>
 
-            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col h-[320px]">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-xs font-bold text-slate-600 uppercase">Ingresos por Concepto</h3>
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col h-full overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xs font-bold text-slate-600 uppercase flex items-center gap-2"><span class="material-symbols-outlined text-sm">savings</span> Portafolio Inversiones</h3>
+                    <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded">Total: $0 USD</span>
                 </div>
-                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden">
-                    <div class="relative h-[180px] w-[180px] shrink-0">
-                        <canvas id="chartInc"></canvas>
-                    </div>
-                    <div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legInc"></div>
+                <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-100 rounded-lg bg-slate-50/50">
+                    <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">hub</span>
+                    <p class="text-xs font-bold text-slate-500">Conectividad API</p>
+                    <p class="text-[10px] text-slate-400 max-w-[200px] mt-1">Aquí se visualizarán tus CEDEARs, Crypto y Bonos sincronizados en tiempo real.</p>
+                    <button class="mt-3 text-[10px] bg-white border border-slate-200 px-3 py-1 rounded shadow-sm hover:text-primary font-bold">Configurar API</button>
                 </div>
             </div>
         </div>
 
-        <div id="view-admin" class="view-container animate-fade-in hidden-view flex justify-center pt-10">
-            <div class="w-full max-w-sm bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-                <h3 class="text-base font-bold mb-4 text-slate-800">Gestión de Datos</h3>
-                
-                <div class="mb-4">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Importar mes anterior</label>
-                    <div class="flex gap-2">
-                        <input type="month" id="cloneSrc" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-primary">
-                        <button onclick="cloneMonth()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Copiar</button>
+        <div id="view-admin" class="view-container hidden-view grid grid-cols-2 gap-4 flex-1 min-h-0">
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xs font-bold text-slate-800 uppercase">Recurrentes</h3>
+                    <button onclick="loadRecurrentes()" class="bg-slate-800 text-white text-[10px] px-2 py-1 rounded font-bold">EJECUTAR</button>
+                </div>
+                <div class="flex-1 bg-slate-50 rounded-lg p-2 text-xs text-slate-500 overflow-y-auto">
+                    <div class="flex justify-between py-1 border-b border-slate-200"><span>Sueldo</span> <span class="font-bold">Inc</span></div>
+                    <div class="flex justify-between py-1 border-b border-slate-200"><span>Alquiler</span> <span class="font-bold">Exp</span></div>
+                    <div class="flex justify-between py-1 border-b border-slate-200"><span>Gym</span> <span class="font-bold">Exp</span></div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-fit">
+                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3">Tasas de Cambio (Base ARS)</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-500">USD Blue</span>
+                        <input type="number" id="rate-usd" value="1120" onchange="updateRates()" class="w-20 text-right text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-500">Euro</span>
+                        <input type="number" id="rate-eur" value="1210" onchange="updateRates()" class="w-20 text-right text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-500">COP (Col)</span>
+                        <input type="number" id="rate-cop" value="0.28" onchange="updateRates()" class="w-20 text-right text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-500">BRL (Real)</span>
+                        <input type="number" id="rate-brl" value="225" onchange="updateRates()" class="w-20 text-right text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1">
                     </div>
                 </div>
-
-                <div class="mb-4 pt-4 border-t border-slate-100">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Automatización</label>
-                    <button onclick="loadRecurrentes()" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm">
-                        <span class="material-symbols-outlined text-base">update</span>
-                        Cargar Gastos Fijos (Templates)
-                    </button>
-                    <p class="text-[9px] text-slate-400 mt-1 text-center">Carga sueldo, alquiler, gym, etc. como pendientes.</p>
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                    <button onclick="clearMonth()" class="w-full text-red-500 text-[10px] font-bold hover:bg-red-50 py-1 rounded">RESET MES ACTUAL</button>
                 </div>
-
-                <div class="h-px bg-slate-100 my-4"></div>
-                <button onclick="clearMonth()" class="w-full border border-red-200 text-red-500 hover:bg-red-50 py-2 rounded-lg text-xs font-bold transition-colors uppercase">
-                    Eliminar datos del mes actual
-                </button>
             </div>
         </div>
 
     </main>
 
-    <button onclick="openModal()" class="fixed bottom-6 right-6 size-12 bg-slate-800 text-white rounded-full shadow-lg shadow-slate-400/50 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
-        <span class="material-symbols-outlined text-2xl">add</span>
+    <button onclick="openModal()" class="fixed bottom-6 right-6 size-12 bg-slate-900 text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+        <span class="material-symbols-outlined">add</span>
     </button>
 
     <div id="modalOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onclick="closeModal()"></div>
-        <div class="relative z-10 w-full max-w-[420px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-fade-in mx-4 max-h-[90vh]">
-            <div class="flex items-center justify-between px-5 pt-4 pb-2 shrink-0">
-                <h1 class="text-lg font-bold text-slate-800" id="mTitle">Nuevo Movimiento</h1>
-                <button onclick="closeModal()" class="size-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]" onclick="closeModal()"></div>
+        <div class="relative z-10 w-full max-w-[400px] bg-white rounded-2xl shadow-2xl flex flex-col animate-fade-in mx-4 overflow-hidden">
+            <div class="px-5 pt-4 pb-2 flex justify-between items-center border-b border-slate-100">
+                <h1 class="text-base font-bold text-slate-800" id="mTitle">Nuevo Movimiento</h1>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined">close</span></button>
             </div>
             
-            <form id="txForm" class="p-5 overflow-y-auto custom-scrollbar flex-1">
-                <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-lg mb-4">
-                    <button type="button" id="btnExp" onclick="setType('exp')" class="flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold text-slate-500 transition-all">Gasto</button>
-                    <button type="button" id="btnInc" onclick="setType('inc')" class="flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold text-slate-500 transition-all">Ingreso</button>
+            <form id="txForm" class="p-5 flex flex-col gap-4">
+                <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-lg">
+                    <button type="button" id="btnExp" onclick="setType('exp')" class="py-1.5 text-xs font-bold rounded transition-all">Gasto</button>
+                    <button type="button" id="btnInc" onclick="setType('inc')" class="py-1.5 text-xs font-bold rounded transition-all">Ingreso</button>
                 </div>
                 <input type="hidden" id="fType" value="exp">
 
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Monto</label>
-                        <div class="relative flex items-center">
-                            <span class="absolute left-3 text-slate-400 font-light text-lg">$</span>
-                            <input type="number" id="fAmt" step="0.01" class="w-full pl-6 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-lg font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-right" placeholder="0" required>
-                        </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Monto Original</label>
+                        <input type="number" id="fAmt" step="0.01" class="w-full pl-3 pr-2 py-2 bg-slate-50 border-slate-200 rounded-lg text-lg font-bold focus:ring-primary" placeholder="0" required oninput="calcConversion()">
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Moneda</label>
+                        <select id="fCurr" onchange="calcConversion()" class="w-full py-2 bg-slate-50 border-slate-200 rounded-lg text-xs font-bold">
+                            <option value="ARS">ARS</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="COP">COP</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="convPreview" class="hidden bg-blue-50 text-blue-800 px-3 py-1.5 rounded text-[10px] font-medium flex justify-between items-center">
+                    <span>Conversión estimada:</span>
+                    <span class="font-bold text-xs" id="convResult">$0 ARS</span>
+                </div>
+                <input type="hidden" id="fRateUsed" value="1">
+
+                <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Fecha</label>
-                        <input type="date" id="fDate" class="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-primary" required>
+                        <input type="date" id="fDate" class="w-full py-2 bg-white border-slate-200 rounded-lg text-xs" required>
+                    </div>
+                    <div id="catRow">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Categoría</label>
+                        <select id="fCatSel" class="w-full py-2 bg-white border-slate-200 rounded-lg text-xs font-medium"></select>
                     </div>
                 </div>
 
-                <div class="mb-3" id="catRow">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Categoría</label>
-                    <div class="flex flex-wrap gap-1.5" id="chipBox"></div>
-                    <input type="hidden" id="fCat">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Concepto</label>
+                    <input type="text" id="fDesc" class="w-full py-2 bg-slate-50 border-slate-200 rounded-lg text-xs font-medium" placeholder="Detalle..." required>
+                </div>
+                
+                <div id="linkRow">
+                    <label class="block text-[10px] font-bold text-primary uppercase mb-1">Fuente</label>
+                    <select id="fLink" class="w-full py-2 bg-white border-slate-200 rounded-lg text-xs"></select>
                 </div>
 
-                <div class="mb-3">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1" id="lblDesc">Concepto</label>
-                    <div class="flex flex-wrap gap-1.5 mb-2" id="conceptBox"></div>
-                    <input type="text" id="fDesc" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary placeholder:text-slate-400" placeholder="Escribe o selecciona..." required>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="fExec" class="text-primary rounded focus:ring-primary">
+                    <label for="fExec" class="text-xs font-bold text-slate-600">Ejecutado</label>
                 </div>
 
-                <div class="mb-4" id="linkRow">
-                    <label class="block text-[10px] font-bold text-primary uppercase mb-1">Pagar con (Fuente)</label>
-                    <div class="relative">
-                        <select id="fLink" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary appearance-none text-slate-600 font-medium"></select>
-                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">expand_more</span>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2 mb-5 p-2 border border-slate-100 rounded-lg bg-slate-50">
-                    <input type="checkbox" id="fExec" class="size-4 text-primary rounded border-slate-300 focus:ring-primary">
-                    <label for="fExec" class="text-xs font-bold text-slate-600 select-none cursor-pointer">Marcar como ejecutado</label>
-                </div>
-
-                <div class="flex flex-col gap-2">
-                    <button type="submit" class="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shadow-md active:scale-95 transition-all">GUARDAR</button>
-                    <button type="button" id="btnDel" onclick="delTx()" class="text-[10px] text-red-500 font-bold hover:underline self-center hidden py-1">Eliminar Registro</button>
-                    
-                    <div id="cloneArea" class="hidden mt-2 pt-3 border-t border-dashed border-slate-200 flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Clonar a:</span>
-                        <div class="flex gap-2">
-                            <input type="month" id="fCloneMonth" class="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[10px]">
-                            <button type="button" onclick="doClone()" class="bg-slate-200 text-slate-600 px-3 py-1 rounded text-[10px] font-bold hover:bg-slate-300">OK</button>
-                        </div>
-                    </div>
-                </div>
+                <button type="submit" class="w-full py-3 bg-slate-900 text-white rounded-lg text-xs font-bold shadow-md hover:bg-slate-800">GUARDAR</button>
             </form>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN: RECURRENTES (Ajusta los valores)
+        // --- CONFIG ---
         const RECURRENTES = [
             { desc: 'Sueldo Famiq', amount: 2500000, type: 'inc', cat: 'Ingresos' },
             { desc: 'Alquiler', amount: 450000, type: 'exp', cat: 'Esenciales' },
             { desc: 'Gimnasio', amount: 45000, type: 'exp', cat: 'Personal' },
-            { desc: 'Internet', amount: 35000, type: 'exp', cat: 'Esenciales' },
-            { desc: 'Spotify/Netflix', amount: 15000, type: 'exp', cat: 'Personal' },
             { desc: 'Inversión', amount: 500000, type: 'exp', cat: 'Ahorro' }
         ];
-
-        // NO OLVIDES PONER TU URL AQUI ABAJO
-        const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec"; 
         
-        const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-        const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
+        // TASAS DE CAMBIO POR DEFECTO (Se pueden editar en UI)
+        let RATES = { ARS: 1, USD: 1120, EUR: 1210, COP: 0.28, BRL: 225 }; 
 
-        let appData = { txs: [], cats: { exp:['Esenciales','Deudas','Personal','Ahorro'], inc:[] }, concepts: {'Esenciales': ['Luz','Gas','Internet','Alquiler'], 'Deudas': ['Visa','Master'], 'Ingresos': ['Sueldo','Venta']}, rates: {} };
+        const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec";
+        const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b'];
+        
+        let appData = { txs: [], cats: { exp:['Esenciales','Deudas','Personal','Ahorro'], inc:['Sueldo','Venta','Otros'] }, concepts: {}, rates: {} };
         let currentDate = new Date(); currentDate.setDate(1);
-        let editId=null, cExp=null, cInc=null, drillCat=null;
+        let editId=null, cExp=null, cInc=null, cRadar=null;
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-        window.onload = () => { updateDateUI(); forceSync(); };
+        window.onload = () => { 
+            updateDateUI(); 
+            forceSync(); 
+            // Init Chart Defaults
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.font.size = 10;
+        };
 
+        // --- CORE LOGIC ---
         async function forceSync() {
             try { 
-                const r = await fetch(API_URL); 
-                appData = await r.json(); 
+                const r = await fetch(API_URL); appData = await r.json(); 
                 if(!appData.rates) appData.rates={}; 
-                if(!appData.concepts) appData.concepts={}; 
                 loadMonthData(); 
             } catch(e){ console.error(e); }
         }
@@ -373,52 +318,61 @@
             try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); loadMonthData(); } catch(e){ alert('Error guardando'); }
         }
 
+        function updateRates() {
+            // Actualizar tasas desde los inputs de Admin
+            RATES.USD = parseFloat(document.getElementById('rate-usd').value);
+            RATES.EUR = parseFloat(document.getElementById('rate-eur').value);
+            RATES.COP = parseFloat(document.getElementById('rate-cop').value);
+            RATES.BRL = parseFloat(document.getElementById('rate-brl').value);
+            alert("Tasas actualizadas para nuevas conversiones.");
+        }
+
         function loadMonthData() {
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
-            document.getElementById('usdRate').value = appData.rates[`${y}-${m.toString().padStart(2,'0')}`] || 1200;
             const txs = appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
             txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
             renderLists(txs); renderCharts(txs); updateKPIs(txs);
         }
 
+        // --- RENDER UI ---
         function renderLists(txs) {
             const lI=document.getElementById('list-inc'), lE=document.getElementById('list-exp'), lA=document.getElementById('list-alloc');
             lI.innerHTML=''; lE.innerHTML=''; lA.innerHTML=''; let rb=0;
 
             txs.forEach(t => {
                 if(t.type=='inc') rb+=t.amount; else rb-=t.amount;
-                let linkText = '';
-                if(t.type=='exp' && t.linkId) {
-                    const source = appData.txs.find(x => x.id == t.linkId);
-                    if(source) linkText = `<span class="flex items-center gap-0.5 bg-slate-100 text-[9px] px-1 rounded text-slate-500"><span class="material-symbols-outlined text-[9px]">link</span>${source.desc.substring(0,8)}..</span>`;
+                
+                // Badge de Moneda Original (Si no es ARS)
+                let currBadge = '';
+                if(t.origCurr && t.origCurr !== 'ARS') {
+                    currBadge = `<span class="bg-blue-100 text-blue-700 text-[9px] px-1 rounded font-bold ml-1">${t.origAmt} ${t.origCurr}</span>`;
                 }
 
                 const el = document.createElement('div');
                 const styles = t.exec ? "opacity-50 grayscale" : "";
-                const strike = t.exec ? "line-through decoration-slate-400 decoration-2" : "";
+                const strike = t.exec ? "line-through decoration-slate-400" : "";
                 
-                el.className = `compact-row group flex items-center justify-between px-2 hover:bg-slate-50 transition-colors cursor-pointer border-b border-dashed border-slate-100 last:border-0 ${styles}`;
+                el.className = `compact-row flex items-center justify-between px-2 hover:bg-slate-50 cursor-pointer border-b border-dashed border-slate-100 last:border-0 ${styles}`;
                 el.onclick = () => editTx(t.id);
                 
-                const iconColor = t.type=='inc' ? 'text-success' : 'text-danger';
-
                 el.innerHTML = `
                     <div class="flex items-center gap-2 overflow-hidden">
                         <div class="size-6 rounded bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                            <span class="material-symbols-outlined text-sm ${iconColor}">circle</span>
+                            <span class="material-symbols-outlined text-xs ${t.type=='inc'?'text-success':'text-danger'}">circle</span>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-xs font-bold text-slate-700 truncate leading-tight ${strike}">${t.desc}</p>
+                            <div class="flex items-center">
+                                <p class="text-xs font-bold text-slate-700 truncate leading-tight ${strike}">${t.desc}</p>
+                                ${currBadge}
+                            </div>
                             <div class="flex items-center gap-2 mt-0.5">
-                                <span class="text-[10px] text-slate-400 bg-slate-50 px-1 rounded">${t.cat || 'Gral'}</span>
-                                <span class="text-[10px] text-slate-400">${t.date.split('-')[2]}</span>
-                                ${linkText}
+                                <span class="text-[9px] text-slate-400 bg-slate-50 px-1 rounded">${t.cat}</span>
+                                <span class="text-[9px] text-slate-400">${t.date.split('-')[2]}</span>
                             </div>
                         </div>
                     </div>
                     <div class="text-right shrink-0 ml-2">
                         <p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ${strike}">$${fmt(t.amount)}</p>
-                        ${t.type=='exp'?`<p class="text-[9px] font-bold ${rb>=0?'text-success/70':'text-danger/70'}">Q:$${fmt(rb)}</p>`:''}
                     </div>
                 `;
                 (t.type=='inc'?lI:lE).appendChild(el);
@@ -427,7 +381,7 @@
             document.getElementById('c-inc').innerText = txs.filter(t=>t.type=='inc').length;
             document.getElementById('c-exp').innerText = txs.filter(t=>t.type=='exp').length;
 
-            /* ASIGNACIÓN LOGIC */
+            // Allocation Logic
             const incs = txs.filter(t=>t.type=='inc');
             if(!incs.length) lA.innerHTML = '<div class="text-center text-slate-400 text-[10px] py-4">Sin datos</div>';
             
@@ -435,254 +389,186 @@
                 const subs = txs.filter(t=>t.type=='exp' && t.linkId==inc.id);
                 const spent = subs.reduce((a,b)=>a+b.amount,0);
                 const pct = Math.min(100, (spent/inc.amount)*100);
-                
-                let barColor = 'bg-primary';
-                if(pct > 90) barColor = 'bg-warning';
-                if(spent > inc.amount) barColor = 'bg-danger';
+                let barColor = pct > 90 ? (spent > inc.amount ? 'bg-danger' : 'bg-warning') : 'bg-primary';
 
                 let rows = '';
-                if (subs.length > 0) {
-                    subs.forEach(s => {
-                        rows += `
-                        <div class="flex justify-between py-1 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})">
-                            <span class="truncate pr-2">${s.desc}</span>
-                            <span class="font-bold shrink-0">$${fmt(s.amount)}</span>
-                        </div>`;
-                    });
-                } else {
-                    rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>';
-                }
+                subs.forEach(s => {
+                    rows += `<div class="flex justify-between py-1 text-[10px] border-b border-dashed border-slate-100 text-slate-500"><span class="truncate">${s.desc}</span><span>$${fmt(s.amount)}</span></div>`;
+                });
 
                 const card = document.createElement('div');
                 card.innerHTML = `
                     <div class="rounded-lg border border-slate-100 bg-white mb-1 shadow-sm overflow-hidden">
-                        <div class="p-2 bg-slate-50/30 flex justify-between items-center cursor-pointer hover:bg-slate-50" onclick="this.parentElement.querySelector('.alloc-details').classList.toggle('hidden')">
-                            <div>
-                                <p class="text-xs font-bold text-slate-700 ${inc.exec ? 'line-through opacity-60' : ''}">${inc.desc}</p>
-                                <p class="text-[10px] text-slate-400 font-medium mt-0.5">Usado: $${fmt(spent)} de $${fmt(inc.amount)}</p>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-[10px] font-bold text-slate-600">${Math.round(pct)}%</span>
-                            </div>
+                        <div class="p-2 bg-slate-50/30 flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.nextElementSibling.classList.toggle('hidden')">
+                            <div><p class="text-xs font-bold text-slate-700">${inc.desc}</p><p class="text-[9px] text-slate-400">$${fmt(spent)} / $${fmt(inc.amount)}</p></div>
+                            <span class="text-[9px] font-bold text-slate-600">${Math.round(pct)}%</span>
                         </div>
-                        <div class="w-full h-1.5 bg-slate-100">
-                            <div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%;"></div>
-                        </div>
-                        <div class="alloc-details hidden bg-white py-1">
-                            ${rows}
-                        </div>
-                    </div>
-                `;
+                        <div class="w-full h-1 bg-slate-100"><div class="h-full ${barColor}" style="width: ${pct}%;"></div></div>
+                        <div class="hidden bg-white p-2">${rows || '<span class="text-[9px] italic">Sin gastos</span>'}</div>
+                    </div>`;
                 lA.appendChild(card);
             });
         }
 
+        // --- CHARTS (Including Financial Twin) ---
         function renderCharts(txs) {
-            renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', true, cExp, i=>cExp=i);
-            renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), txs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
+            renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', cExp, i=>cExp=i);
+            
+            // Financial Twin (Feature 10)
+            if(cRadar) cRadar.destroy();
+            
+            // Calculos simples para el radar
+            const totalInc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0) || 1;
+            const savings = txs.filter(t=>t.cat=='Ahorro').reduce((a,b)=>a+b.amount,0);
+            const fixed = txs.filter(t=>t.cat=='Esenciales').reduce((a,b)=>a+b.amount,0);
+            
+            const savRate = Math.min(100, Math.round((savings/totalInc)*100));
+            const fixRate = Math.min(100, Math.round((fixed/totalInc)*100));
+            
+            const ctxR = document.getElementById('chartRadar');
+            cRadar = new Chart(ctxR, {
+                type: 'radar',
+                data: {
+                    labels: ['Ahorro %', 'Fijos %', 'Ocio %', 'Inversión %', 'Ejecución %'],
+                    datasets: [{
+                        label: 'Tú',
+                        data: [savRate, fixRate, 100-(savRate+fixRate), savRate/2, 85], // Datos reales aproximados
+                        fill: true,
+                        backgroundColor: 'rgba(14, 117, 124, 0.2)',
+                        borderColor: '#0e757c',
+                        pointBackgroundColor: '#0e757c'
+                    }, {
+                        label: 'Ing. Ideal',
+                        data: [30, 50, 20, 20, 100], // Benchmark
+                        fill: true,
+                        backgroundColor: 'rgba(200, 200, 200, 0.2)',
+                        borderColor: '#cbd5e1',
+                        pointBackgroundColor: '#cbd5e1',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    scales: { r: { suggesteMin: 0, suggesteMax: 100, ticks: { display: false } } },
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } }
+                }
+            });
         }
 
-        function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
+        function renderDoughnut(cvs, leg, data, key, inst, setInst) {
             if(inst) inst.destroy();
-            let map={};
-            if(drill && drillCat) data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount);
-            else data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; });
-            const ent = Object.entries(map).sort((a,b)=>b[1]-a[1]);
-            const tot = ent.reduce((a,b)=>a+b[1],0);
-            
+            let map={}; data.forEach(t=>{const k=t[key]||'Gral'; map[k]=(map[k]||0)+t.amount;});
+            const ent=Object.entries(map).sort((a,b)=>b[1]-a[1]);
+            const tot=ent.reduce((a,b)=>a+b[1],0);
             setInst(new Chart(cvs, {
                 type:'doughnut', 
-                data:{ labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:2}] },
-                options:{ 
-                    responsive:true, maintainAspectRatio:false, cutout:'70%', 
-                    plugins:{legend:{display:false}, tooltip:{callbacks:{label: c=>` $${fmt(c.raw)}`}}}, 
-                    onClick:(e,el)=>{if(drill&&!drillCat&&el.length){drillCat=ent[el[0].index][0]; loadMonthData();}} 
-                }
+                data:{labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:2}]},
+                options:{responsive:true, maintainAspectRatio:false, cutout:'75%', plugins:{legend:{display:false}}}
             }));
-
-            leg.innerHTML = '';
-            ent.forEach((e,i) => {
-                const pct = Math.round((e[1]/tot)*100);
-                leg.innerHTML += `
-                    <div class="flex items-center justify-between text-[10px] py-1.5 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}">
-                        <div class="flex items-center gap-1.5 min-w-0">
-                            <span class="size-2 rounded-full shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span>
-                            <span class="text-slate-600 font-medium truncate">${e[0]}</span>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="text-slate-400">${pct}%</span>
-                            <span class="font-bold text-slate-800">$${fmt(e[1])}</span>
-                        </div>
-                    </div>`;
+            leg.innerHTML='';
+            ent.forEach((e,i)=>{
+                leg.innerHTML+=`<div class="flex justify-between py-1 border-b border-dashed border-slate-100 text-[10px]"><div class="flex items-center gap-1"><span class="size-2 rounded-full" style="background:${PALETTE[i%PALETTE.length]}"></span><span>${e[0]}</span></div><span class="font-bold">$${fmt(e[1])}</span></div>`;
             });
         }
-        
-        function resetCharts() { drillCat=null; loadMonthData(); }
 
-        /* FORM & LOGIC */
-        function openModal(){ editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); }
-        function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
-        
-        function renderConcepts(catKey) {
-            const box = document.getElementById('conceptBox');
-            box.innerHTML = '';
-            const list = appData.concepts[catKey] || [];
-            list.forEach(c => {
-                const el = document.createElement('div');
-                el.className = 'px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-[10px] font-medium text-slate-500 cursor-pointer hover:border-primary hover:text-primary transition-colors concept-chip';
-                el.innerText = c;
-                el.onclick = () => {
-                    document.getElementById('fDesc').value = c;
-                    document.querySelectorAll('.concept-chip').forEach(x => { x.classList.remove('bg-primary','text-white','border-primary'); x.classList.add('bg-slate-50','text-slate-500');});
-                    el.classList.remove('bg-slate-50','text-slate-500');
-                    el.classList.add('bg-primary','text-white','border-primary');
-                };
-                box.appendChild(el);
-            });
+        // --- FORM MULTIMONEDA ---
+        function calcConversion() {
+            const amt = parseFloat(document.getElementById('fAmt').value) || 0;
+            const curr = document.getElementById('fCurr').value;
+            const rate = RATES[curr] || 1;
+            
+            const final = amt * rate;
+            document.getElementById('convResult').innerText = `$${fmt(final)} ARS`;
+            document.getElementById('fRateUsed').value = rate;
+            
+            const prev = document.getElementById('convPreview');
+            if(curr !== 'ARS' && amt > 0) prev.classList.remove('hidden'); else prev.classList.add('hidden');
         }
 
         function setType(t){
             document.getElementById('fType').value=t;
-            const btnExp = document.getElementById('btnExp');
-            const btnInc = document.getElementById('btnInc');
-            
-            if(t === 'exp') {
-                btnExp.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all bg-white text-rose-600 shadow-sm";
-                btnInc.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
-                document.getElementById('catRow').classList.remove('hidden');
-                document.getElementById('linkRow').classList.remove('hidden');
-                const box = document.getElementById('chipBox'); box.innerHTML = '';
-                (appData.cats.exp || []).forEach(c=>{
-                    const el=document.createElement('div'); 
-                    el.className='px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-500 cursor-pointer hover:border-slate-400 cat-chip'; 
-                    el.innerText=c;
-                    el.onclick=()=>{ selectCat(c, el); renderConcepts(c); }; 
-                    box.appendChild(el);
-                });
-                renderLinkOpts();
-                document.getElementById('lblDesc').innerText = "Concepto";
-                document.getElementById('fCat').value = '';
-                document.getElementById('conceptBox').innerHTML = ''; 
+            const e=document.getElementById('btnExp'), i=document.getElementById('btnInc');
+            if(t=='exp'){
+                e.className="py-1.5 px-4 text-xs font-bold rounded bg-white text-danger shadow-sm transition-all";
+                i.className="py-1.5 px-4 text-xs font-bold rounded text-slate-400 hover:text-slate-600 transition-all";
+                document.getElementById('catRow').classList.remove('hidden'); document.getElementById('linkRow').classList.remove('hidden');
+                fillSelect('fCatSel', appData.cats.exp); fillLinkOpts();
             } else {
-                btnInc.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm";
-                btnExp.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
-                document.getElementById('catRow').classList.add('hidden');
-                document.getElementById('linkRow').classList.add('hidden');
-                document.getElementById('fCat').value = 'Ingresos'; 
-                document.getElementById('lblDesc').innerText = "Fuente";
-                renderConcepts('Ingresos'); 
+                i.className="py-1.5 px-4 text-xs font-bold rounded bg-white text-success shadow-sm transition-all";
+                e.className="py-1.5 px-4 text-xs font-bold rounded text-slate-400 hover:text-slate-600 transition-all";
+                document.getElementById('catRow').classList.add('hidden'); document.getElementById('linkRow').classList.add('hidden');
             }
         }
-
-        function selectCat(c, el){ 
-            document.getElementById('fCat').value=c; 
-            document.querySelectorAll('.cat-chip').forEach(x => { x.classList.remove('bg-slate-700','text-white'); x.classList.add('bg-white','text-slate-500'); }); 
-            if(el) { el.classList.remove('bg-white','text-slate-500'); el.classList.add('bg-slate-700','text-white'); }
-        }
-
-        function renderLinkOpts(sel){
+        
+        function fillSelect(id, arr){ const s=document.getElementById(id); s.innerHTML=''; arr.forEach(x=>s.add(new Option(x,x))); }
+        function fillLinkOpts(){
             const s=document.getElementById('fLink'); s.innerHTML='<option value="">-- Sin Asignar --</option>';
             const y=currentDate.getFullYear(), m=currentDate.getMonth()+1;
-            appData.txs.filter(t=>!t.deletedAt && t.type=='inc' && parseInt(t.date.split('-')[1])==m).forEach(i=>{
-                const sp=appData.txs.filter(x=>!x.deletedAt && x.type=='exp' && x.linkId==i.id && x.id!=editId).reduce((a,b)=>a+b.amount,0);
-                s.add(new Option(`${i.desc} (Disp: $${fmt(i.amount-sp)})`, i.id));
+            appData.txs.filter(t=>t.type=='inc' && parseInt(t.date.split('-')[1])==m).forEach(i=>{
+                const sp=appData.txs.filter(x=>x.linkId==i.id).reduce((a,b)=>a+b.amount,0);
+                s.add(new Option(`${i.desc} ($${fmt(i.amount-sp)})`, i.id));
             });
-            if(sel)s.value=sel;
         }
 
-        /* NUEVA FUNCIÓN: CARGA RECURRENTES */
-        function loadRecurrentes() {
-            const y = currentDate.getFullYear();
-            const m = currentDate.getMonth() + 1;
-            const targetDate = `${y}-${m.toString().padStart(2, '0')}-01`;
-            let count = 0;
-
-            RECURRENTES.forEach(rec => {
-                const exists = appData.txs.some(t => !t.deletedAt && t.desc === rec.desc && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
-                if (!exists) {
-                    appData.txs.push({
-                        id: Date.now() + Math.random(),
-                        date: targetDate, amount: rec.amount, type: rec.type, cat: rec.cat, desc: rec.desc,
-                        exec: false, linkId: null, deletedAt: null
-                    });
-                    count++;
-                }
-            });
-
-            if (count > 0) { saveData(); alert(`✅ Cargados ${count} movimientos.`); } 
-            else { alert('ℹ️ Ya estaban cargados.'); }
+        function openModal(){ resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); }
+        function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
+        
+        function resetForm(){ 
+            document.getElementById('txForm').reset(); 
+            document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; 
+            document.getElementById('convPreview').classList.add('hidden');
         }
 
         document.getElementById('txForm').onsubmit=e=>{
             e.preventDefault();
-            let cat=document.getElementById('fCat').value;
             const type = document.getElementById('fType').value;
-            if(type === 'exp' && !cat) return alert('Categoría?');
-            const desc=document.getElementById('fDesc').value;
+            const origAmt = parseFloat(document.getElementById('fAmt').value);
+            const curr = document.getElementById('fCurr').value;
+            const rate = parseFloat(document.getElementById('fRateUsed').value);
+            
+            // Normalización a ARS
+            const finalAmt = origAmt * rate;
+            
             const tx={
-                id:editId||Date.now(), date:document.getElementById('fDate').value,
-                amount:parseFloat(document.getElementById('fAmt').value), type,
-                cat, desc, exec:document.getElementById('fExec').checked,
-                linkId:type=='exp'?document.getElementById('fLink').value:null, deletedAt:null
+                id: Date.now(), 
+                date: document.getElementById('fDate').value,
+                amount: finalAmt, // Se guarda en ARS para consistencia
+                origAmt: origAmt, // Se guarda original para referencia
+                origCurr: curr,
+                rate: rate,
+                type, 
+                cat: type=='exp'?document.getElementById('fCatSel').value:null, 
+                desc: document.getElementById('fDesc').value, 
+                exec: document.getElementById('fExec').checked,
+                linkId: type=='exp'?document.getElementById('fLink').value:null, 
+                deletedAt: null
             };
-            const storeKey = type === 'inc' ? 'Ingresos' : cat;
-            if(!appData.concepts[storeKey]) appData.concepts[storeKey] = [];
-            if(!appData.concepts[storeKey].includes(desc)) appData.concepts[storeKey].push(desc);
-            if(editId){ const i=appData.txs.findIndex(x=>x.id==editId); appData.txs[i]=tx; } else appData.txs.push(tx);
-            saveData(); closeModal();
+            appData.txs.push(tx); saveData(); closeModal();
         }
 
-        function editTx(id){
-            const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;
-            document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');
-            document.getElementById('fAmt').value=t.amount; document.getElementById('fDate').value=t.date; 
-            document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;
-            document.getElementById('cloneArea').classList.remove('hidden');
-            const d = new Date(t.date); d.setMonth(d.getMonth() + 1);
-            document.getElementById('fCloneMonth').value = d.toISOString().slice(0, 7);
-            setType(t.type); 
-            if(t.type === 'exp') { 
-                setTimeout(() => {
-                    const cs=document.querySelectorAll('.cat-chip'); for(let c of cs) { if(c.innerText==t.cat) { c.click(); break; } }
-                    renderLinkOpts(t.linkId); 
-                }, 10);
-            } 
-            setTimeout(() => {
-                 const scs=document.querySelectorAll('.concept-chip'); for(let sc of scs) if(sc.innerText==t.desc) sc.classList.add('bg-primary','text-white','border-primary');
-            }, 100);
-            document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');
-        }
-
-        function doClone(){
-            const m = document.getElementById('fCloneMonth').value;
-            if(!m) return alert('Mes?');
-            const t = appData.txs.find(x=>x.id==editId);
-            if(!confirm(`Duplicar?`)) return;
-            const parts = t.date.split('-'); const newDate = `${m}-${parts[2]}`;
-            appData.txs.push({ ...t, id: Date.now(), date: newDate, exec: false, linkId: null });
-            saveData(); closeModal();
-        }
-
-        function resetForm(){ 
-            document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; 
-            document.getElementById('btnDel').classList.add('hidden'); document.getElementById('cloneArea').classList.add('hidden');
-            document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; 
-        }
-        function delTx(){ if(confirm('Eliminar?')){ appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
-        function clearMonth(){ if(confirm('Borrar MES actual?')){ const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
-        function cloneMonth(){ const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); appData.txs.push(...n); saveData(); }
-        
         function updateKPIs(txs){
-            const tc=parseFloat(document.getElementById('usdRate').value)||1200;
             const i=txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
             const e=txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
             document.getElementById('k-inc').innerText='$'+fmt(i); document.getElementById('k-exp').innerText='$'+fmt(e);
-            document.getElementById('k-bal').innerText='$'+fmt(i-e); document.getElementById('k-usd').innerText='USD '+fmt((i-e)/tc);
+            document.getElementById('k-bal').innerText='$'+fmt(i-e); 
+            // Estimado USD (Blue)
+            document.getElementById('k-usd').innerText='USD '+fmt((i-e)/1120);
         }
+
+        function loadRecurrentes() {
+            const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
+            const d = `${y}-${m.toString().padStart(2,'0')}-01`;
+            let c=0;
+            RECURRENTES.forEach(r => {
+                if(!appData.txs.some(t=>t.desc==r.desc && t.date.startsWith(`${y}-${m.toString().padStart(2,'0')}`))){
+                    appData.txs.push({...r, id:Date.now()+Math.random(), date:d, exec:false, linkId:null, deletedAt:null}); c++;
+                }
+            });
+            if(c>0){saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados');
+        }
+        
         function changeMonth(d){ currentDate.setMonth(currentDate.getMonth()+d); updateDateUI(); loadMonthData(); }
         function manualDate(){ const[y,m]=document.getElementById('datePicker').value.split('-'); currentDate.setFullYear(y); currentDate.setMonth(m-1); updateDateUI(); loadMonthData(); }
-        function updateDateUI(){ document.getElementById('monthTxt').innerText=`${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`; document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`; }
-        function updateTC() { appData.rates[`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`]=document.getElementById('usdRate').value; saveData(); }
+        function updateDateUI(){ document.getElementById('monthTxt').innerText=`${['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][currentDate.getMonth()]} ${currentDate.getFullYear()}`; document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`; }
         
         function nav(v, el){ 
             document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); 
