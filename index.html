@@ -204,11 +204,11 @@
                     <div class="flex gap-2 mb-2">
                         <div class="flex-1 flex justify-between items-center p-2 border border-slate-100 rounded">
                             <span class="text-[10px] font-bold text-slate-600">ARS</span>
-                            <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="w-16 text-right text-xs border-slate-200 rounded font-bold">
+                            <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="w-24 text-right text-xs border-slate-200 rounded font-bold px-1">
                         </div>
                         <div class="flex-1 flex justify-between items-center p-2 border border-slate-100 rounded">
                             <span class="text-[10px] font-bold text-slate-600">COP</span>
-                            <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="w-16 text-right text-xs border-slate-200 rounded font-bold">
+                            <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="w-24 text-right text-xs border-slate-200 rounded font-bold px-1">
                         </div>
                     </div>
                 </div>
@@ -321,7 +321,9 @@
     </div>
 
     <script>
-        const API_URL = "AQUÍ_TU_URL_DE_APPS_SCRIPT"; 
+        // === TU URL ORIGINAL RECUPERADA ===
+        const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec";
+        
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
 
@@ -355,13 +357,13 @@
 
         async function initApp() {
             loadLocal(); // Carga inmediata para UX
-            await forceSync(); // Intenta conectar y actualizar sin romper
+            await forceSync(); // Intenta conectar y recuperar tu info
             updateDateUI(); 
             Chart.defaults.font.family = "'Inter', sans-serif";
             renderAdminTree();
         }
 
-        // --- SISTEMA HÍBRIDO DE DATOS ---
+        // --- SISTEMA HÍBRIDO (CONEXIÓN + PROTECCIÓN) ---
         function saveLocal() { localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData)); }
         
         function loadLocal() {
@@ -375,18 +377,22 @@
                 const r = await fetch(API_URL); 
                 const cloudData = await r.json(); 
                 
-                // MÁGICA: Mezclar datos de la nube con la estructura nueva
-                // Si la nube tiene datos pero no tiene 'concepts' (formato viejo), usamos los defaults o los locales para la UI
+                // === LÓGICA DE FUSIÓN PARA RECUPERAR DATOS VIEJOS ===
                 if(cloudData) {
                     appData.txs = cloudData.txs || [];
+                    
+                    // Si tu script viejo no tiene "cats", usamos los defaults para que no se rompa el árbol
                     appData.cats = cloudData.cats || defaultData.cats;
                     appData.concepts = cloudData.concepts || defaultData.concepts; 
-                    appData.rates = cloudData.rates || {}; // Si viene rates viejo, lo adapta
-                    appData.monthlyRates = cloudData.monthlyRates || appData.rates; // Compatibilidad
+                    
+                    appData.rates = cloudData.rates || {}; 
+                    appData.monthlyRates = cloudData.monthlyRates || appData.rates; 
                     appData.recurrentes = cloudData.recurrentes || [];
-                    saveLocal(); // Actualiza local
+                    
+                    saveLocal(); // Guardamos lo recuperado
+                    console.log("Conexión exitosa. Datos recuperados.");
                 }
-            } catch(e) { console.log("Offline mode active"); }
+            } catch(e) { console.log("Modo Offline o Error de API"); }
             loadMonthData(); 
         }
         
@@ -396,7 +402,7 @@
             loadMonthData(); renderAdminTree();
         }
 
-        // ... [RESTO DE FUNCIONES V9: hardReset, cloneMonth, etc. MANTENIDAS] ...
+        // ... [RESTO DE FUNCIONES] ...
         function hardReset() {
             if(confirm("¿Restaurar configuración de fábrica? Se borrarán datos locales.")) {
                 appData = JSON.parse(JSON.stringify(defaultData));
@@ -419,7 +425,7 @@
             saveData();
         }
 
-        // --- RENDERIZADO (V9 - Tree, Chips, Currency) ---
+        // --- RENDERIZADO ---
         function renderAdminTree() {
             const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
             const buildBranch = (title, type) => {
@@ -440,7 +446,6 @@
         function delCat(type, name) { if(confirm(`¿Eliminar ${name}?`)) { if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name); delete appData.concepts[name]; saveData(); } }
         function delConcept(cat, name) { if(confirm(`¿Eliminar ${name}?`)) { appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); } }
 
-        // --- CORE LOAD DATA ---
         function loadMonthData() {
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
             const key = `${y}-${m.toString().padStart(2,'0')}`;
@@ -452,7 +457,6 @@
             renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin(); renderAdminTree();
         }
 
-        // --- RENDER LISTS & CHARTS (Igual que V9) ---
         function renderLists(txs) {
             const lI=document.getElementById('list-inc'), lE=document.getElementById('list-exp'), lA=document.getElementById('list-alloc');
             lI.innerHTML=''; lE.innerHTML=''; lA.innerHTML=''; let rb=0;
@@ -505,7 +509,7 @@
         }
         function resetCharts() { drillCat=null; loadMonthData(); }
 
-        /* FORM & CHIPS LOGIC (V9) */
+        /* FORM & CHIPS LOGIC */
         function openModal(){ editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); }
         function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
         function renderConcepts(catKey) {
