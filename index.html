@@ -3,12 +3,12 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>FinanceFlow OS | Javi</title>
+    <title>FinanceFlow PRO | Javi</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     
@@ -17,20 +17,8 @@
             darkMode: "class",
             theme: {
                 extend: {
-                    colors: {
-                        "primary": "#0e757c",
-                        "primary-hover": "#0b5e63",
-                        "background-light": "#f0f2f2",
-                        "background-dark": "#112021",
-                        "surface": "#ffffff",
-                        "success": "#558055",
-                        "danger": "#b91c1c",
-                        "warning": "#D4A373"
-                    },
-                    fontFamily: {
-                        "display": ["Manrope", "sans-serif"],
-                        "body": ["Inter", "sans-serif"]
-                    }
+                    colors: { "primary": "#0e757c", "primary-dark": "#085055", "surface": "#ffffff", "success": "#558055", "danger": "#b91c1c", "warning": "#D4A373" },
+                    fontFamily: { "display": ["Manrope", "sans-serif"], "body": ["Inter", "sans-serif"] }
                 }
             }
         }
@@ -38,27 +26,34 @@
     
     <style>
         body { font-family: 'Manrope', sans-serif; }
-        .glass-sidebar { background: rgba(255, 255, 255, 0.95); border-right: 1px solid #e2e8f0; }
-        .dark .glass-sidebar { background: rgba(17, 32, 33, 0.95); border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-sidebar { background: rgba(255, 255, 255, 0.98); border-right: 1px solid #e2e8f0; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .hidden-view { display: none !important; }
         .active-nav { background-color: rgba(14, 117, 124, 0.1); color: #0e757c; border-right: 3px solid #0e757c; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
         .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
         .compact-row { padding-top: 0.35rem; padding-bottom: 0.35rem; }
         
-        /* CHIPS STYLES (Recuperados) */
-        .cat-chip, .concept-chip { transition: all 0.2s; }
-        .cat-chip.active { background-color: #0e757c; color: white; border-color: #0e757c; }
-        .concept-chip.active { background-color: #0e757c; color: white; border-color: #0e757c; }
+        /* CHIPS STYLES */
+        .chip { transition: all 0.2s; border: 1px solid #e2e8f0; background: white; color: #64748b; font-size: 11px; }
+        .chip:hover { border-color: #0e757c; color: #0e757c; transform: translateY(-1px); }
+        .chip.active { background: #0e757c; color: white; border-color: #0e757c; font-weight: 700; box-shadow: 0 2px 4px rgba(14, 117, 124, 0.25); }
+        
+        /* LINK CHIPS (Source) */
+        .link-chip { border: 1px dashed #cbd5e1; background: #f8fafc; color: #475569; }
+        .link-chip.active { background: #0f172a; color: white; border-style: solid; border-color: #0f172a; }
+        
+        /* CONCEPT CHIPS */
+        .chip-concept { font-size: 10px; padding: 3px 8px; background: #f1f5f9; border-radius: 6px; cursor: pointer; color: #64748b; border: 1px solid transparent; }
+        .chip-concept:hover { background: #e2e8f0; color: #334155; }
+        
+        /* TREE VIEW */
+        details > summary { list-style: none; cursor: pointer; }
+        details > summary::-webkit-details-marker { display: none; }
     </style>
 </head>
 
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 h-screen flex overflow-hidden selection:bg-primary/20">
+<body class="bg-[#f0f2f2] text-slate-900 h-screen flex overflow-hidden selection:bg-primary/20">
 
     <aside class="glass-sidebar w-16 hover:w-56 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-4 shadow-xl">
         <div class="flex flex-col gap-6">
@@ -72,19 +67,19 @@
             <nav class="flex flex-col gap-1 px-2" id="main-nav">
                 <button onclick="nav('dashboard', this)" id="nav-dashboard" class="active-nav flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">dashboard</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Operaciones</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Operaciones</span>
                 </button>
-                <button onclick="nav('analytics', this)" id="nav-analytics" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
+                <button onclick="nav('analytics', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">query_stats</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Análisis</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Análisis</span>
                 </button>
-                <button onclick="nav('strategy', this)" id="nav-strategy" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
+                <button onclick="nav('strategy', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">monitoring</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Estrategia</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Estrategia</span>
                 </button>
-                <button onclick="nav('admin', this)" id="nav-admin" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
+                <button onclick="nav('admin', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">settings</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Ajustes</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ajustes</span>
                 </button>
             </nav>
         </div>
@@ -92,17 +87,8 @@
         <div class="px-2">
             <button onclick="openModal()" class="flex items-center justify-center w-full h-10 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all mb-4 group-hover:justify-start group-hover:px-3">
                 <span class="material-symbols-outlined text-xl">add</span>
-                <span class="ml-3 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Nuevo</span>
+                <span class="ml-3 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Nuevo</span>
             </button>
-            <div class="flex items-center gap-3 pt-3 border-t border-slate-200 px-1 overflow-hidden">
-                <div class="size-8 rounded-full bg-slate-200 shrink-0">
-                    <img class="w-full h-full object-cover rounded-full" src="https://ui-avatars.com/api/?name=Javi&background=0e757c&color=fff" alt="User"/>
-                </div>
-                <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                    <p class="text-xs font-bold text-slate-700">Javi</p>
-                    <p class="text-[10px] text-slate-400">Finanzas Personales</p>
-                </div>
-            </div>
         </div>
     </aside>
 
@@ -110,7 +96,7 @@
         
         <header class="flex justify-between items-center mb-4 shrink-0">
             <div class="flex flex-col">
-                <h2 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white" id="pageTitle">Panel de Control</h2>
+                <h2 class="text-xl font-extrabold tracking-tight text-slate-900" id="pageTitle">Panel de Control</h2>
                 <div class="flex items-center gap-1 text-slate-500 relative cursor-pointer hover:text-primary transition-colors mt-0.5">
                     <button onclick="changeMonth(-1)" class="hover:bg-slate-200 rounded p-0.5"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
                     <div class="relative">
@@ -121,7 +107,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center bg-white dark:bg-background-dark border border-slate-200 rounded-lg shadow-sm h-9 overflow-hidden">
+            <div class="flex items-center bg-white border border-slate-200 rounded-lg shadow-sm h-9 overflow-hidden">
                 <div class="flex items-center gap-1.5 px-3 bg-slate-50 h-full border-r border-slate-100">
                     <span class="material-symbols-outlined text-slate-400 text-sm">currency_exchange</span>
                     <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">USD TC</p>
@@ -209,42 +195,45 @@
                 <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                     <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">hub</span>
                     <p class="text-xs font-bold text-slate-500">Conexión API</p>
-                    <p class="text-[10px] text-slate-400 mt-1">Configura CEDEARs y Crypto en Ajustes</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Configura CEDEARs y Crypto</p>
                 </div>
             </div>
         </div>
 
-        <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 pt-4">
+        <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0 pt-2">
+            
             <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
-                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3">Tasas de Cambio (Base 1 USD)</h3>
-                <div class="space-y-2 overflow-y-auto custom-scrollbar pr-1 flex-1">
-                    <div class="flex justify-between items-center p-2 hover:bg-slate-50 rounded border border-slate-100">
-                        <span class="text-xs font-bold text-slate-600">ARS (Peso)</span>
-                        <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded focus:ring-primary font-bold">
+                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-sm">account_tree</span> Gestión de Categorías</h3>
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2" id="adminTreeContainer">
                     </div>
-                    <div class="flex justify-between items-center p-2 hover:bg-slate-50 rounded border border-slate-100">
-                        <span class="text-xs font-bold text-slate-600">COP (Col)</span>
-                        <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded focus:ring-primary font-bold">
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
+                <h3 class="text-xs font-bold text-slate-800 uppercase mb-3">Tasas (Base 1 USD)</h3>
+                <div class="space-y-2 overflow-y-auto custom-scrollbar flex-1">
+                    <div class="flex justify-between items-center p-2 border border-slate-100 rounded">
+                        <span class="text-xs font-bold text-slate-600">ARS</span>
+                        <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded font-bold">
+                    </div>
+                    <div class="flex justify-between items-center p-2 border border-slate-100 rounded">
+                        <span class="text-xs font-bold text-slate-600">COP</span>
+                        <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="w-20 text-right text-xs border-slate-200 rounded font-bold">
                     </div>
                 </div>
-                <div class="mt-4 pt-4 border-t border-slate-100">
-                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mantenimiento</label>
-                     <div class="flex gap-2">
-                        <input type="month" id="cloneSrc" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs">
-                        <button onclick="cloneMonth()" class="bg-slate-800 text-white px-3 py-1 rounded-lg text-xs font-bold">Clonar</button>
-                    </div>
-                    <button onclick="clearMonth()" class="w-full mt-2 border border-red-200 text-red-500 py-1 rounded-lg text-[10px] font-bold uppercase hover:bg-red-50">Borrar Mes</button>
+                <div class="mt-2 pt-2 border-t border-slate-100">
+                     <button onclick="clearMonth()" class="w-full text-red-500 py-1 rounded-lg text-[10px] font-bold uppercase hover:bg-red-50">Borrar Mes Actual</button>
                 </div>
             </div>
+
             <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-xs font-bold text-slate-800 uppercase">Gastos Recurrentes</h3>
+                    <h3 class="text-xs font-bold text-slate-800 uppercase">Recurrentes</h3>
                     <button onclick="addRecurrenteRow()" class="text-primary text-[10px] font-bold hover:underline">+ AGREGAR</button>
                 </div>
                 <div class="flex-1 overflow-y-auto custom-scrollbar space-y-1" id="recurrente-table-body"></div>
                 <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
-                    <button onclick="saveRecurrentesConfig()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded text-[10px] font-bold hover:bg-slate-200">GUARDAR</button>
-                    <button onclick="executeRecurrentes()" class="flex-1 bg-slate-800 text-white py-2 rounded text-[10px] font-bold hover:bg-slate-700">EJECUTAR MES</button>
+                    <button onclick="saveRecurrentesConfig()" class="flex-1 bg-slate-100 text-slate-600 py-2 rounded text-[10px] font-bold">GUARDAR</button>
+                    <button onclick="executeRecurrentes()" class="flex-1 bg-slate-800 text-white py-2 rounded text-[10px] font-bold">EJECUTAR</button>
                 </div>
             </div>
         </div>
@@ -311,10 +300,9 @@
 
                 <div class="mb-4" id="linkRow">
                     <label class="block text-[10px] font-bold text-primary uppercase mb-1">Pagar con (Fuente)</label>
-                    <div class="relative">
-                        <select id="fLink" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary appearance-none text-slate-600 font-medium"></select>
-                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">expand_more</span>
-                    </div>
+                    <div id="linkChipsContainer" class="flex flex-wrap gap-2">
+                        </div>
+                    <input type="hidden" id="fLink">
                 </div>
 
                 <div class="flex items-center gap-2 mb-5 p-2 border border-slate-100 rounded-lg bg-slate-50">
@@ -335,7 +323,6 @@
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
 
-        // Estructura de Datos Ampliada
         let appData = { txs: [], cats: { exp:['Esenciales','Deudas','Personal','Ahorro'], inc:['Sueldo','Venta'] }, concepts: {'Esenciales': ['Luz','Gas','Internet','Alquiler'], 'Deudas': ['Visa','Master'], 'Ingresos': ['Sueldo','Venta']}, recurrentes: [], monthlyRates: {} };
         let currentDate = new Date(); currentDate.setDate(1);
         let editId=null, cExp=null, cInc=null, drillCat=null, cRadar=null;
@@ -360,15 +347,13 @@
         function loadMonthData() {
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
             const key = `${y}-${m.toString().padStart(2,'0')}`;
-            
-            // Cargar Tasas (o default)
             let rates = appData.monthlyRates[key] || { ARS: 1200, COP: 4200, USD: 1 };
             document.getElementById('headerRateDisplay').value = rates.ARS;
             document.getElementById('rate_ARS').value = rates.ARS; document.getElementById('rate_COP').value = rates.COP;
 
             const txs = appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
             txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
-            renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin();
+            renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin(); renderAdminTree();
         }
 
         function renderLists(txs) {
@@ -377,9 +362,7 @@
 
             txs.forEach(t => {
                 if(t.type=='inc') rb+=t.amount; else rb-=t.amount;
-                // Badge de moneda si no es ARS
                 let currBadge = (t.origCurr && t.origCurr !== 'ARS') ? `<span class="bg-blue-50 text-blue-600 text-[9px] px-1 rounded ml-1 font-bold">${t.origAmt} ${t.origCurr}</span>` : '';
-                
                 let linkText = '';
                 if(t.type=='exp' && t.linkId) {
                     const source = appData.txs.find(x => x.id == t.linkId);
@@ -389,15 +372,12 @@
                 const el = document.createElement('div');
                 const styles = t.exec ? "opacity-50 grayscale" : "";
                 const strike = t.exec ? "line-through decoration-slate-400 decoration-2" : "";
-                
                 el.className = `compact-row group flex items-center justify-between px-2 hover:bg-slate-50 transition-colors cursor-pointer border-b border-dashed border-slate-100 last:border-0 ${styles}`;
                 el.onclick = () => editTx(t.id);
-                const iconColor = t.type=='inc' ? 'text-success' : 'text-danger';
-
                 el.innerHTML = `
                     <div class="flex items-center gap-2 overflow-hidden">
                         <div class="size-6 rounded bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                            <span class="material-symbols-outlined text-sm ${iconColor}">circle</span>
+                            <span class="material-symbols-outlined text-sm ${t.type=='inc'?'text-success':'text-danger'}">circle</span>
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center"><p class="text-xs font-bold text-slate-700 truncate leading-tight ${strike}">${t.desc}</p>${currBadge}</div>
@@ -411,15 +391,12 @@
                     <div class="text-right shrink-0 ml-2">
                         <p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ${strike}">$${fmt(t.amount)}</p>
                         ${t.type=='exp'?`<p class="text-[9px] font-bold ${rb>=0?'text-success/70':'text-danger/70'}">Q:$${fmt(rb)}</p>`:''}
-                    </div>
-                `;
+                    </div>`;
                 (t.type=='inc'?lI:lE).appendChild(el);
             });
-            
             document.getElementById('c-inc').innerText = txs.filter(t=>t.type=='inc').length;
             document.getElementById('c-exp').innerText = txs.filter(t=>t.type=='exp').length;
 
-            /* ASIGNACIÓN LOGIC (TUYA) */
             const incs = txs.filter(t=>t.type=='inc');
             if(!incs.length) lA.innerHTML = '<div class="text-center text-slate-400 text-[10px] py-4">Sin datos</div>';
             incs.forEach(inc => {
@@ -427,14 +404,7 @@
                 const spent = subs.reduce((a,b)=>a+b.amount,0);
                 const pct = Math.min(100, (spent/inc.amount)*100);
                 let barColor = pct > 90 ? 'bg-danger' : 'bg-primary';
-                
-                let rows = '';
-                if (subs.length > 0) {
-                    subs.forEach(s => {
-                        rows += `<div class="flex justify-between py-1 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc}</span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`;
-                    });
-                } else { rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>'; }
-
+                let rows = ''; if (subs.length > 0) subs.forEach(s => rows += `<div class="flex justify-between py-1 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc}</span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`); else rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>';
                 const card = document.createElement('div');
                 card.innerHTML = `<div class="rounded-lg border border-slate-100 bg-white mb-1 shadow-sm overflow-hidden"><div class="p-2 bg-slate-50/30 flex justify-between items-center cursor-pointer hover:bg-slate-50" onclick="this.parentElement.querySelector('.alloc-details').classList.toggle('hidden')"><div><p class="text-xs font-bold text-slate-700">${inc.desc}</p><p class="text-[10px] text-slate-400 font-medium mt-0.5">Usado: $${fmt(spent)} de $${fmt(inc.amount)}</p></div><div class="text-right"><span class="text-[10px] font-bold text-slate-600">${Math.round(pct)}%</span></div></div><div class="w-full h-1.5 bg-slate-100"><div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%;"></div></div><div class="alloc-details hidden bg-white py-1">${rows}</div></div>`;
                 lA.appendChild(card);
@@ -444,47 +414,23 @@
         function renderCharts(txs) {
             renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', true, cExp, i=>cExp=i);
             renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), txs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
-            
-            // RADAR (Nuevo)
             if(cRadar) cRadar.destroy();
             const totalInc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0) || 1;
             const savings = txs.filter(t=>t.cat=='Ahorro').reduce((a,b)=>a+b.amount,0);
             const fixed = txs.filter(t=>t.cat=='Esenciales').reduce((a,b)=>a+b.amount,0);
-            cRadar = new Chart(document.getElementById('chartRadar'), {
-                type: 'radar',
-                data: { labels: ['Ahorro (20%)', 'Fijos (50%)', 'Ocio (30%)'], datasets: [{ label: 'Tu Mes', data: [Math.min(100, (savings/totalInc)*100), Math.min(100, (fixed/totalInc)*100), 100-((savings+fixed)/totalInc)*100], fill: true, backgroundColor: 'rgba(14, 117, 124, 0.2)', borderColor: '#0e757c' }] },
-                options: { scales: { r: { min: 0, max: 100, ticks: { display: false } } }, plugins: { legend: { position: 'top' } } }
-            });
+            cRadar = new Chart(document.getElementById('chartRadar'), { type: 'radar', data: { labels: ['Ahorro (20%)', 'Fijos (50%)', 'Ocio (30%)'], datasets: [{ label: 'Tu Mes', data: [Math.min(100, (savings/totalInc)*100), Math.min(100, (fixed/totalInc)*100), 100-((savings+fixed)/totalInc)*100], fill: true, backgroundColor: 'rgba(14, 117, 124, 0.2)', borderColor: '#0e757c' }] }, options: { scales: { r: { min: 0, max: 100, ticks: { display: false } } }, plugins: { legend: { position: 'top' } } } });
         }
 
         function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
             if(inst) inst.destroy();
-            let map={};
-            if(drill && drillCat) {
-                document.getElementById('resetBtn').classList.remove('hidden');
-                data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount);
-            } else {
-                if(drill) document.getElementById('resetBtn').classList.add('hidden');
-                data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; });
-            }
-            const ent = Object.entries(map).sort((a,b)=>b[1]-a[1]);
-            const tot = ent.reduce((a,b)=>a+b[1],0);
-            
-            setInst(new Chart(cvs, {
-                type:'doughnut', 
-                data:{ labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:2}] },
-                options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{display:false}}, onClick:(e,el)=>{if(drill&&!drillCat&&el.length){drillCat=ent[el[0].index][0]; loadMonthData();}} }
-            }));
-
-            leg.innerHTML = '';
-            ent.forEach((e,i) => {
-                const pct = Math.round((e[1]/tot)*100);
-                leg.innerHTML += `<div class="flex items-center justify-between text-[10px] py-1.5 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}"><div class="flex items-center gap-1.5 min-w-0"><span class="size-2 rounded-full shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span><span class="text-slate-600 font-medium truncate">${e[0]}</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-slate-400">${pct}%</span><span class="font-bold text-slate-800">$${fmt(e[1])}</span></div></div>`;
-            });
+            let map={}; if(drill && drillCat) { document.getElementById('resetBtn').classList.remove('hidden'); data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount); } else { if(drill) document.getElementById('resetBtn').classList.add('hidden'); data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; }); }
+            const ent = Object.entries(map).sort((a,b)=>b[1]-a[1]); const tot = ent.reduce((a,b)=>a+b[1],0);
+            setInst(new Chart(cvs, { type:'doughnut', data:{ labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:2}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{display:false}}, onClick:(e,el)=>{if(drill&&!drillCat&&el.length){drillCat=ent[el[0].index][0]; loadMonthData();}} } }));
+            leg.innerHTML = ''; ent.forEach((e,i) => { const pct = Math.round((e[1]/tot)*100); leg.innerHTML += `<div class="flex items-center justify-between text-[10px] py-1.5 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}"><div class="flex items-center gap-1.5 min-w-0"><span class="size-2 rounded-full shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span><span class="text-slate-600 font-medium truncate">${e[0]}</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-slate-400">${pct}%</span><span class="font-bold text-slate-800">$${fmt(e[1])}</span></div></div>`; });
         }
         function resetCharts() { drillCat=null; loadMonthData(); }
 
-        /* FORM LOGIC (Chips + Moneda) */
+        /* MODAL LOGIC */
         function openModal(){ editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); }
         function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
 
@@ -492,10 +438,8 @@
             const box = document.getElementById('conceptBox'); box.innerHTML = '';
             const list = appData.concepts[catKey] || [];
             list.forEach(c => {
-                const el = document.createElement('div');
-                el.className = 'px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-[10px] font-medium text-slate-500 cursor-pointer hover:border-primary hover:text-primary transition-colors concept-chip';
-                el.innerText = c;
-                el.onclick = () => { document.getElementById('fDesc').value = c; document.querySelectorAll('.concept-chip').forEach(x => { x.classList.remove('bg-primary','text-white','border-primary'); x.classList.add('bg-slate-50','text-slate-500');}); el.classList.remove('bg-slate-50','text-slate-500'); el.classList.add('bg-primary','text-white','border-primary'); };
+                const el = document.createElement('div'); el.className = 'chip-concept'; el.innerText = c;
+                el.onclick = () => { document.getElementById('fDesc').value = c; document.querySelectorAll('.chip-concept').forEach(x=>x.style.backgroundColor='#f1f5f9'); el.style.backgroundColor='#cbd5e1'; };
                 box.appendChild(el);
             });
         }
@@ -506,38 +450,67 @@
             if(t === 'exp') {
                 btnExp.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all bg-white text-rose-600 shadow-sm";
                 btnInc.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
-                document.getElementById('catRow').classList.remove('hidden'); document.getElementById('linkRow').classList.remove('hidden');
-                const box = document.getElementById('chipBox'); box.innerHTML = '';
-                (appData.cats.exp || []).forEach(c=>{
-                    const el=document.createElement('div'); el.className='px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-500 cursor-pointer hover:border-slate-400 cat-chip'; el.innerText=c;
-                    el.onclick=()=>{ selectCat(c, el); renderConcepts(c); }; box.appendChild(el);
-                });
-                renderLinkOpts(); document.getElementById('lblDesc').innerText = "Concepto"; document.getElementById('fCat').value = ''; document.getElementById('conceptBox').innerHTML = ''; 
+                document.getElementById('linkRow').classList.remove('hidden');
+                renderChips('exp'); renderLinkChips();
+                document.getElementById('lblDesc').innerText = "Concepto"; 
             } else {
                 btnInc.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm";
                 btnExp.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
-                document.getElementById('catRow').classList.add('hidden'); document.getElementById('linkRow').classList.add('hidden');
-                document.getElementById('fCat').value = 'Ingresos'; document.getElementById('lblDesc').innerText = "Fuente"; renderConcepts('Ingresos'); 
+                document.getElementById('linkRow').classList.add('hidden');
+                renderChips('inc'); 
+                document.getElementById('lblDesc').innerText = "Detalle";
             }
+            document.getElementById('fCat').value = ''; document.getElementById('conceptBox').innerHTML = '';
         }
 
-        function selectCat(c, el){ 
-            document.getElementById('fCat').value=c; 
-            document.querySelectorAll('.cat-chip').forEach(x => { x.classList.remove('bg-slate-700','text-white'); x.classList.add('bg-white','text-slate-500'); }); 
-            if(el) { el.classList.remove('bg-white','text-slate-500'); el.classList.add('bg-slate-700','text-white'); }
-        }
-
-        function renderLinkOpts(sel){
-            const s=document.getElementById('fLink'); s.innerHTML='<option value="">-- Sin Asignar --</option>';
-            const y=currentDate.getFullYear(), m=currentDate.getMonth()+1;
-            appData.txs.filter(t=>!t.deletedAt && t.type=='inc' && parseInt(t.date.split('-')[1])==m).forEach(i=>{
-                const sp=appData.txs.filter(x=>!x.deletedAt && x.type=='exp' && x.linkId==i.id && x.id!=editId).reduce((a,b)=>a+b.amount,0);
-                s.add(new Option(`${i.desc} (Disp: $${fmt(i.amount-sp)})`, i.id));
+        function renderChips(type) {
+            const container = document.getElementById('chipBox'); container.innerHTML = '';
+            const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
+            cats.forEach(c => {
+                const chip = document.createElement('div');
+                chip.className = `chip px-2 py-1 rounded-full cursor-pointer select-none ${document.getElementById('fCat').value === c ? 'active' : ''}`;
+                chip.innerText = c;
+                chip.onclick = () => {
+                    document.getElementById('fCat').value = c;
+                    document.querySelectorAll('#chipBox .chip').forEach(x => x.classList.remove('active'));
+                    chip.classList.add('active');
+                    renderConcepts(c);
+                };
+                container.appendChild(chip);
             });
-            if(sel)s.value=sel;
         }
-        
-        // Conversión Moneda
+
+        /* NEW: LINK CHIPS */
+        function renderLinkChips(selectedId){
+            const container = document.getElementById('linkChipsContainer'); container.innerHTML = '';
+            const y=currentDate.getFullYear(), m=currentDate.getMonth()+1;
+            const incs = appData.txs.filter(t=>!t.deletedAt && t.type=='inc' && parseInt(t.date.split('-')[1])==m);
+            
+            if(incs.length === 0) { container.innerHTML = '<span class="text-[10px] text-slate-400 italic">No hay ingresos este mes</span>'; return; }
+
+            incs.forEach(i => {
+                const sp=appData.txs.filter(x=>!x.deletedAt && x.type=='exp' && x.linkId==i.id && x.id!=editId).reduce((a,b)=>a+b.amount,0);
+                const bal = i.amount - sp;
+                if(bal < 1 && i.id != selectedId) return; // Hide exhausted links
+
+                const chip = document.createElement('div');
+                chip.className = `link-chip text-[9px] px-2 py-1 rounded cursor-pointer select-none ${selectedId == i.id ? 'active' : ''}`;
+                chip.innerHTML = `<b>${i.desc}</b> <span class="opacity-70">($${fmt(bal)})</span>`;
+                chip.onclick = () => {
+                    document.getElementById('fLink').value = i.id;
+                    document.querySelectorAll('.link-chip').forEach(x => x.classList.remove('active'));
+                    chip.classList.add('active');
+                };
+                container.appendChild(chip);
+            });
+            // Option for Unassigned
+            const none = document.createElement('div');
+            none.className = `link-chip text-[9px] px-2 py-1 rounded cursor-pointer select-none ${!selectedId ? 'active' : ''}`;
+            none.innerText = "Sin Asignar";
+            none.onclick = () => { document.getElementById('fLink').value = ""; document.querySelectorAll('.link-chip').forEach(x => x.classList.remove('active')); none.classList.add('active'); };
+            container.appendChild(none);
+        }
+
         function calcConversion() {
             const amt = parseFloat(document.getElementById('fAmt').value) || 0;
             const curr = document.getElementById('fCurr').value;
@@ -554,17 +527,21 @@
             e.preventDefault();
             let cat=document.getElementById('fCat').value;
             const type = document.getElementById('fType').value;
-            if(type === 'exp' && !cat) return alert('Categoría?');
+            if(!cat) return alert('Selecciona categoría');
             const desc=document.getElementById('fDesc').value;
+            
+            // Auto-learn Concept
+            if(cat) {
+                if(!appData.concepts[cat]) appData.concepts[cat] = [];
+                if(!appData.concepts[cat].includes(desc)) appData.concepts[cat].push(desc);
+            }
+
             const tx={
                 id:editId||Date.now(), date:document.getElementById('fDate').value,
                 amount: calcConversion(), origAmt: parseFloat(document.getElementById('fAmt').value), origCurr: document.getElementById('fCurr').value,
                 type, cat, desc, exec:document.getElementById('fExec').checked,
                 linkId:type=='exp'?document.getElementById('fLink').value:null, deletedAt:null
             };
-            const storeKey = type === 'inc' ? 'Ingresos' : cat;
-            if(!appData.concepts[storeKey]) appData.concepts[storeKey] = [];
-            if(!appData.concepts[storeKey].includes(desc)) appData.concepts[storeKey].push(desc);
             if(editId){ const i=appData.txs.findIndex(x=>x.id==editId); appData.txs[i]=tx; } else appData.txs.push(tx);
             saveData(); closeModal();
         }
@@ -573,69 +550,67 @@
             const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;
             document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');
             document.getElementById('fDate').value=t.date; document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;
-            
             document.getElementById('fAmt').value = t.origAmt || t.amount; document.getElementById('fCurr').value = t.origCurr || 'ARS';
-
             setType(t.type); 
-            if(t.type === 'exp') { 
-                setTimeout(() => {
-                    const cs=document.querySelectorAll('.cat-chip'); for(let c of cs) { if(c.innerText==t.cat) { c.click(); break; } }
-                    renderLinkOpts(t.linkId); 
-                }, 10);
-            } 
-            setTimeout(() => { const scs=document.querySelectorAll('.concept-chip'); for(let sc of scs) if(sc.innerText==t.desc) sc.classList.add('bg-primary','text-white','border-primary'); }, 100);
+            setTimeout(() => {
+                document.getElementById('fCat').value = t.cat;
+                renderChips(t.type); // Re-render to highlight correct active
+                if(t.type === 'exp') { 
+                    document.getElementById('fLink').value = t.linkId || ""; 
+                    renderLinkChips(t.linkId);
+                }
+                renderConcepts(t.cat);
+            }, 50);
             calcConversion();
             document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');
         }
 
-        function resetForm(){ 
-            document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; 
-            document.getElementById('btnDel').classList.add('hidden'); 
-            document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null;
+        /* NEW ADMIN TREE LOGIC */
+        function renderAdminTree() {
+            const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
+            
+            // Helper to build tree branch
+            const buildBranch = (title, type) => {
+                const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
+                let html = `<details open class="mb-2"><summary class="font-bold text-xs text-slate-700 bg-slate-100 p-1 rounded flex justify-between"><span>${title}</span> <button onclick="addCat('${type}')" class="text-primary font-extrabold">+</button></summary><div class="pl-2 pt-1 border-l border-slate-200 ml-1">`;
+                
+                cats.forEach(c => {
+                    const concepts = appData.concepts[c] || [];
+                    html += `<details class="mb-1"><summary class="text-[11px] text-slate-600 cursor-pointer hover:text-primary flex justify-between items-center group"><span>📁 ${c}</span> <button onclick="delCat('${type}','${c}')" class="text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 px-2">x</button></summary><div class="pl-4 flex flex-wrap gap-1 mt-1">`;
+                    concepts.forEach(con => {
+                        html += `<span class="text-[10px] bg-white border border-slate-200 px-1 rounded text-slate-500 flex items-center gap-1 group/chip">${con} <button onclick="delConcept('${c}','${con}')" class="text-red-300 hover:text-red-500 hidden group-hover/chip:block">×</button></span>`;
+                    });
+                    html += `</div></details>`;
+                });
+                html += `</div></details>`;
+                container.innerHTML += html;
+            };
+
+            buildBranch("Gastos", "exp");
+            buildBranch("Ingresos", "inc");
         }
+
+        function addCat(type) { const n=prompt("Nombre Categoría:"); if(n){ if(type=='exp') appData.cats.exp.push(n); else appData.cats.inc.push(n); saveData(); } }
+        function delCat(type, name) { if(confirm(`Borrar ${name}?`)) { if(type=='exp') appData.cats.exp = appData.cats.exp.filter(x=>x!=name); else appData.cats.inc = appData.cats.inc.filter(x=>x!=name); saveData(); } }
+        function delConcept(cat, name) { if(confirm(`Borrar concepto ${name}?`)) { appData.concepts[cat] = appData.concepts[cat].filter(x=>x!=name); saveData(); } }
+
+        /* COMMON */
+        function resetForm(){ document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null; }
         function delTx(){ if(confirm('Eliminar?')){ appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
-        function clearMonth(){ if(confirm('Borrar MES actual?')){ const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
-        function cloneMonth(){ const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); appData.txs.push(...n); saveData(); }
-        
-        function updateKPIs(txs){
-            const tc=parseFloat(document.getElementById('headerRateDisplay').value)||1200;
-            const i=txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
-            const e=txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
-            document.getElementById('k-inc').innerText='$'+fmt(i); document.getElementById('k-exp').innerText='$'+fmt(e);
-            document.getElementById('k-bal').innerText='$'+fmt(i-e); document.getElementById('k-usd').innerText='USD '+fmt((i-e)/tc);
-        }
+        function updateKPIs(txs){ const tc=parseFloat(document.getElementById('headerRateDisplay').value)||1200; const i=txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0); const e=txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0); document.getElementById('k-inc').innerText='$'+fmt(i); document.getElementById('k-exp').innerText='$'+fmt(e); document.getElementById('k-bal').innerText='$'+fmt(i-e); document.getElementById('k-usd').innerText='USD '+fmt((i-e)/tc); }
         function changeMonth(d){ currentDate.setMonth(currentDate.getMonth()+d); updateDateUI(); loadMonthData(); }
         function manualDate(){ const[y,m]=document.getElementById('datePicker').value.split('-'); currentDate.setFullYear(y); currentDate.setMonth(m-1); updateDateUI(); loadMonthData(); }
         function updateDateUI(){ document.getElementById('monthTxt').innerText=`${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`; document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`; }
-        function saveMonthlyRates() { 
-            const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
-            appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 };
-            saveData(); updateKPIs(appData.txs);
-        }
-
-        // Recurrentes Admin Logic
-        function renderRecurrentesAdmin() {
-            const tbody = document.getElementById('recurrente-table-body'); tbody.innerHTML = '';
-            appData.recurrentes.forEach((r, i) => {
-                const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-100 py-1';
-                d.innerHTML=`<input value="${r.desc}" onchange="appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded p-1"><input type="number" value="${r.amount}" onchange="appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded p-1 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="appData.recurrentes.splice(${i},1);renderRecurrentesAdmin()" class="text-red-500 font-bold px-2">x</button>`;
-                tbody.appendChild(d);
-            });
-        }
+        function saveMonthlyRates() { const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; saveData(); updateKPIs(appData.txs); }
+        
+        // Recurrentes (Admin)
+        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-100 py-1'; d.innerHTML=`<input value="${r.desc}" onchange="appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded p-1"><input type="number" value="${r.amount}" onchange="appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded p-1 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="appData.recurrentes.splice(${i},1);renderRecurrentesAdmin()" class="text-red-500 font-bold px-2">x</button>`; b.appendChild(d);}); }
         function addRecurrenteRow() { appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
         function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
-        function executeRecurrentes() { 
-            const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; 
-            appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS'}); c++; }});
-            if(c>0){saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados');
-        }
+        function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS'}); c++; }}); if(c>0){saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
+        function clearMonth(){ if(confirm('Borrar MES actual?')){ const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
 
-        function nav(v, el){ 
-            document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); 
-            document.getElementById(`view-${v}`).classList.remove('hidden-view'); 
-            document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); 
-            if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); }
-        }
+        function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } }
     </script>
 </body>
 </html>
