@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>FinanceFlow OS | Javi's Dashboard</title>
+    <title>FinanceFlow OS | Javi</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -20,11 +20,11 @@
                     colors: {
                         "primary": "#0e757c",
                         "primary-hover": "#0b5e63",
-                        "background-light": "#f6f8f8",
+                        "background-light": "#f0f2f2", /* Fondo un poco más oscuro para contraste */
                         "background-dark": "#112021",
                         "surface": "#ffffff",
                         "success": "#558055",
-                        "danger": "#996A5C",
+                        "danger": "#b91c1c",
                         "warning": "#D4A373"
                     },
                     fontFamily: {
@@ -39,234 +39,208 @@
     <style>
         body { font-family: 'Manrope', sans-serif; }
         
-        /* Glass Effect */
+        /* Glass Sidebar */
         .glass-sidebar {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border-right: 1px solid rgba(14, 117, 124, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            border-right: 1px solid #e2e8f0;
         }
         .dark .glass-sidebar {
-            background: rgba(17, 32, 33, 0.9);
+            background: rgba(17, 32, 33, 0.95);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Scrollbars */
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        /* Scrollbars Finos */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Utilities */
         .hidden-view { display: none !important; }
-        .active-nav { background-color: rgba(14, 117, 124, 0.1); color: #0e757c; }
+        .active-nav { background-color: rgba(14, 117, 124, 0.1); color: #0e757c; border-right: 3px solid #0e757c; }
         
-        /* Animation */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
         
-        /* Date Picker Reset */
         .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
-
-        /* Chip Styles for Logic */
-        .chip-active { background-color: #0e757c !important; color: white !important; border-color: #0e757c !important; }
+        
+        /* Compact Mode Tweaks */
+        .compact-row { padding-top: 0.35rem; padding-bottom: 0.35rem; }
     </style>
 </head>
 
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex overflow-hidden">
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 h-screen flex overflow-hidden selection:bg-primary/20">
 
-    <aside class="glass-sidebar w-20 hover:w-64 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-6 px-4 shadow-lg">
-        <div class="flex flex-col gap-8">
-            <div class="flex items-center gap-4 px-2">
-                <div class="bg-primary size-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary/30">
-                    <span class="material-symbols-outlined">account_balance_wallet</span>
+    <aside class="glass-sidebar w-16 hover:w-56 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-4 shadow-xl">
+        <div class="flex flex-col gap-6">
+            <div class="flex items-center justify-center h-10 px-2 group-hover:justify-start group-hover:px-4 transition-all">
+                <div class="bg-primary size-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md">
+                    <span class="material-symbols-outlined text-lg">account_balance_wallet</span>
                 </div>
-                <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden whitespace-nowrap">
-                    <h1 class="font-bold text-lg text-primary tracking-tight">FinanceFlow</h1>
-                </div>
+                <h1 class="font-bold text-base text-primary ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden delay-75">
+                    FinanceFlow
+                </h1>
             </div>
 
-            <nav class="flex flex-col gap-2" id="main-nav">
-                <button onclick="nav('dashboard', this)" id="nav-dashboard" class="active-nav flex items-center gap-4 px-2 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 transition-colors w-full text-left">
-                    <span class="material-symbols-outlined">dashboard</span>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-medium">Operaciones</span>
+            <nav class="flex flex-col gap-1 px-2" id="main-nav">
+                <button onclick="nav('dashboard', this)" id="nav-dashboard" class="active-nav flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
+                    <span class="material-symbols-outlined text-xl shrink-0">dashboard</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Operaciones</span>
                 </button>
-                <button onclick="nav('analytics', this)" id="nav-analytics" class="flex items-center gap-4 px-2 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 transition-colors w-full text-left">
-                    <span class="material-symbols-outlined">query_stats</span>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-medium">Análisis</span>
+                <button onclick="nav('analytics', this)" id="nav-analytics" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
+                    <span class="material-symbols-outlined text-xl shrink-0">query_stats</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Análisis</span>
                 </button>
-                <button onclick="nav('admin', this)" id="nav-admin" class="flex items-center gap-4 px-2 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 transition-colors w-full text-left">
-                    <span class="material-symbols-outlined">settings</span>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-medium">Ajustes</span>
+                <button onclick="nav('admin', this)" id="nav-admin" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
+                    <span class="material-symbols-outlined text-xl shrink-0">settings</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Ajustes</span>
                 </button>
-                <button onclick="forceSync()" class="flex items-center gap-4 px-2 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 transition-colors w-full text-left">
-                    <span class="material-symbols-outlined">sync</span>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-medium">Sincronizar</span>
+                <button onclick="forceSync()" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
+                    <span class="material-symbols-outlined text-xl shrink-0">sync</span>
+                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Sincronizar</span>
                 </button>
             </nav>
         </div>
 
-        <div class="flex flex-col gap-2">
-            <button onclick="openModal()" class="flex items-center gap-4 px-2 py-3 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all w-full mb-4 group-hover:px-3">
-                <span class="material-symbols-outlined">add</span>
-                <span class="opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold text-sm">Nuevo</span>
+        <div class="px-2">
+            <button onclick="openModal()" class="flex items-center justify-center w-full h-10 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all mb-4 group-hover:justify-start group-hover:px-3">
+                <span class="material-symbols-outlined text-xl">add</span>
+                <span class="ml-3 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Nuevo</span>
             </button>
             
-            <div class="flex items-center gap-4 px-2 py-3 border-t border-slate-200 dark:border-white/10 pt-4">
-                <div class="size-8 rounded-full bg-slate-200 overflow-hidden shrink-0 ring-2 ring-white dark:ring-slate-700">
-                    <img class="w-full h-full object-cover" src="https://ui-avatars.com/api/?name=Javi&background=0e757c&color=fff" alt="User"/>
+            <div class="flex items-center gap-3 pt-3 border-t border-slate-200 px-1 overflow-hidden">
+                <div class="size-8 rounded-full bg-slate-200 shrink-0">
+                    <img class="w-full h-full object-cover rounded-full" src="https://ui-avatars.com/api/?name=Javi&background=0e757c&color=fff" alt="User"/>
                 </div>
-                <div class="opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap overflow-hidden">
-                    <p class="text-sm font-bold">Javi</p>
-                    <p class="text-xs text-slate-400">Famiq Tech Office</p>
+                <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                    <p class="text-xs font-bold text-slate-700">Javi</p>
+                    <p class="text-[10px] text-slate-400">Finanzas Personales</p>
                 </div>
             </div>
         </div>
     </aside>
 
-    <main class="flex-1 ml-20 p-6 lg:p-10 h-screen overflow-y-auto custom-scrollbar relative">
+    <main class="flex-1 ml-16 p-4 lg:p-6 h-screen overflow-hidden relative flex flex-col">
         
-        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
-            <div>
-                <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white" id="pageTitle">Panel de Control</h2>
-                <div class="flex items-center gap-2 mt-1 text-slate-500 relative cursor-pointer hover:text-primary transition-colors">
-                    <button onclick="changeMonth(-1)" class="hover:bg-slate-200 rounded p-1"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+        <header class="flex justify-between items-center mb-4 shrink-0">
+            <div class="flex flex-col">
+                <h2 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white" id="pageTitle">Panel de Control</h2>
+                <div class="flex items-center gap-1 text-slate-500 relative cursor-pointer hover:text-primary transition-colors mt-0.5">
+                    <button onclick="changeMonth(-1)" class="hover:bg-slate-200 rounded p-0.5"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
                     <div class="relative">
-                        <span class="text-sm font-medium flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">calendar_today</span>
-                            <span id="monthTxt">Cargando...</span>
+                        <span class="text-xs font-bold uppercase tracking-wide flex items-center gap-1">
+                            <span id="monthTxt">CARGANDO...</span>
                         </span>
                         <input type="month" id="datePicker" class="d-picker" onchange="manualDate()">
                     </div>
-                    <button onclick="changeMonth(1)" class="hover:bg-slate-200 rounded p-1"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+                    <button onclick="changeMonth(1)" class="hover:bg-slate-200 rounded p-0.5"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
                 </div>
             </div>
-            <div class="flex items-center gap-4 bg-white dark:bg-background-dark/50 p-2 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
-                <div class="flex items-center gap-2 px-3">
-                    <span class="material-symbols-outlined text-slate-400 text-lg">currency_exchange</span>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">USD TC</p>
+
+            <div class="flex items-center bg-white dark:bg-background-dark border border-slate-200 rounded-lg shadow-sm h-9 overflow-hidden">
+                <div class="flex items-center gap-1.5 px-3 bg-slate-50 h-full border-r border-slate-100">
+                    <span class="material-symbols-outlined text-slate-400 text-sm">currency_exchange</span>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">USD TC</p>
                 </div>
-                <div class="h-8 w-px bg-slate-200 dark:bg-white/10"></div>
-                <div class="flex items-center gap-2 px-3">
-                    <span class="text-sm font-bold text-slate-900 dark:text-white">$</span>
-                    <input type="number" id="usdRate" value="1200" onchange="updateTC()" class="w-16 bg-transparent font-bold text-primary focus:outline-none text-right">
+                <div class="flex items-center pl-2 pr-1 h-full">
+                    <span class="text-xs font-bold text-slate-400 mr-1">$</span>
+                    <input type="number" id="usdRate" value="1200" onchange="updateTC()" class="w-14 bg-transparent text-sm font-bold text-slate-700 focus:outline-none focus:ring-0 border-none p-0">
                 </div>
             </div>
         </header>
 
-        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white dark:bg-background-dark/40 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                <p class="text-slate-500 text-sm font-semibold mb-1">Balance Neto</p>
-                <div class="flex items-end justify-between">
-                    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white" id="k-bal">$0</h3>
-                </div>
+        <section class="grid grid-cols-4 gap-3 mb-4 shrink-0">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Balance Neto</p>
+                <h3 class="text-lg font-extrabold text-slate-800" id="k-bal">$0</h3>
             </div>
-            <div class="bg-white dark:bg-background-dark/40 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                <p class="text-slate-500 text-sm font-semibold mb-1">Estimado USD</p>
-                <div class="flex items-end justify-between">
-                    <h3 class="text-2xl font-extrabold text-primary" id="k-usd">$0</h3>
-                    <span class="material-symbols-outlined text-primary/50">attach_money</span>
-                </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Estimado USD</p>
+                <h3 class="text-lg font-extrabold text-primary" id="k-usd">$0</h3>
             </div>
-            <div class="bg-white dark:bg-background-dark/40 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                <p class="text-slate-500 text-sm font-semibold mb-1">Ingresos</p>
-                <div class="flex items-end justify-between">
-                    <h3 class="text-2xl font-extrabold text-success" id="k-inc">$0</h3>
-                    <span class="material-symbols-outlined text-success/50">trending_up</span>
-                </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Ingresos</p>
+                <h3 class="text-lg font-extrabold text-success" id="k-inc">$0</h3>
             </div>
-            <div class="bg-white dark:bg-background-dark/40 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                <p class="text-slate-500 text-sm font-semibold mb-1">Gastos</p>
-                <div class="flex items-end justify-between">
-                    <h3 class="text-2xl font-extrabold text-danger" id="k-exp">$0</h3>
-                    <span class="material-symbols-outlined text-danger/50">trending_down</span>
-                </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Gastos</p>
+                <h3 class="text-lg font-extrabold text-danger" id="k-exp">$0</h3>
             </div>
         </section>
 
-        <div id="view-dashboard" class="view-container animate-fade-in grid grid-cols-1 xl:grid-cols-12 gap-8 h-auto">
+        <div id="view-dashboard" class="view-container animate-fade-in grid grid-cols-1 xl:grid-cols-3 gap-4 flex-1 min-h-0">
             
-            <section class="xl:col-span-4 flex flex-col h-full bg-white dark:bg-background-dark/30 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden min-h-[400px]">
-                <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-white/5">
-                    <h4 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <span class="material-symbols-outlined text-emerald-500">arrow_circle_up</span> Ingresos
+            <section class="flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden h-full">
+                <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-success text-sm">arrow_circle_up</span> Ingresos
                     </h4>
-                    <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full" id="c-inc">0</span>
+                    <span class="bg-success/10 text-success text-[10px] font-bold px-1.5 rounded" id="c-inc">0</span>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2" id="list-inc">
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1" id="list-inc">
                     </div>
             </section>
 
-            <section class="xl:col-span-4 flex flex-col h-full bg-white dark:bg-background-dark/30 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden min-h-[400px]">
-                <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-white/5">
-                    <h4 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <span class="material-symbols-outlined text-rose-500">arrow_circle_down</span> Gastos
+            <section class="flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden h-full">
+                <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-danger text-sm">arrow_circle_down</span> Gastos
                     </h4>
-                    <span class="bg-rose-100 text-rose-700 text-xs font-bold px-2 py-0.5 rounded-full" id="c-exp">0</span>
+                    <span class="bg-danger/10 text-danger text-[10px] font-bold px-1.5 rounded" id="c-exp">0</span>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2" id="list-exp">
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1" id="list-exp">
                     </div>
             </section>
 
-            <section class="xl:col-span-4 flex flex-col h-full bg-white dark:bg-background-dark/30 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden min-h-[400px]">
-                <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-white/5">
-                    <h4 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">pie_chart</span> Asignación
+            <section class="flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden h-full">
+                <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-primary text-sm">pie_chart</span> Asignación
                     </h4>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-4" id="list-alloc">
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2 flex flex-col gap-2" id="list-alloc">
                     </div>
             </section>
         </div>
 
-        <div id="view-analytics" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <div class="bg-white dark:bg-background-dark/30 border border-slate-200 dark:border-white/5 rounded-xl p-6 shadow-sm h-[450px] flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-sm font-bold text-slate-700 dark:text-white flex items-center gap-2 uppercase tracking-wide">
-                        Gastos por Categoría
-                    </h3>
-                    <button onclick="resetCharts()" class="text-xs text-primary font-bold hover:underline">RESET</button>
+        <div id="view-analytics" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col h-[320px]">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-bold text-slate-600 uppercase">Gastos por Categoría</h3>
+                    <button onclick="resetCharts()" class="text-[10px] text-primary font-bold hover:underline">RESET</button>
                 </div>
-                <div class="flex flex-col sm:flex-row items-center gap-6 flex-1 min-h-0">
-                    <div class="relative size-40 shrink-0">
+                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden">
+                    <div class="relative h-[180px] w-[180px] shrink-0">
                         <canvas id="chartExp"></canvas>
                     </div>
-                    <div class="flex-1 w-full overflow-y-auto custom-scrollbar pr-2 h-full" id="legExp">
-                        </div>
+                    <div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legExp"></div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-background-dark/30 border border-slate-200 dark:border-white/5 rounded-xl p-6 shadow-sm h-[450px] flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-sm font-bold text-slate-700 dark:text-white flex items-center gap-2 uppercase tracking-wide">
-                        Ingresos por Concepto
-                    </h3>
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col h-[320px]">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-bold text-slate-600 uppercase">Ingresos por Concepto</h3>
                 </div>
-                <div class="flex flex-col sm:flex-row items-center gap-6 flex-1 min-h-0">
-                    <div class="relative size-40 shrink-0">
+                <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden">
+                    <div class="relative h-[180px] w-[180px] shrink-0">
                         <canvas id="chartInc"></canvas>
                     </div>
-                    <div class="flex-1 w-full overflow-y-auto custom-scrollbar pr-2 h-full" id="legInc">
-                        </div>
+                    <div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legInc"></div>
                 </div>
             </div>
         </div>
 
-        <div id="view-admin" class="view-container animate-fade-in hidden-view flex justify-center">
-            <div class="w-full max-w-md bg-white dark:bg-background-dark/30 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm p-6">
-                <h3 class="text-lg font-bold mb-6 text-slate-900 dark:text-white">Gestión de Datos</h3>
-                
-                <div class="mb-6">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Importar mes anterior</label>
+        <div id="view-admin" class="view-container animate-fade-in hidden-view flex justify-center pt-10">
+            <div class="w-full max-w-sm bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                <h3 class="text-base font-bold mb-4 text-slate-800">Gestión de Datos</h3>
+                <div class="mb-4">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Importar mes anterior</label>
                     <div class="flex gap-2">
-                        <input type="month" id="cloneSrc" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
-                        <button onclick="cloneMonth()" class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">Copiar</button>
+                        <input type="month" id="cloneSrc" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-primary">
+                        <button onclick="cloneMonth()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Copiar</button>
                     </div>
                 </div>
-                
-                <div class="h-px bg-slate-200 dark:bg-white/10 my-6"></div>
-                
-                <button onclick="clearMonth()" class="w-full border border-red-200 text-red-600 hover:bg-red-50 py-3 rounded-lg text-xs font-bold transition-colors uppercase">
+                <div class="h-px bg-slate-100 my-4"></div>
+                <button onclick="clearMonth()" class="w-full border border-red-200 text-red-500 hover:bg-red-50 py-2 rounded-lg text-xs font-bold transition-colors uppercase">
                     Eliminar datos del mes actual
                 </button>
             </div>
@@ -274,88 +248,75 @@
 
     </main>
 
-    <button onclick="openModal()" class="fixed bottom-10 right-10 size-14 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
-        <span class="material-symbols-outlined text-3xl">add</span>
+    <button onclick="openModal()" class="fixed bottom-6 right-6 size-12 bg-slate-800 text-white rounded-full shadow-lg shadow-slate-400/50 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+        <span class="material-symbols-outlined text-2xl">add</span>
     </button>
 
     <div id="modalOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeModal()"></div>
-        
-        <div class="relative z-10 w-full max-w-[500px] bg-white dark:bg-[#1E2126] rounded-2xl shadow-2xl border border-slate-200 dark:border-gray-700 flex flex-col overflow-hidden animate-fade-in mx-4 max-h-[90vh]">
-            
-            <div class="flex items-center justify-between px-6 pt-6 pb-2 shrink-0">
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight text-[#121617] dark:text-white" id="mTitle">Nuevo Movimiento</h1>
-                </div>
-                <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onclick="closeModal()"></div>
+        <div class="relative z-10 w-full max-w-[420px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-fade-in mx-4 max-h-[90vh]">
+            <div class="flex items-center justify-between px-5 pt-4 pb-2 shrink-0">
+                <h1 class="text-lg font-bold text-slate-800" id="mTitle">Nuevo Movimiento</h1>
+                <button onclick="closeModal()" class="size-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             
-            <form id="txForm" class="p-6 overflow-y-auto custom-scrollbar flex-1">
-                <div class="grid grid-cols-2 p-1 bg-[#f1f4f4] dark:bg-[#2A2E35] rounded-lg mb-6">
-                    <button type="button" id="btnExp" onclick="setType('exp')" class="flex items-center justify-center gap-2 py-2 rounded text-sm font-semibold text-gray-500 transition-all duration-200">
-                        <span class="material-symbols-outlined text-[18px]">arrow_circle_down</span> Gasto
-                    </button>
-                    <button type="button" id="btnInc" onclick="setType('inc')" class="flex items-center justify-center gap-2 py-2 rounded text-sm font-semibold text-gray-500 transition-all duration-200">
-                        <span class="material-symbols-outlined text-[18px]">arrow_circle_up</span> Ingreso
-                    </button>
+            <form id="txForm" class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-lg mb-4">
+                    <button type="button" id="btnExp" onclick="setType('exp')" class="flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold text-slate-500 transition-all">Gasto</button>
+                    <button type="button" id="btnInc" onclick="setType('inc')" class="flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold text-slate-500 transition-all">Ingreso</button>
                 </div>
                 <input type="hidden" id="fType" value="exp">
 
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="group">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Monto</label>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Monto</label>
                         <div class="relative flex items-center">
-                            <span class="absolute left-3 text-slate-400 font-light text-xl">$</span>
-                            <input type="number" id="fAmt" step="0.01" class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-right" placeholder="0.00" required>
+                            <span class="absolute left-3 text-slate-400 font-light text-lg">$</span>
+                            <input type="number" id="fAmt" step="0.01" class="w-full pl-6 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-lg font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-right" placeholder="0" required>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha</label>
-                        <input type="date" id="fDate" class="w-full px-3 py-[10px] bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Fecha</label>
+                        <input type="date" id="fDate" class="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-primary" required>
                     </div>
                 </div>
 
-                <div class="mb-4" id="catRow">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Categoría</label>
-                    <div class="flex flex-wrap gap-2" id="chipBox"></div>
+                <div class="mb-3" id="catRow">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Categoría</label>
+                    <div class="flex flex-wrap gap-1.5" id="chipBox"></div>
                     <input type="hidden" id="fCat">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2" id="lblDesc">Concepto / Subcategoría</label>
-                    <div class="flex flex-wrap gap-2 mb-2" id="conceptBox"></div>
-                    <input type="text" id="fDesc" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-primary" placeholder="Escribe o selecciona..." required>
+                <div class="mb-3">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1" id="lblDesc">Concepto</label>
+                    <div class="flex flex-wrap gap-1.5 mb-2" id="conceptBox"></div>
+                    <input type="text" id="fDesc" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary placeholder:text-slate-400" placeholder="Escribe o selecciona..." required>
                 </div>
 
                 <div class="mb-4" id="linkRow">
-                    <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-2">Pagar con (Fuente)</label>
+                    <label class="block text-[10px] font-bold text-primary uppercase mb-1">Pagar con (Fuente)</label>
                     <div class="relative">
-                        <select id="fLink" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-primary appearance-none"></select>
-                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                        <select id="fLink" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary appearance-none text-slate-600 font-medium"></select>
+                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">expand_more</span>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 mb-6">
-                    <input type="checkbox" id="fExec" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary">
-                    <label for="fExec" class="text-xs font-medium text-slate-600">Marcar como ejecutado</label>
+                <div class="flex items-center gap-2 mb-5 p-2 border border-slate-100 rounded-lg bg-slate-50">
+                    <input type="checkbox" id="fExec" class="size-4 text-primary rounded border-slate-300 focus:ring-primary">
+                    <label for="fExec" class="text-xs font-bold text-slate-600 select-none cursor-pointer">Marcar como ejecutado</label>
                 </div>
 
-                <div class="flex flex-col gap-3">
-                    <button type="submit" class="w-full py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold shadow-md shadow-primary/20 active:scale-95 transition-all">
-                        GUARDAR MOVIMIENTO
-                    </button>
+                <div class="flex flex-col gap-2">
+                    <button type="submit" class="w-full py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shadow-md active:scale-95 transition-all">GUARDAR</button>
+                    <button type="button" id="btnDel" onclick="delTx()" class="text-[10px] text-red-500 font-bold hover:underline self-center hidden py-1">Eliminar Registro</button>
                     
-                    <button type="button" id="btnDel" onclick="delTx()" class="text-xs text-red-500 font-bold hover:underline self-center hidden">
-                        Eliminar Registro
-                    </button>
-
-                    <div id="cloneArea" class="hidden mt-2 pt-4 border-t border-dashed border-slate-200">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase mb-2">Duplicar este movimiento</div>
+                    <div id="cloneArea" class="hidden mt-2 pt-3 border-t border-dashed border-slate-200 flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Clonar a:</span>
                         <div class="flex gap-2">
-                            <input type="month" id="fCloneMonth" class="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs">
-                            <button type="button" onclick="doClone()" class="bg-slate-700 text-white px-3 py-1 rounded text-xs font-bold">Clonar</button>
+                            <input type="month" id="fCloneMonth" class="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[10px]">
+                            <button type="button" onclick="doClone()" class="bg-slate-200 text-slate-600 px-3 py-1 rounded text-[10px] font-bold hover:bg-slate-300">OK</button>
                         </div>
                     </div>
                 </div>
@@ -364,28 +325,15 @@
     </div>
 
     <script>
-        /* --- CONFIG & STATE --- */
-        const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec"; // TU URL
+        const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec"; 
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
 
-        let appData = { 
-            txs: [], 
-            cats: { exp:['Esenciales','Deudas','Personal','Ahorro','Inversiones','Imprevistos'], inc:[] }, 
-            concepts: {
-                'Esenciales': ['Luz/Gas', 'Supermercado', 'Internet', 'Alquiler'],
-                'Deudas': ['Tarjeta Visa', 'Préstamo', 'Tarjeta Master'],
-                'Personal': ['Salidas', 'Ropa'],
-                'Ingresos': ['Sueldo', 'Venta', 'Intereses']
-            }, 
-            rates: {} 
-        };
-        
+        let appData = { txs: [], cats: { exp:['Esenciales','Deudas','Personal','Ahorro'], inc:[] }, concepts: {'Esenciales': ['Luz','Gas','Internet','Alquiler'], 'Deudas': ['Visa','Master'], 'Ingresos': ['Sueldo','Venta']}, rates: {} };
         let currentDate = new Date(); currentDate.setDate(1);
         let editId=null, cExp=null, cInc=null, drillCat=null;
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-        /* --- INIT --- */
         window.onload = () => { updateDateUI(); forceSync(); };
 
         async function forceSync() {
@@ -405,54 +353,50 @@
         function loadMonthData() {
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
             document.getElementById('usdRate').value = appData.rates[`${y}-${m.toString().padStart(2,'0')}`] || 1200;
-            
             const txs = appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
             txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
-
-            renderLists(txs);
-            renderCharts(txs);
-            updateKPIs(txs);
+            renderLists(txs); renderCharts(txs); updateKPIs(txs);
         }
 
-        /* --- RENDERERS --- */
         function renderLists(txs) {
             const lI=document.getElementById('list-inc'), lE=document.getElementById('list-exp'), lA=document.getElementById('list-alloc');
             lI.innerHTML=''; lE.innerHTML=''; lA.innerHTML=''; let rb=0;
 
             txs.forEach(t => {
                 if(t.type=='inc') rb+=t.amount; else rb-=t.amount;
-                
                 let linkText = '';
                 if(t.type=='exp' && t.linkId) {
                     const source = appData.txs.find(x => x.id == t.linkId);
-                    if(source) linkText = `<span class="flex items-center gap-1 bg-slate-100 text-[10px] px-1.5 py-0.5 rounded text-primary"><span class="material-symbols-outlined text-[10px]">link</span> ${source.desc}</span>`;
+                    if(source) linkText = `<span class="flex items-center gap-0.5 bg-slate-100 text-[9px] px-1 rounded text-slate-500"><span class="material-symbols-outlined text-[9px]">link</span>${source.desc.substring(0,8)}..</span>`;
                 }
 
-                // Generar HTML con clases Tailwind
                 const el = document.createElement('div');
-                el.className = `group flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-slate-100 ${t.exec?'opacity-50 grayscale':''}`;
+                // LOGICA DE TACHADO SI ESTA EJECUTADO
+                const styles = t.exec ? "opacity-50 grayscale" : "";
+                const strike = t.exec ? "line-through decoration-slate-400 decoration-2" : "";
+                
+                el.className = `compact-row group flex items-center justify-between px-2 hover:bg-slate-50 transition-colors cursor-pointer border-b border-dashed border-slate-100 last:border-0 ${styles}`;
                 el.onclick = () => editTx(t.id);
                 
-                const icon = t.type=='inc' ? 'arrow_circle_up' : 'arrow_circle_down';
-                const iconBg = t.type=='inc' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600';
+                const iconColor = t.type=='inc' ? 'text-success' : 'text-danger';
 
                 el.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="size-10 rounded-lg ${iconBg} flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined">${icon}</span>
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <div class="size-6 rounded bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
+                            <span class="material-symbols-outlined text-sm ${iconColor}">circle</span>
                         </div>
-                        <div>
-                            <p class="text-sm font-bold text-slate-900 dark:text-white leading-tight">${t.desc}</p>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="text-xs text-slate-400 bg-slate-100 px-1.5 rounded">${t.cat || 'General'}</span>
-                                <span class="text-xs text-slate-400">${t.date.split('-')[2]} ${MONTHS[parseInt(t.date.split('-')[1])-1]}</span>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-slate-700 truncate leading-tight ${strike}">${t.desc}</p>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] text-slate-400 bg-slate-50 px-1 rounded">${t.cat || 'Gral'}</span>
+                                <span class="text-[10px] text-slate-400">${t.date.split('-')[2]}</span>
                                 ${linkText}
                             </div>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-sm font-extrabold ${t.type=='inc'?'text-emerald-600':'text-rose-600'}">$${fmt(t.amount)}</p>
-                        ${t.type=='exp'?`<p class="text-[10px] font-bold ${rb>=0?'text-emerald-500':'text-rose-500'}">Q: $${fmt(rb)}</p>`:''}
+                    <div class="text-right shrink-0 ml-2">
+                        <p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ${strike}">$${fmt(t.amount)}</p>
+                        ${t.type=='exp'?`<p class="text-[9px] font-bold ${rb>=0?'text-success/70':'text-danger/70'}">Q:$${fmt(rb)}</p>`:''}
                     </div>
                 `;
                 (t.type=='inc'?lI:lE).appendChild(el);
@@ -461,42 +405,51 @@
             document.getElementById('c-inc').innerText = txs.filter(t=>t.type=='inc').length;
             document.getElementById('c-exp').innerText = txs.filter(t=>t.type=='exp').length;
 
-            // Allocation Logic
+            /* --- LOGICA DE ASIGNACION (FIXED) --- */
             const incs = txs.filter(t=>t.type=='inc');
-            if(!incs.length) lA.innerHTML = '<div class="text-center text-slate-400 text-xs py-4">Sin datos</div>';
+            if(!incs.length) lA.innerHTML = '<div class="text-center text-slate-400 text-[10px] py-4">Sin datos</div>';
             
             incs.forEach(inc => {
                 const subs = txs.filter(t=>t.type=='exp' && t.linkId==inc.id);
                 const spent = subs.reduce((a,b)=>a+b.amount,0);
-                const rem = inc.amount - spent;
                 const pct = Math.min(100, (spent/inc.amount)*100);
                 
-                // Tailwind colors
                 let barColor = 'bg-primary';
                 if(pct > 90) barColor = 'bg-warning';
-                if(rem < 0) barColor = 'bg-danger';
+                if(spent > inc.amount) barColor = 'bg-danger';
 
+                // Generar filas para cada gasto vinculado
                 let rows = '';
-                subs.forEach(s => rows += `
-                    <div class="flex justify-between py-1 text-xs border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec?'line-through opacity-50':''}" onclick="editTx(${s.id})">
-                        <span class="text-slate-600">${s.desc}</span>
-                        <span class="font-bold text-slate-800">$${fmt(s.amount)}</span>
-                    </div>`);
+                if (subs.length > 0) {
+                    subs.forEach(s => {
+                        rows += `
+                        <div class="flex justify-between py-1 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})">
+                            <span class="truncate pr-2">${s.desc}</span>
+                            <span class="font-bold shrink-0">$${fmt(s.amount)}</span>
+                        </div>`;
+                    });
+                } else {
+                    rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>';
+                }
 
                 const card = document.createElement('div');
                 card.innerHTML = `
-                    <div class="space-y-3 p-3 rounded-xl border border-slate-100 dark:border-white/5 hover:shadow-sm transition-all bg-slate-50/50">
-                        <div class="flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                    <div class="rounded-lg border border-slate-100 bg-white mb-1 shadow-sm overflow-hidden">
+                        <div class="p-2 bg-slate-50/30 flex justify-between items-center cursor-pointer hover:bg-slate-50" onclick="this.parentElement.querySelector('.alloc-details').classList.toggle('hidden')">
                             <div>
-                                <p class="text-sm font-bold text-slate-900 dark:text-white">${inc.desc}</p>
-                                <p class="text-xs text-slate-400">$${fmt(spent)} / $${fmt(inc.amount)}</p>
+                                <p class="text-xs font-bold text-slate-700">${inc.desc}</p>
+                                <p class="text-[10px] text-slate-400 font-medium mt-0.5">Usado: $${fmt(spent)} de $${fmt(inc.amount)}</p>
                             </div>
-                            <span class="text-xs font-bold text-slate-700">${Math.round(pct)}%</span>
+                            <div class="text-right">
+                                <span class="text-[10px] font-bold text-slate-600">${Math.round(pct)}%</span>
+                            </div>
                         </div>
-                        <div class="w-full h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
+                        <div class="w-full h-1.5 bg-slate-100">
+                            <div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%;"></div>
                         </div>
-                        <div class="hidden pt-2 mt-2 border-t border-slate-200 space-y-1">${rows || '<span class="text-[10px] text-slate-400">Sin asignaciones</span>'}</div>
+                        <div class="alloc-details hidden bg-white py-1">
+                            ${rows}
+                        </div>
                     </div>
                 `;
                 lA.appendChild(card);
@@ -513,15 +466,14 @@
             let map={};
             if(drill && drillCat) data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount);
             else data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; });
-            
             const ent = Object.entries(map).sort((a,b)=>b[1]-a[1]);
             const tot = ent.reduce((a,b)=>a+b[1],0);
             
             setInst(new Chart(cvs, {
                 type:'doughnut', 
-                data:{ labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:4}] },
+                data:{ labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:2}] },
                 options:{ 
-                    responsive:true, maintainAspectRatio:false, cutout:'75%', 
+                    responsive:true, maintainAspectRatio:false, cutout:'70%', 
                     plugins:{legend:{display:false}, tooltip:{callbacks:{label: c=>` $${fmt(c.raw)}`}}}, 
                     onClick:(e,el)=>{if(drill&&!drillCat&&el.length){drillCat=ent[el[0].index][0]; loadMonthData();}} 
                 }
@@ -531,14 +483,14 @@
             ent.forEach((e,i) => {
                 const pct = Math.round((e[1]/tot)*100);
                 leg.innerHTML += `
-                    <div class="flex items-center justify-between text-xs py-2 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}">
-                        <div class="flex items-center gap-2">
-                            <span class="size-2.5 rounded-sm shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span>
-                            <span class="text-slate-700 font-medium truncate max-w-[100px]">${e[0]}</span>
+                    <div class="flex items-center justify-between text-[10px] py-1.5 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="size-2 rounded-full shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span>
+                            <span class="text-slate-600 font-medium truncate">${e[0]}</span>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-slate-400 font-medium">${pct}%</span>
-                            <span class="font-bold text-slate-900">$${fmt(e[1])}</span>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-slate-400">${pct}%</span>
+                            <span class="font-bold text-slate-800">$${fmt(e[1])}</span>
                         </div>
                     </div>`;
             });
@@ -546,7 +498,7 @@
         
         function resetCharts() { drillCat=null; loadMonthData(); }
 
-        /* --- FORM & LOGIC --- */
+        /* FORM & LOGIC */
         function openModal(){ editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); }
         function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
         
@@ -554,15 +506,14 @@
             const box = document.getElementById('conceptBox');
             box.innerHTML = '';
             const list = appData.concepts[catKey] || [];
-            
             list.forEach(c => {
                 const el = document.createElement('div');
-                el.className = 'px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-medium text-slate-600 cursor-pointer hover:border-primary hover:text-primary transition-colors concept-chip';
+                el.className = 'px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-[10px] font-medium text-slate-500 cursor-pointer hover:border-primary hover:text-primary transition-colors concept-chip';
                 el.innerText = c;
                 el.onclick = () => {
                     document.getElementById('fDesc').value = c;
-                    document.querySelectorAll('.concept-chip').forEach(x => { x.classList.remove('bg-primary','text-white','border-primary'); x.classList.add('bg-slate-100','text-slate-600');});
-                    el.classList.remove('bg-slate-100','text-slate-600');
+                    document.querySelectorAll('.concept-chip').forEach(x => { x.classList.remove('bg-primary','text-white','border-primary'); x.classList.add('bg-slate-50','text-slate-500');});
+                    el.classList.remove('bg-slate-50','text-slate-500');
                     el.classList.add('bg-primary','text-white','border-primary');
                 };
                 box.appendChild(el);
@@ -571,61 +522,41 @@
 
         function setType(t){
             document.getElementById('fType').value=t;
-            
-            // Toggle Button Styles
             const btnExp = document.getElementById('btnExp');
             const btnInc = document.getElementById('btnInc');
-            const activeClass = "bg-white dark:bg-[#343940] shadow-sm text-slate-900 dark:text-white";
-            const inactiveClass = "text-gray-500 hover:bg-gray-100";
             
             if(t === 'exp') {
-                btnExp.className = `flex items-center justify-center gap-2 py-2 rounded text-sm font-semibold transition-all duration-200 ${activeClass} text-rose-600`;
-                btnInc.className = `flex items-center justify-center gap-2 py-2 rounded text-sm font-semibold transition-all duration-200 ${inactiveClass}`;
-                
+                btnExp.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all bg-white text-rose-600 shadow-sm";
+                btnInc.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
                 document.getElementById('catRow').classList.remove('hidden');
                 document.getElementById('linkRow').classList.remove('hidden');
-                
-                // Render Categories
-                const box = document.getElementById('chipBox');
-                box.innerHTML = '';
-                const cats = appData.cats.exp || [];
-                cats.forEach(c=>{
+                const box = document.getElementById('chipBox'); box.innerHTML = '';
+                (appData.cats.exp || []).forEach(c=>{
                     const el=document.createElement('div'); 
-                    el.className='px-3 py-1 bg-white border border-slate-200 rounded text-xs font-medium text-slate-500 cursor-pointer hover:border-slate-400 cat-chip'; 
+                    el.className='px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-500 cursor-pointer hover:border-slate-400 cat-chip'; 
                     el.innerText=c;
                     el.onclick=()=>{ selectCat(c, el); renderConcepts(c); }; 
                     box.appendChild(el);
                 });
-                
-                // Add new category button
-                const add = document.createElement('div');
-                add.className = 'px-2 py-1 bg-slate-100 border border-dashed border-slate-300 rounded text-xs font-bold text-slate-400 cursor-pointer hover:text-primary hover:border-primary';
-                add.innerText = '+';
-                add.onclick=()=>{const n=prompt('Nueva Categoría'); if(n){ if(!appData.cats.exp)appData.cats.exp=[]; appData.cats.exp.push(n); saveData(); setType('exp'); }};
-                box.appendChild(add);
-
                 renderLinkOpts();
-                document.getElementById('lblDesc').innerText = "Concepto / Subcategoría";
+                document.getElementById('lblDesc').innerText = "Concepto";
                 document.getElementById('fCat').value = '';
                 document.getElementById('conceptBox').innerHTML = ''; 
-                
             } else {
-                btnInc.className = `flex items-center justify-center gap-2 py-2 rounded text-sm font-semibold transition-all duration-200 ${activeClass} text-emerald-600`;
-                btnExp.className = `flex items-center justify-center gap-2 py-2 rounded text-sm font-semibold transition-all duration-200 ${inactiveClass}`;
-                
+                btnInc.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm";
+                btnExp.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
                 document.getElementById('catRow').classList.add('hidden');
                 document.getElementById('linkRow').classList.add('hidden');
-                
                 document.getElementById('fCat').value = 'Ingresos'; 
-                document.getElementById('lblDesc').innerText = "Fuente de Ingreso";
+                document.getElementById('lblDesc').innerText = "Fuente";
                 renderConcepts('Ingresos'); 
             }
         }
 
         function selectCat(c, el){ 
             document.getElementById('fCat').value=c; 
-            document.querySelectorAll('.cat-chip').forEach(x => { x.classList.remove('chip-active'); x.classList.add('bg-white','text-slate-500'); }); 
-            if(el) { el.classList.remove('bg-white','text-slate-500'); el.classList.add('chip-active'); }
+            document.querySelectorAll('.cat-chip').forEach(x => { x.classList.remove('bg-slate-700','text-white'); x.classList.add('bg-white','text-slate-500'); }); 
+            if(el) { el.classList.remove('bg-white','text-slate-500'); el.classList.add('bg-slate-700','text-white'); }
         }
 
         function renderLinkOpts(sel){
@@ -642,8 +573,7 @@
             e.preventDefault();
             let cat=document.getElementById('fCat').value;
             const type = document.getElementById('fType').value;
-            if(type === 'exp' && !cat) return alert('Selecciona una categoría primero');
-            
+            if(type === 'exp' && !cat) return alert('Categoría?');
             const desc=document.getElementById('fDesc').value;
             const tx={
                 id:editId||Date.now(), date:document.getElementById('fDate').value,
@@ -651,78 +581,52 @@
                 cat, desc, exec:document.getElementById('fExec').checked,
                 linkId:type=='exp'?document.getElementById('fLink').value:null, deletedAt:null
             };
-            
             const storeKey = type === 'inc' ? 'Ingresos' : cat;
             if(!appData.concepts[storeKey]) appData.concepts[storeKey] = [];
             if(!appData.concepts[storeKey].includes(desc)) appData.concepts[storeKey].push(desc);
-            
             if(editId){ const i=appData.txs.findIndex(x=>x.id==editId); appData.txs[i]=tx; } else appData.txs.push(tx);
             saveData(); closeModal();
         }
 
         function editTx(id){
             const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;
-            document.getElementById('mTitle').innerText='Editar Movimiento'; 
-            document.getElementById('btnDel').classList.remove('hidden');
-            
-            document.getElementById('fAmt').value=t.amount; 
-            document.getElementById('fDate').value=t.date; 
-            document.getElementById('fDesc').value=t.desc; 
-            document.getElementById('fExec').checked=t.exec;
-            
-            // Clone Area
+            document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');
+            document.getElementById('fAmt').value=t.amount; document.getElementById('fDate').value=t.date; 
+            document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;
             document.getElementById('cloneArea').classList.remove('hidden');
             const d = new Date(t.date); d.setMonth(d.getMonth() + 1);
             document.getElementById('fCloneMonth').value = d.toISOString().slice(0, 7);
-
             setType(t.type); 
-            
             if(t.type === 'exp') { 
-                // Auto-select chip logic needs timeout because chips are re-rendered
                 setTimeout(() => {
-                    const cs=document.querySelectorAll('.cat-chip'); 
-                    for(let c of cs) { if(c.innerText==t.cat) { c.click(); break; } }
+                    const cs=document.querySelectorAll('.cat-chip'); for(let c of cs) { if(c.innerText==t.cat) { c.click(); break; } }
                     renderLinkOpts(t.linkId); 
                 }, 10);
             } 
             setTimeout(() => {
-                 const scs=document.querySelectorAll('.concept-chip');
-                 for(let sc of scs) if(sc.innerText==t.desc) sc.classList.add('bg-primary','text-white','border-primary');
+                 const scs=document.querySelectorAll('.concept-chip'); for(let sc of scs) if(sc.innerText==t.desc) sc.classList.add('bg-primary','text-white','border-primary');
             }, 100);
-
-            document.getElementById('modalOverlay').classList.remove('hidden');
-            document.getElementById('modalOverlay').classList.add('flex');
+            document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');
         }
 
         function doClone(){
             const m = document.getElementById('fCloneMonth').value;
-            if(!m) return alert('Selecciona un mes');
+            if(!m) return alert('Mes?');
             const t = appData.txs.find(x=>x.id==editId);
-            if(!confirm(`¿Duplicar "${t.desc}" a ${m}?`)) return;
-            
-            const oldD = new Date(t.date); 
-            const parts = t.date.split('-');
-            const day = parts[2];
-            const newDate = `${m}-${day}`;
-            const newTx = { ...t, id: Date.now(), date: newDate, exec: false, linkId: null }; 
-            
-            appData.txs.push(newTx);
+            if(!confirm(`Duplicar?`)) return;
+            const parts = t.date.split('-'); const newDate = `${m}-${parts[2]}`;
+            appData.txs.push({ ...t, id: Date.now(), date: newDate, exec: false, linkId: null });
             saveData(); closeModal();
         }
 
         function resetForm(){ 
-            document.getElementById('txForm').reset(); 
-            document.getElementById('mTitle').innerText='Nuevo Movimiento'; 
-            document.getElementById('btnDel').classList.add('hidden'); 
-            document.getElementById('cloneArea').classList.add('hidden');
+            document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; 
+            document.getElementById('btnDel').classList.add('hidden'); document.getElementById('cloneArea').classList.add('hidden');
             document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; 
         }
-        
-        function delTx(){ if(confirm('¿Eliminar?')){ appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
-        
-        function clearMonth(){ if(confirm('¿BORRAR TODO EL MES?')){ const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
-        
-        function cloneMonth(){ const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('¿Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); appData.txs.push(...n); saveData(); }
+        function delTx(){ if(confirm('Eliminar?')){ appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
+        function clearMonth(){ if(confirm('Borrar MES actual?')){ const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
+        function cloneMonth(){ const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); appData.txs.push(...n); saveData(); }
         
         function updateKPIs(txs){
             const tc=parseFloat(document.getElementById('usdRate').value)||1200;
@@ -739,15 +643,8 @@
         function nav(v, el){ 
             document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); 
             document.getElementById(`view-${v}`).classList.remove('hidden-view'); 
-            
-            document.querySelectorAll('#main-nav button').forEach(e=>{
-                e.classList.remove('active-nav');
-                e.classList.add('text-slate-500');
-            }); 
-            if(el) {
-                el.classList.add('active-nav');
-                el.classList.remove('text-slate-500');
-            }
+            document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); 
+            if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); }
         }
     </script>
 </body>
