@@ -34,7 +34,7 @@
         .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
         .compact-row { padding-top: 0.35rem; padding-bottom: 0.35rem; }
         
-        /* CHIPS AVANZADOS */
+        /* CHIPS */
         .chip { transition: all 0.2s; border: 1px solid #e2e8f0; background: white; color: #64748b; font-size: 11px; }
         .chip:hover { border-color: #0e757c; color: #0e757c; transform: translateY(-1px); }
         .chip.active { background: #0e757c; color: white; border-color: #0e757c; font-weight: 700; box-shadow: 0 2px 4px rgba(14, 117, 124, 0.25); }
@@ -47,7 +47,7 @@
         .chip-concept { font-size: 10px; padding: 3px 8px; background: #f1f5f9; border-radius: 6px; cursor: pointer; color: #64748b; border: 1px solid transparent; }
         .chip-concept:hover { background: #e2e8f0; color: #334155; }
         
-        /* TREE & ADMIN */
+        /* TREE */
         details > summary { list-style: none; cursor: pointer; }
         details > summary::-webkit-details-marker { display: none; }
     </style>
@@ -81,7 +81,7 @@
                     <span class="material-symbols-outlined text-xl shrink-0">settings</span>
                     <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ajustes</span>
                 </button>
-                <button onclick="forceSync()" class="flex items-center h-10 rounded-lg px-2 text-primary hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2" title="Forzar Sincronización Nube">
+                <button onclick="forceSync()" class="flex items-center h-10 rounded-lg px-2 text-primary hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2" title="Forzar Sincronización">
                     <span class="material-symbols-outlined text-xl shrink-0">cloud_sync</span>
                     <span class="ml-3 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Sincronizar</span>
                 </button>
@@ -176,8 +176,22 @@
         </div>
 
         <div id="view-strategy" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
-             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col"><h3 class="text-xs font-bold text-slate-600 uppercase mb-4">Radar de Salud Financiera</h3><div class="flex-1 relative flex justify-center items-center"><canvas id="chartRadar" style="max-height: 280px;"></canvas></div><p class="text-[10px] text-center text-slate-400 mt-2">Comparativa vs Modelo Ideal</p></div>
-             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col"><div class="flex justify-between items-center mb-4"><h3 class="text-xs font-bold text-slate-600 uppercase">Portafolio Inversiones</h3><span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded">Total: $0 USD</span></div><div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50"><span class="material-symbols-outlined text-4xl text-slate-300 mb-2">hub</span><p class="text-xs font-bold text-slate-500">Conexión API</p><p class="text-[10px] text-slate-400 mt-1">Configura CEDEARs y Crypto</p></div></div>
+             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+                 <h3 class="text-xs font-bold text-slate-600 uppercase mb-4">Regla 50/30/20 (Ideal vs Real)</h3>
+                 <div class="flex-1 relative flex justify-center items-center"><canvas id="chartRadar" style="max-height: 280px;"></canvas></div>
+                 <p class="text-[10px] text-center text-slate-400 mt-2">Comparativa de distribución del presupuesto</p>
+             </div>
+             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                     <h3 class="text-xs font-bold text-slate-600 uppercase">Portafolio Inversiones</h3>
+                     <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded">Total: $0 USD</span>
+                 </div>
+                 <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                     <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">hub</span>
+                     <p class="text-xs font-bold text-slate-500">Conexión API</p>
+                     <p class="text-[10px] text-slate-400 mt-1">Configura CEDEARs y Crypto</p>
+                 </div>
+             </div>
         </div>
 
         <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0 pt-2">
@@ -231,7 +245,10 @@
             <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col h-full overflow-hidden">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-xs font-bold text-slate-800 uppercase">Recurrentes</h3>
-                    <button onclick="addRecurrenteRow()" class="text-primary text-[10px] font-bold hover:underline">+ AGREGAR</button>
+                    <div class="flex gap-2">
+                        <button onclick="populateRecurringDefaults()" class="text-slate-400 text-[10px] font-bold hover:text-primary" title="Cargar Sugeridos">SUGERIR</button>
+                        <button onclick="addRecurrenteRow()" class="text-primary text-[10px] font-bold hover:underline">+ AGREGAR</button>
+                    </div>
                 </div>
                 <div class="flex-1 overflow-y-auto custom-scrollbar space-y-1" id="recurrente-table-body"></div>
                 <div class="mt-3 pt-3 border-t border-slate-100 flex gap-2">
@@ -321,13 +338,11 @@
     </div>
 
     <script>
-        // === TU URL ORIGINAL RECUPERADA ===
-        const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec";
+        const API_URL = "AQUÍ_TU_URL_DE_APPS_SCRIPT"; 
         
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
 
-        // Javi's Context Defaults
         const defaultData = { 
             txs: [], 
             cats: { 
@@ -356,14 +371,13 @@
         window.onload = () => { initApp(); };
 
         async function initApp() {
-            loadLocal(); // Carga inmediata para UX
-            await forceSync(); // Intenta conectar y recuperar tu info
+            loadLocal();
+            await forceSync();
             updateDateUI(); 
             Chart.defaults.font.family = "'Inter', sans-serif";
             renderAdminTree();
         }
 
-        // --- SISTEMA HÍBRIDO (CONEXIÓN + PROTECCIÓN) ---
         function saveLocal() { localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData)); }
         
         function loadLocal() {
@@ -376,76 +390,26 @@
             try { 
                 const r = await fetch(API_URL); 
                 const cloudData = await r.json(); 
-                
-                // === LÓGICA DE FUSIÓN PARA RECUPERAR DATOS VIEJOS ===
                 if(cloudData) {
                     appData.txs = cloudData.txs || [];
-                    
-                    // Si tu script viejo no tiene "cats", usamos los defaults para que no se rompa el árbol
                     appData.cats = cloudData.cats || defaultData.cats;
                     appData.concepts = cloudData.concepts || defaultData.concepts; 
-                    
                     appData.rates = cloudData.rates || {}; 
                     appData.monthlyRates = cloudData.monthlyRates || appData.rates; 
                     appData.recurrentes = cloudData.recurrentes || [];
-                    
-                    saveLocal(); // Guardamos lo recuperado
-                    console.log("Conexión exitosa. Datos recuperados.");
+                    saveLocal();
                 }
-            } catch(e) { console.log("Modo Offline o Error de API"); }
+            } catch(e) { console.log("Offline mode active"); }
             loadMonthData(); 
         }
         
         async function saveData() {
-            saveLocal(); // Backup inmediato
+            saveLocal();
             try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); } catch(e){}
             loadMonthData(); renderAdminTree();
         }
 
-        // ... [RESTO DE FUNCIONES] ...
-        function hardReset() {
-            if(confirm("¿Restaurar configuración de fábrica? Se borrarán datos locales.")) {
-                appData = JSON.parse(JSON.stringify(defaultData));
-                saveLocal();
-                location.reload();
-            }
-        }
-        function cloneMonth() {
-            const srcVal = document.getElementById('cloneSrc').value;
-            if(!srcVal) return alert("Selecciona mes origen");
-            if(!confirm("¿Copiar movimientos?")) return;
-            const [y, m] = srcVal.split('-').map(Number);
-            const targetDate = `${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}-01`;
-            const srcTxs = appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
-            if(srcTxs.length === 0) return alert("No hay datos");
-            let newTxs = [], idMap = {};
-            srcTxs.filter(t => t.type === 'inc').forEach(t => { const newId = Date.now() + Math.random(); idMap[t.id] = newId; newTxs.push({ ...t, id: newId, date: targetDate, exec: false }); });
-            srcTxs.filter(t => t.type === 'exp').forEach(t => { const newId = Date.now() + Math.random(); newTxs.push({ ...t, id: newId, date: targetDate, exec: false, linkId: t.linkId ? (idMap[t.linkId] || null) : null }); });
-            appData.txs.push(...newTxs);
-            saveData();
-        }
-
-        // --- RENDERIZADO ---
-        function renderAdminTree() {
-            const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
-            const buildBranch = (title, type) => {
-                const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
-                let html = `<div class="mb-4"><h4 class="font-bold text-xs text-slate-700 bg-slate-100 p-2 rounded mb-2 border border-slate-200">${title}</h4><div class="space-y-2">`;
-                cats.forEach(c => {
-                    const concepts = appData.concepts[c] || [];
-                    html += `<div class="border border-slate-200 rounded-lg p-2 bg-white"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-primary cursor-pointer hover:underline">📁 ${c}</span><button onclick="delCat('${type}','${c}')" class="text-[10px] text-red-400 hover:text-red-600 bg-red-50 px-2 py-0.5 rounded">Eliminar</button></div><div class="flex flex-wrap gap-1 mb-2">${concepts.map(con => `<span class="text-[10px] bg-slate-50 border border-slate-100 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 group">${con} <button onclick="delConcept('${c}','${con}')" class="text-red-300 hover:text-red-500 hidden group-hover:block ml-1 font-bold">×</button></span>`).join('')}</div><div class="flex gap-1"><input type="text" id="newCon_${c}" placeholder="Subcategoría..." class="w-full text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50 focus:bg-white focus:border-primary outline-none"><button onclick="manualAddConcept('${c}')" class="text-[10px] bg-slate-200 text-slate-600 px-2 rounded hover:bg-slate-300">+</button></div></div>`;
-                });
-                html += `</div></div>`;
-                container.innerHTML += html;
-            };
-            buildBranch("Gastos", "exp");
-            buildBranch("Ingresos", "inc");
-        }
-        function manualAddCat() { const n = document.getElementById('newCatName').value.trim(); const t = document.getElementById('newCatType').value; if(!n) return alert('Nombre?'); if(t === 'exp') { if(!appData.cats.exp.includes(n)) appData.cats.exp.push(n); } else { if(!appData.cats.inc.includes(n)) appData.cats.inc.push(n); } if(!appData.concepts[n]) appData.concepts[n] = []; document.getElementById('newCatName').value = ''; saveData(); }
-        function manualAddConcept(catName) { const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim(); if(!val) return; if(!appData.concepts[catName]) appData.concepts[catName] = []; if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val); saveData(); }
-        function delCat(type, name) { if(confirm(`¿Eliminar ${name}?`)) { if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name); delete appData.concepts[name]; saveData(); } }
-        function delConcept(cat, name) { if(confirm(`¿Eliminar ${name}?`)) { appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); } }
-
+        // --- RENDERIZADO Y LÓGICA ---
         function loadMonthData() {
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
             const key = `${y}-${m.toString().padStart(2,'0')}`;
@@ -457,6 +421,34 @@
             renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin(); renderAdminTree();
         }
 
+        function renderCharts(txs) {
+            renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', true, cExp, i=>cExp=i);
+            renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), txs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
+            
+            // RADAR 50/30/20 MEJORADO
+            if(cRadar) cRadar.destroy();
+            const totalInc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0) || 1;
+            
+            // Categorización aproximada para el radar
+            const savings = txs.filter(t=>['Inversiones','Viaje Italia','Ahorro'].includes(t.cat)).reduce((a,b)=>a+b.amount,0);
+            const fixed = txs.filter(t=>['Esenciales','Deudas','Sueldo Famiq'].includes(t.cat)).reduce((a,b)=>a+b.amount,0); 
+            // Todo lo demas es 'Ocio' o 'Variable'
+            const variable = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0) - (savings + fixed);
+
+            cRadar = new Chart(document.getElementById('chartRadar'), { 
+                type: 'radar', 
+                data: { 
+                    labels: ['Fijos (50%)', 'Ocio (30%)', 'Ahorro (20%)'], 
+                    datasets: [
+                        { label: 'Ideal', data: [50, 30, 20], borderColor: '#cbd5e1', borderDash: [5,5], fill: false, pointRadius: 0 },
+                        { label: 'Real', data: [Math.min(100, (fixed/totalInc)*100), Math.min(100, (variable/totalInc)*100), Math.min(100, (savings/totalInc)*100)], backgroundColor: 'rgba(14, 117, 124, 0.2)', borderColor: '#0e757c', fill: true }
+                    ] 
+                }, 
+                options: { scales: { r: { min: 0, max: 100, ticks: { display: false } } }, plugins: { legend: { position: 'top' } } } 
+            });
+        }
+
+        // ... [DOUGHNUTS Y KPIS IGUAL QUE ANTES] ...
         function renderLists(txs) {
             const lI=document.getElementById('list-inc'), lE=document.getElementById('list-exp'), lA=document.getElementById('list-alloc');
             lI.innerHTML=''; lE.innerHTML=''; lA.innerHTML=''; let rb=0;
@@ -464,10 +456,7 @@
                 if(t.type=='inc') rb+=t.amount; else rb-=t.amount;
                 let currBadge = (t.origCurr && t.origCurr !== 'ARS') ? `<span class="bg-blue-50 text-blue-600 text-[9px] px-1 rounded ml-1 font-bold">${t.origAmt} ${t.origCurr}</span>` : '';
                 let linkText = '';
-                if(t.type=='exp' && t.linkId) {
-                    const source = appData.txs.find(x => x.id == t.linkId);
-                    if(source) linkText = `<span class="flex items-center gap-0.5 bg-slate-100 text-[9px] px-1 rounded text-slate-500"><span class="material-symbols-outlined text-[9px]">link</span>${source.desc.substring(0,8)}..</span>`;
-                }
+                if(t.type=='exp' && t.linkId) { const source = appData.txs.find(x => x.id == t.linkId); if(source) linkText = `<span class="flex items-center gap-0.5 bg-slate-100 text-[9px] px-1 rounded text-slate-500"><span class="material-symbols-outlined text-[9px]">link</span>${source.desc.substring(0,8)}..</span>`; }
                 const el = document.createElement('div');
                 const styles = t.exec ? "opacity-50 grayscale" : "";
                 const strike = t.exec ? "line-through decoration-slate-400 decoration-2" : "";
@@ -491,15 +480,6 @@
                 lA.appendChild(card);
             });
         }
-        function renderCharts(txs) {
-            renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', true, cExp, i=>cExp=i);
-            renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), txs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
-            if(cRadar) cRadar.destroy();
-            const totalInc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0) || 1;
-            const savings = txs.filter(t=>t.cat=='Inversiones' || t.cat=='Viaje Italia').reduce((a,b)=>a+b.amount,0);
-            const fixed = txs.filter(t=>t.cat=='Esenciales' || t.cat=='Deudas').reduce((a,b)=>a+b.amount,0);
-            cRadar = new Chart(document.getElementById('chartRadar'), { type: 'radar', data: { labels: ['Ahorro (20%)', 'Fijos (50%)', 'Ocio (30%)'], datasets: [{ label: 'Tu Mes', data: [Math.min(100, (savings/totalInc)*100), Math.min(100, (fixed/totalInc)*100), 100-((savings+fixed)/totalInc)*100], fill: true, backgroundColor: 'rgba(14, 117, 124, 0.2)', borderColor: '#0e757c' }] }, options: { scales: { r: { min: 0, max: 100, ticks: { display: false } } }, plugins: { legend: { position: 'top' } } } });
-        }
         function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
             if(inst) inst.destroy();
             let map={}; if(drill && drillCat) { document.getElementById('resetBtn').classList.remove('hidden'); data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount); } else { if(drill) document.getElementById('resetBtn').classList.add('hidden'); data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; }); }
@@ -509,18 +489,10 @@
         }
         function resetCharts() { drillCat=null; loadMonthData(); }
 
-        /* FORM & CHIPS LOGIC */
+        /* FORM LOGIC */
         function openModal(){ editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); }
         function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
-        function renderConcepts(catKey) {
-            const box = document.getElementById('conceptBox'); box.innerHTML = '';
-            const list = appData.concepts[catKey] || [];
-            list.forEach(c => {
-                const el = document.createElement('div'); el.className = 'chip-concept'; el.innerText = c;
-                el.onclick = () => { document.getElementById('fDesc').value = c; document.querySelectorAll('.chip-concept').forEach(x=>x.style.backgroundColor='#f1f5f9'); el.style.backgroundColor='#cbd5e1'; };
-                box.appendChild(el);
-            });
-        }
+        
         function setType(t){
             document.getElementById('fType').value=t;
             const btnExp = document.getElementById('btnExp'); const btnInc = document.getElementById('btnInc');
@@ -534,14 +506,17 @@
                 btnInc.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all bg-white text-emerald-600 shadow-sm";
                 btnExp.className = "flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
                 document.getElementById('linkRow').classList.add('hidden');
-                renderChips('inc'); 
+                renderChips('inc'); // AQUI ESTABA EL ERROR: DEBE CARGAR LAS CATEGORIAS DE INGRESO
                 document.getElementById('lblDesc').innerText = "Detalle";
             }
             document.getElementById('fCat').value = ''; document.getElementById('conceptBox').innerHTML = '';
         }
+
+        // --- RENDER CHIPS CORREGIDO ---
         function renderChips(type) {
             const container = document.getElementById('chipBox'); container.innerHTML = '';
-            const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
+            // Aseguramos que lea la última versión de appData
+            const cats = type === 'inc' ? (appData.cats.inc || []) : (appData.cats.exp || []);
             cats.forEach(c => {
                 const chip = document.createElement('div');
                 chip.className = `chip px-2 py-1 rounded-full cursor-pointer select-none ${document.getElementById('fCat').value === c ? 'active' : ''}`;
@@ -555,79 +530,62 @@
                 container.appendChild(chip);
             });
         }
-        function renderLinkChips(selectedId){
-            const container = document.getElementById('linkChipsContainer'); container.innerHTML = '';
-            const y=currentDate.getFullYear(), m=currentDate.getMonth()+1;
-            const incs = appData.txs.filter(t=>!t.deletedAt && t.type=='inc' && parseInt(t.date.split('-')[1])==m);
-            if(incs.length === 0) { container.innerHTML = '<span class="text-[10px] text-slate-400 italic">No hay ingresos este mes</span>'; return; }
-            incs.forEach(i => {
-                const sp=appData.txs.filter(x=>!x.deletedAt && x.type=='exp' && x.linkId==i.id && x.id!=editId).reduce((a,b)=>a+b.amount,0);
-                const bal = i.amount - sp;
-                if(bal < 1 && i.id != selectedId) return; 
-                const chip = document.createElement('div');
-                chip.className = `link-chip text-[9px] px-2 py-1 rounded cursor-pointer select-none ${selectedId == i.id ? 'active' : ''}`;
-                chip.innerHTML = `<b>${i.desc}</b> <span class="opacity-70">($${fmt(bal)})</span>`;
-                chip.onclick = () => {
-                    document.getElementById('fLink').value = i.id;
-                    document.querySelectorAll('.link-chip').forEach(x => x.classList.remove('active'));
-                    chip.classList.add('active');
-                };
-                container.appendChild(chip);
+        function renderConcepts(catKey) {
+            const box = document.getElementById('conceptBox'); box.innerHTML = '';
+            const list = appData.concepts[catKey] || [];
+            list.forEach(c => {
+                const el = document.createElement('div'); el.className = 'chip-concept'; el.innerText = c;
+                el.onclick = () => { document.getElementById('fDesc').value = c; document.querySelectorAll('.chip-concept').forEach(x=>x.style.backgroundColor='#f1f5f9'); el.style.backgroundColor='#cbd5e1'; };
+                box.appendChild(el);
             });
-            const none = document.createElement('div');
-            none.className = `link-chip text-[9px] px-2 py-1 rounded cursor-pointer select-none ${!selectedId ? 'active' : ''}`;
-            none.innerText = "Sin Asignar";
-            none.onclick = () => { document.getElementById('fLink').value = ""; document.querySelectorAll('.link-chip').forEach(x => x.classList.remove('active')); none.classList.add('active'); };
-            container.appendChild(none);
         }
-        function calcConversion() {
-            const amt = parseFloat(document.getElementById('fAmt').value) || 0;
-            const curr = document.getElementById('fCurr').value;
-            const rateARS = parseFloat(document.getElementById('headerRateDisplay').value) || 1200;
-            let final = amt;
-            if (curr === 'USD') final = amt * rateARS;
-            if (curr === 'COP') final = (amt / parseFloat(document.getElementById('rate_COP').value)) * rateARS;
-            document.getElementById('convResult').innerText = `$${fmt(final)} ARS`;
-            document.getElementById('convPreview').classList.toggle('hidden', curr === 'ARS');
-            return final;
-        }
-        document.getElementById('txForm').onsubmit=e=>{
-            e.preventDefault();
-            let cat=document.getElementById('fCat').value;
-            const type = document.getElementById('fType').value;
-            if(!cat) return alert('Selecciona categoría');
-            const desc=document.getElementById('fDesc').value;
-            if(cat) {
-                if(!appData.concepts[cat]) appData.concepts[cat] = [];
-                if(!appData.concepts[cat].includes(desc)) appData.concepts[cat].push(desc);
-            }
-            const tx={
-                id:editId||Date.now(), date:document.getElementById('fDate').value,
-                amount: calcConversion(), origAmt: parseFloat(document.getElementById('fAmt').value), origCurr: document.getElementById('fCurr').value,
-                type, cat, desc, exec:document.getElementById('fExec').checked,
-                linkId:type=='exp'?document.getElementById('fLink').value:null, deletedAt:null
-            };
-            if(editId){ const i=appData.txs.findIndex(x=>x.id==editId); appData.txs[i]=tx; } else appData.txs.push(tx);
-            saveData(); closeModal();
-        }
-        function editTx(id){
-            const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;
-            document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');
-            document.getElementById('fDate').value=t.date; document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;
-            document.getElementById('fAmt').value = t.origAmt || t.amount; document.getElementById('fCurr').value = t.origCurr || 'ARS';
-            setType(t.type); 
-            setTimeout(() => {
-                document.getElementById('fCat').value = t.cat;
-                renderChips(t.type); 
-                if(t.type === 'exp') { 
-                    document.getElementById('fLink').value = t.linkId || ""; 
-                    renderLinkChips(t.linkId);
+
+        // --- ADMIN: SUGERIDOS ---
+        function populateRecurringDefaults() {
+            if(!confirm("¿Cargar sugerencias?")) return;
+            const defaults = [
+                {desc:'Alquiler', amount:0, cat:'Esenciales'},
+                {desc:'Expensas', amount:0, cat:'Esenciales'},
+                {desc:'Internet', amount:0, cat:'Esenciales'},
+                {desc:'Gimnasio', amount:0, cat:'Fitness'},
+                {desc:'Spotify/Netflix', amount:0, cat:'Esenciales'}
+            ];
+            defaults.forEach(d => {
+                if(!appData.recurrentes.some(r => r.desc === d.desc)) {
+                    appData.recurrentes.push(d);
                 }
-                renderConcepts(t.cat);
-            }, 50);
-            calcConversion();
-            document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');
+            });
+            renderRecurrentesAdmin();
+            saveData();
         }
+
+        // ... [RESTO DE FUNCIONES DE ADMIN IGUALES] ...
+        function manualAddCat() { const n = document.getElementById('newCatName').value.trim(); const t = document.getElementById('newCatType').value; if(!n) return alert('Nombre?'); if(t === 'exp') { if(!appData.cats.exp.includes(n)) appData.cats.exp.push(n); } else { if(!appData.cats.inc.includes(n)) appData.cats.inc.push(n); } if(!appData.concepts[n]) appData.concepts[n] = []; document.getElementById('newCatName').value = ''; saveData(); }
+        // ... (resto de funciones admin igual a V11) ...
+        function manualAddConcept(catName) { const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim(); if(!val) return; if(!appData.concepts[catName]) appData.concepts[catName] = []; if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val); saveData(); }
+        function delCat(type, name) { if(confirm(`¿Eliminar ${name}?`)) { if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name); delete appData.concepts[name]; saveData(); } }
+        function delConcept(cat, name) { if(confirm(`¿Eliminar ${name}?`)) { appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); } }
+        function renderAdminTree() {
+            const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
+            const buildBranch = (title, type) => {
+                const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
+                let html = `<div class="mb-4"><h4 class="font-bold text-xs text-slate-700 bg-slate-100 p-2 rounded mb-2 border border-slate-200">${title}</h4><div class="space-y-2">`;
+                cats.forEach(c => {
+                    const concepts = appData.concepts[c] || [];
+                    html += `<div class="border border-slate-200 rounded-lg p-2 bg-white"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-primary cursor-pointer hover:underline">📁 ${c}</span><button onclick="delCat('${type}','${c}')" class="text-[10px] text-red-400 hover:text-red-600 bg-red-50 px-2 py-0.5 rounded">Eliminar</button></div><div class="flex flex-wrap gap-1 mb-2">${concepts.map(con => `<span class="text-[10px] bg-slate-50 border border-slate-100 px-2 py-0.5 rounded text-slate-500 flex items-center gap-1 group">${con} <button onclick="delConcept('${c}','${con}')" class="text-red-300 hover:text-red-500 hidden group-hover:block ml-1 font-bold">×</button></span>`).join('')}</div><div class="flex gap-1"><input type="text" id="newCon_${c}" placeholder="Subcategoría..." class="w-full text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50 focus:bg-white focus:border-primary outline-none"><button onclick="manualAddConcept('${c}')" class="text-[10px] bg-slate-200 text-slate-600 px-2 rounded hover:bg-slate-300">+</button></div></div>`;
+                });
+                html += `</div></div>`;
+                container.innerHTML += html;
+            };
+            buildBranch("Gastos", "exp");
+            buildBranch("Ingresos", "inc");
+        }
+
+        // ... [RESTO DE HELPERS: calcConversion, saveMonthlyRates, etc] ...
+        function renderLinkChips(selectedId){const container = document.getElementById('linkChipsContainer'); container.innerHTML = '';const y=currentDate.getFullYear(), m=currentDate.getMonth()+1;const incs = appData.txs.filter(t=>!t.deletedAt && t.type=='inc' && parseInt(t.date.split('-')[1])==m);if(incs.length === 0) { container.innerHTML = '<span class="text-[10px] text-slate-400 italic">No hay ingresos este mes</span>'; return; }incs.forEach(i => {const sp=appData.txs.filter(x=>!x.deletedAt && x.type=='exp' && x.linkId==i.id && x.id!=editId).reduce((a,b)=>a+b.amount,0);const bal = i.amount - sp;if(bal < 1 && i.id != selectedId) return; const chip = document.createElement('div');chip.className = `link-chip text-[9px] px-2 py-1 rounded cursor-pointer select-none ${selectedId == i.id ? 'active' : ''}`;chip.innerHTML = `<b>${i.desc}</b> <span class="opacity-70">($${fmt(bal)})</span>`;chip.onclick = () => {document.getElementById('fLink').value = i.id;document.querySelectorAll('.link-chip').forEach(x => x.classList.remove('active'));chip.classList.add('active');};container.appendChild(chip);});const none = document.createElement('div');none.className = `link-chip text-[9px] px-2 py-1 rounded cursor-pointer select-none ${!selectedId ? 'active' : ''}`;none.innerText = "Sin Asignar";none.onclick = () => { document.getElementById('fLink').value = ""; document.querySelectorAll('.link-chip').forEach(x => x.classList.remove('active')); none.classList.add('active'); };container.appendChild(none);}
+        function calcConversion() {const amt = parseFloat(document.getElementById('fAmt').value) || 0;const curr = document.getElementById('fCurr').value;const rateARS = parseFloat(document.getElementById('headerRateDisplay').value) || 1200;let final = amt;if (curr === 'USD') final = amt * rateARS;if (curr === 'COP') final = (amt / parseFloat(document.getElementById('rate_COP').value)) * rateARS;document.getElementById('convResult').innerText = `$${fmt(final)} ARS`;document.getElementById('convPreview').classList.toggle('hidden', curr === 'ARS');return final;}
+        document.getElementById('txForm').onsubmit=e=>{e.preventDefault();let cat=document.getElementById('fCat').value;const type = document.getElementById('fType').value;if(!cat) return alert('Selecciona categoría');const desc=document.getElementById('fDesc').value;if(cat) {if(!appData.concepts[cat]) appData.concepts[cat] = [];if(!appData.concepts[cat].includes(desc)) appData.concepts[cat].push(desc);}const tx={id:editId||Date.now(), date:document.getElementById('fDate').value,amount: calcConversion(), origAmt: parseFloat(document.getElementById('fAmt').value), origCurr: document.getElementById('fCurr').value,type, cat, desc, exec:document.getElementById('fExec').checked,linkId:type=='exp'?document.getElementById('fLink').value:null, deletedAt:null};if(editId){ const i=appData.txs.findIndex(x=>x.id==editId); appData.txs[i]=tx; } else appData.txs.push(tx);saveData(); closeModal();}
+        function editTx(id){const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');document.getElementById('fDate').value=t.date; document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;document.getElementById('fAmt').value = t.origAmt || t.amount; document.getElementById('fCurr').value = t.origCurr || 'ARS';setType(t.type); setTimeout(() => {document.getElementById('fCat').value = t.cat;renderChips(t.type); if(t.type === 'exp') { document.getElementById('fLink').value = t.linkId || ""; renderLinkChips(t.linkId);}renderConcepts(t.cat);}, 50);calcConversion();document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');}
         function resetForm(){ document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null; }
         function delTx(){ if(confirm('Eliminar?')){ appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
         function updateKPIs(txs){ const tc=parseFloat(document.getElementById('headerRateDisplay').value)||1200; const i=txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0); const e=txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0); document.getElementById('k-inc').innerText='$'+fmt(i); document.getElementById('k-exp').innerText='$'+fmt(e); document.getElementById('k-bal').innerText='$'+fmt(i-e); document.getElementById('k-usd').innerText='USD '+fmt((i-e)/tc); }
@@ -640,6 +598,8 @@
         function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
         function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS'}); c++; }}); if(c>0){saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
         function clearMonth(){ if(confirm('Borrar MES actual?')){ const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
+        function hardReset() { if(confirm("¿Restaurar?")) { appData = JSON.parse(JSON.stringify(defaultData)); saveLocal(); location.reload(); } }
+        function cloneMonth() { const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); appData.txs.push(...n); saveData(); }
         function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } }
     </script>
 </body>
