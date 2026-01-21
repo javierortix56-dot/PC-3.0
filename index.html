@@ -48,23 +48,27 @@
 
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* CORRECCIÓN TC: Ancho suficiente para cifras altas como COP */
+        /* CORRECCIÓN TC: Ancho aumentado a 90px para cifras grandes */
         .tc-input { 
             -moz-appearance: textfield; 
             background: transparent; 
             border: none; 
-            padding: 0; 
+            padding: 0 4px; 
             margin: 0; 
             font-weight: 700; 
             color: #334155; 
             text-align: right; 
-            width: 55px; 
+            width: 90px; 
             font-size: 12px;
             height: 100%;
         }
         .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
         
         .h-header-el { height: 32px; }
+
+        /* Animación de carga para el botón sincronizar */
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 
@@ -97,7 +101,7 @@
                     <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ajustes</span>
                 </button>
                 <button onclick="forceSync()" class="flex items-center h-10 rounded-lg px-2 text-primary hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2" title="Forzar Sincronización">
-                    <span class="material-symbols-outlined text-xl shrink-0">cloud_sync</span>
+                    <span class="material-symbols-outlined text-xl shrink-0" id="syncIcon">cloud_sync</span>
                     <span class="ml-3 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Sincronizar</span>
                 </button>
             </nav>
@@ -373,12 +377,17 @@
 
         window.onload = () => { initApp(); };
 
+        // CORRECCIÓN 1: Carga Optimista (Muestra datos locales primero, luego sincroniza en background)
         async function initApp() {
-            loadLocal();
-            await forceSync();
+            loadLocal(); // 1. Render instantáneo
             updateDateUI(); 
-            Chart.defaults.font.family = "'Manrope', sans-serif";
             renderAdminTree();
+            Chart.defaults.font.family = "'Manrope', sans-serif";
+
+            // 2. Sincronización en segundo plano (No bloquea la UI)
+            syncIndicator(true); 
+            await forceSync();
+            syncIndicator(false);
         }
 
         function saveLocal() { localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData)); }
@@ -400,14 +409,24 @@
                     appData.monthlyRates = cloudData.monthlyRates || appData.rates; 
                     appData.recurrentes = cloudData.recurrentes || [];
                     saveLocal();
+                    loadMonthData(); // Refresca la vista si llegaron datos nuevos
                 }
             } catch(e) { console.log("Offline mode"); }
-            loadMonthData(); 
+        }
+        
+        function syncIndicator(isLoading) {
+            const btn = document.getElementById('syncIcon');
+            if(btn) {
+                if(isLoading) btn.classList.add('animate-spin');
+                else btn.classList.remove('animate-spin');
+            }
         }
         
         async function saveData() {
             saveLocal();
+            // syncIndicator(true); // Opcional: mostrar carga al guardar
             try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); } catch(e){}
+            // syncIndicator(false);
             loadMonthData(); renderAdminTree();
         }
 
@@ -457,7 +476,7 @@
                     ? `<span class="material-symbols-outlined text-base text-primary">check_circle</span>`
                     : `<div class="size-4 rounded-full border-2 border-slate-200 group-hover:border-primary transition-colors"></div>`;
 
-                el.innerHTML = `
+                el.innerHTML = `<br>
                     <div class="flex items-center gap-3 overflow-hidden w-full">
                         <div class="shrink-0 flex items-center justify-center size-6">${statusIcon}</div>
                         <div class="min-w-0 flex-1">
@@ -518,7 +537,7 @@
                 const icon = type === 'inc' ? 'trending_up' : 'trending_down';
                 const color = type === 'inc' ? 'text-success' : 'text-danger';
                 
-                let html = `
+                let html = `<br>
                 <div class="mb-2">
                     <div class="flex items-center gap-2 mb-2 px-1">
                         <span class="material-symbols-outlined text-sm ${color}">${icon}</span>
@@ -528,7 +547,7 @@
                 
                 cats.forEach(c => {
                     const concepts = appData.concepts[c] || [];
-                    html += `
+                    html += `<br>
                     <details class="group bg-slate-50 rounded-lg border border-slate-100 overflow-hidden open:bg-white open:shadow-sm transition-all">
                         <summary class="flex justify-between items-center p-2 cursor-pointer hover:bg-slate-100 transition-colors">
                             <div class="flex items-center gap-2">
@@ -540,7 +559,7 @@
                         </summary>
                         <div class="p-2 pt-0 border-t border-slate-100 bg-white">
                             <div class="flex flex-wrap gap-1.5 mb-2 mt-2">
-                                ${concepts.map(con => `
+                                ${concepts.map(con => `<br>
                                     <div class="cat-tag flex items-center gap-1 group/tag">
                                         ${con}
                                         <button onclick="delConcept('${c}','${con}')" class="text-slate-300 hover:text-red-500 hidden group-hover/tag:block"><span class="material-symbols-outlined text-[10px] font-bold">close</span></button>
