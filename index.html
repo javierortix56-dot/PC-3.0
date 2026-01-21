@@ -48,7 +48,7 @@
 
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* CORRECCIÓN TC: Ancho aumentado a 90px para cifras grandes */
+        /* CORRECCIÓN TC: Ancho 90px */
         .tc-input { 
             -moz-appearance: textfield; 
             background: transparent; 
@@ -66,7 +66,6 @@
         
         .h-header-el { height: 32px; }
 
-        /* Animación de carga para el botón sincronizar */
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
@@ -91,10 +90,6 @@
                 <button onclick="nav('analytics', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">query_stats</span>
                     <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Análisis</span>
-                </button>
-                <button onclick="nav('strategy', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
-                    <span class="material-symbols-outlined text-xl shrink-0">monitoring</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Estrategia</span>
                 </button>
                 <button onclick="nav('admin', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">settings</span>
@@ -206,25 +201,6 @@
                 <div class="flex justify-between items-center mb-4"><h3 class="text-xs font-bold text-slate-700">Ingresos por Concepto</h3></div>
                 <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden"><div class="relative h-[200px] w-[200px] shrink-0"><canvas id="chartInc"></canvas></div><div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legInc"></div></div>
             </div>
-        </div>
-
-        <div id="view-strategy" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
-             <div class="glass-panel rounded-xl p-5 flex flex-col">
-                 <h3 class="text-xs font-bold text-slate-700 mb-4">Regla 50/30/20</h3>
-                 <div class="flex-1 relative flex justify-center items-center"><canvas id="chartRadar" style="max-height: 280px;"></canvas></div>
-             </div>
-             <div class="glass-panel rounded-xl p-5 flex flex-col">
-                 <div class="flex justify-between items-center mb-4">
-                     <h3 class="text-xs font-bold text-slate-700">Portafolio</h3>
-                     <span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded" id="totalStrategyUSD">Total: $0 USD</span>
-                 </div>
-                 <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                     <div class="size-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-3">
-                        <span class="material-symbols-outlined text-2xl text-primary">hub</span>
-                     </div>
-                     <p class="text-xs font-bold text-slate-700">Conexión API</p>
-                 </div>
-             </div>
         </div>
 
         <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 pt-1">
@@ -372,19 +348,17 @@
 
         let appData = JSON.parse(JSON.stringify(defaultData)); 
         let currentDate = new Date(); currentDate.setDate(1);
-        let editId=null, cExp=null, cInc=null, drillCat=null, cRadar=null;
+        let editId=null, cExp=null, cInc=null, drillCat=null;
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
         window.onload = () => { initApp(); };
 
-        // CORRECCIÓN 1: Carga Optimista (Muestra datos locales primero, luego sincroniza en background)
         async function initApp() {
-            loadLocal(); // 1. Render instantáneo
+            loadLocal();
             updateDateUI(); 
             renderAdminTree();
             Chart.defaults.font.family = "'Manrope', sans-serif";
 
-            // 2. Sincronización en segundo plano (No bloquea la UI)
             syncIndicator(true); 
             await forceSync();
             syncIndicator(false);
@@ -409,7 +383,7 @@
                     appData.monthlyRates = cloudData.monthlyRates || appData.rates; 
                     appData.recurrentes = cloudData.recurrentes || [];
                     saveLocal();
-                    loadMonthData(); // Refresca la vista si llegaron datos nuevos
+                    loadMonthData();
                 }
             } catch(e) { console.log("Offline mode"); }
         }
@@ -424,9 +398,7 @@
         
         async function saveData() {
             saveLocal();
-            // syncIndicator(true); // Opcional: mostrar carga al guardar
             try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); } catch(e){}
-            // syncIndicator(false);
             loadMonthData(); renderAdminTree();
         }
 
@@ -526,7 +498,6 @@
             balEl.className = `text-2xl font-black tracking-tight ${bal >= 0 ? 'text-emerald-700' : 'text-rose-700'}`;
             
             document.getElementById('k-usd').innerText='USD '+fmt(bal/tc); 
-            document.getElementById('totalStrategyUSD').innerText = `Total: $${fmt(bal/tc)} USD`;
         }
 
         function renderAdminTree() {
@@ -670,12 +641,6 @@
         function renderCharts(txs) {
             renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', true, cExp, i=>cExp=i);
             renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), txs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
-            if(cRadar) cRadar.destroy();
-            const totalInc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0) || 1;
-            const savings = txs.filter(t=>['Inversiones','Viaje Italia','Ahorro'].includes(t.cat)).reduce((a,b)=>a+b.amount,0);
-            const fixed = txs.filter(t=>['Esenciales','Deudas','Sueldo Famiq'].includes(t.cat)).reduce((a,b)=>a+b.amount,0); 
-            const variable = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0) - (savings + fixed);
-            cRadar = new Chart(document.getElementById('chartRadar'), { type: 'radar', data: { labels: ['Fijos (50%)', 'Ocio (30%)', 'Ahorro (20%)'], datasets: [{ label: 'Ideal', data: [50, 30, 20], borderColor: '#cbd5e1', borderDash: [5,5], fill: false, pointRadius: 0 }, { label: 'Real', data: [Math.min(100, (fixed/totalInc)*100), Math.min(100, (variable/totalInc)*100), Math.min(100, (savings/totalInc)*100)], backgroundColor: 'rgba(14, 117, 124, 0.2)', borderColor: '#0e757c', fill: true }] }, options: { scales: { r: { min: 0, max: 100, ticks: { display: false } } }, plugins: { legend: { position: 'top' } } } });
         }
 
         function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
