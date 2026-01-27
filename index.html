@@ -48,7 +48,6 @@
 
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* CORRECCIÓN TC: Ancho 90px */
         .tc-input { 
             -moz-appearance: textfield; 
             background: transparent; 
@@ -176,13 +175,20 @@
                     </div>
                     <div class="flex-1 overflow-y-auto custom-scrollbar p-0" id="list-inc"></div>
                 </section>
+                
                 <section class="flex flex-col glass-panel rounded-xl overflow-hidden h-full">
                     <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
-                        <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5"><span class="material-symbols-outlined text-danger text-sm">arrow_circle_down</span> Gastos</h4>
+                        <div class="flex items-center gap-2 flex-1 mr-2">
+                            <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5 shrink-0">
+                                <span class="material-symbols-outlined text-danger text-sm">arrow_circle_down</span> Gastos
+                            </h4>
+                            <input type="text" id="searchExpInput" oninput="filterExpList()" placeholder="Buscar..." class="w-full max-w-[100px] bg-white border-none text-[10px] rounded-md px-2 py-0.5 focus:ring-1 focus:ring-primary shadow-sm placeholder:text-slate-300">
+                        </div>
                         <span class="bg-danger/10 text-danger text-[9px] font-bold px-1.5 py-0.5 rounded-full" id="c-exp">0</span>
                     </div>
                     <div class="flex-1 overflow-y-auto custom-scrollbar p-0" id="list-exp"></div>
                 </section>
+
                 <section class="flex flex-col glass-panel rounded-xl overflow-hidden h-full">
                     <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
                         <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-sm">pie_chart</span> Asignación</h4>
@@ -439,7 +445,8 @@
                 }
 
                 const el = document.createElement('div');
-                const styles = t.exec ? "opacity-60 bg-slate-50/50" : "bg-white";
+                // MODIFICADO: Agregado line-through y decoration-slate-400
+                const styles = t.exec ? "opacity-60 bg-slate-50/50 line-through decoration-slate-400" : "bg-white";
                 
                 el.className = `compact-row group flex items-center justify-between cursor-pointer ${styles}`;
                 el.onclick = () => editTx(t.id);
@@ -448,7 +455,8 @@
                     ? `<span class="material-symbols-outlined text-base text-primary">check_circle</span>`
                     : `<div class="size-4 rounded-full border-2 border-slate-200 group-hover:border-primary transition-colors"></div>`;
 
-                el.innerHTML = `<br>
+                el.innerHTML = `
+
                     <div class="flex items-center gap-3 overflow-hidden w-full">
                         <div class="shrink-0 flex items-center justify-center size-6">${statusIcon}</div>
                         <div class="min-w-0 flex-1">
@@ -470,6 +478,10 @@
             document.getElementById('c-inc').innerText = txs.filter(t=>t.type=='inc').length;
             document.getElementById('c-exp').innerText = txs.filter(t=>t.type=='exp').length;
             
+            // Re-ejecutar el filtro si hay texto en el buscador al recargar listas
+            const searchTerm = document.getElementById('searchExpInput').value;
+            if(searchTerm) filterExpList();
+
             const incs = txs.filter(t=>t.type=='inc');
             if(!incs.length) lA.innerHTML = '<div class="text-center text-slate-400 text-xs py-8">Sin ingresos registrados</div>';
             incs.forEach(inc => {
@@ -673,6 +685,24 @@
             renderRecurrentesAdmin(); saveData();
         }
         function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } }
+
+        // NUEVA FUNCION: Filtro de Gastos
+        function filterExpList() {
+            const term = document.getElementById('searchExpInput').value.toLowerCase();
+            const container = document.getElementById('list-exp');
+            const rows = container.getElementsByClassName('compact-row');
+            
+            Array.from(rows).forEach(row => {
+                const text = row.innerText.toLowerCase();
+                if(text.includes(term)) {
+                    row.classList.remove('hidden');
+                    row.classList.add('flex');
+                } else {
+                    row.classList.add('hidden');
+                    row.classList.remove('flex');
+                }
+            });
+        }
     </script>
 </body>
 </html>
