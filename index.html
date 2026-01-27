@@ -445,7 +445,6 @@
                 }
 
                 const el = document.createElement('div');
-                // MODIFICADO: Agregado line-through y decoration-slate-400
                 const styles = t.exec ? "opacity-60 bg-slate-50/50 line-through decoration-slate-400" : "bg-white";
                 
                 el.className = `compact-row group flex items-center justify-between cursor-pointer ${styles}`;
@@ -478,7 +477,6 @@
             document.getElementById('c-inc').innerText = txs.filter(t=>t.type=='inc').length;
             document.getElementById('c-exp').innerText = txs.filter(t=>t.type=='exp').length;
             
-            // Re-ejecutar el filtro si hay texto en el buscador al recargar listas
             const searchTerm = document.getElementById('searchExpInput').value;
             if(searchTerm) filterExpList();
 
@@ -487,11 +485,15 @@
             incs.forEach(inc => {
                 const subs = txs.filter(t=>t.type=='exp' && t.linkId==inc.id);
                 const spent = subs.reduce((a,b)=>a+b.amount,0);
+                
+                const rem = inc.amount - spent;
+                const remClass = rem >= 0 ? 'text-success' : 'text-danger';
+
                 const pct = Math.min(100, (spent/inc.amount)*100);
                 let barColor = pct > 90 ? 'bg-danger' : 'bg-primary';
                 let rows = ''; if (subs.length > 0) subs.forEach(s => rows += `<div class="flex justify-between py-1.5 text-[9px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc}</span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`); else rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>';
                 const card = document.createElement('div');
-                card.innerHTML = `<div class="rounded-xl border border-slate-200 bg-white mb-2 shadow-sm overflow-hidden"><div class="p-3 bg-slate-50/50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors" onclick="this.parentElement.querySelector('.alloc-details').classList.toggle('hidden')"><div><p class="text-[11px] font-bold text-slate-700">${inc.desc}</p><p class="text-[9px] text-slate-400 font-medium mt-0.5">Usado: $${fmt(spent)} de $${fmt(inc.amount)}</p></div><div class="text-right"><span class="text-[9px] font-bold text-slate-600">${Math.round(pct)}%</span></div></div><div class="w-full h-1 bg-slate-100"><div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%;"></div></div><div class="alloc-details hidden bg-white py-1">${rows}</div></div>`;
+                card.innerHTML = `<div class="rounded-xl border border-slate-200 bg-white mb-2 shadow-sm overflow-hidden"><div class="p-3 bg-slate-50/50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors" onclick="this.parentElement.querySelector('.alloc-details').classList.toggle('hidden')"><div><p class="text-[11px] font-bold text-slate-700">${inc.desc}</p><p class="text-[10px] font-extrabold mt-0.5 ${remClass}">$${fmt(rem)}</p></div><div class="text-right"><span class="text-[9px] font-bold text-slate-600">${Math.round(pct)}%</span></div></div><div class="w-full h-1 bg-slate-100"><div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%;"></div></div><div class="alloc-details hidden bg-white py-1">${rows}</div></div>`;
                 lA.appendChild(card);
             });
         }
@@ -686,7 +688,6 @@
         }
         function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } }
 
-        // NUEVA FUNCION: Filtro de Gastos
         function filterExpList() {
             const term = document.getElementById('searchExpInput').value.toLowerCase();
             const container = document.getElementById('list-exp');
