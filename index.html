@@ -209,40 +209,40 @@
             </div>
         </div>
 
-        <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 pt-1">
-            <div class="glass-panel rounded-xl p-4 flex flex-col h-full overflow-hidden">
-                <h3 class="text-xs font-bold text-slate-800 mb-3 flex items-center gap-2">
+        <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0 pt-1">
+            <div class="glass-panel rounded-xl p-3 flex flex-col h-full overflow-hidden">
+                <h3 class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <span class="material-symbols-outlined text-base text-primary">folder_open</span> Gestión de Categorías
                 </h3>
-                <div class="flex gap-2 mb-3 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                <div class="flex gap-2 mb-2 bg-slate-50 p-1 rounded-lg border border-slate-100">
                     <input type="text" id="newCatName" placeholder="Nueva Categoría..." class="flex-1 bg-transparent border-none text-xs px-2 focus:ring-0 font-medium">
                     <select id="newCatType" class="bg-white border-none rounded-md text-[10px] px-2 py-1 text-slate-600 shadow-sm"><option value="exp">Gasto</option><option value="inc">Ingreso</option></select>
                     <button onclick="manualAddCat()" class="bg-slate-800 text-white size-6 rounded-md hover:bg-slate-700 flex items-center justify-center shadow-sm text-xs">+</button>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2" id="adminTreeContainer"></div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-1" id="adminTreeContainer"></div>
             </div>
 
-            <div class="glass-panel rounded-xl p-4 flex flex-col h-full overflow-hidden">
-                <div class="flex justify-between items-center mb-3">
+            <div class="glass-panel rounded-xl p-3 flex flex-col h-full overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
                     <h3 class="text-xs font-bold text-slate-800">Recurrentes</h3>
                     <div class="flex gap-2">
                         <button onclick="populateRecurringDefaults()" class="text-slate-400 text-[10px] font-bold hover:text-primary transition-colors">SUGERIR</button>
                         <button onclick="addRecurrenteRow()" class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold hover:bg-primary hover:text-white transition-colors">+ AGREGAR</button>
                     </div>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-lg border border-slate-100 p-2 mb-3" id="recurrente-table-body"></div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-lg border border-slate-100 p-2 mb-2" id="recurrente-table-body"></div>
                 <div class="grid grid-cols-2 gap-2 mt-auto">
-                    <button onclick="saveRecurrentesConfig()" class="py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 shadow-sm">Guardar</button>
-                    <button onclick="executeRecurrentes()" class="py-2 rounded-lg bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700 shadow-sm">Ejecutar</button>
-                    <div class="col-span-2 border-t border-slate-100 my-1"></div>
-                    <div class="col-span-2 bg-slate-100 p-2 rounded-lg flex items-center justify-between">
+                    <button onclick="saveRecurrentesConfig()" class="py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 shadow-sm">Guardar</button>
+                    <button onclick="executeRecurrentes()" class="py-1.5 rounded-lg bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700 shadow-sm">Ejecutar</button>
+                    <div class="col-span-2 border-t border-slate-100 my-0.5"></div>
+                    <div class="col-span-2 bg-slate-100 p-1.5 rounded-lg flex items-center justify-between">
                          <label class="block text-[9px] font-bold text-slate-400 uppercase">Clonar Mes</label>
                          <div class="flex gap-1">
                             <input type="month" id="cloneSrc" class="bg-white border-none rounded-md px-1 py-0.5 text-[10px] shadow-sm w-24">
                             <button onclick="cloneMonth()" class="text-primary font-bold text-[10px] hover:underline">Copiar</button>
                         </div>
                     </div>
-                    <button onclick="clearMonth()" class="col-span-2 border border-red-100 text-red-400 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-red-50 hover:text-red-500 transition-colors">Borrar Mes Actual</button>
+                    <button onclick="clearMonth()" class="col-span-2 border border-red-100 text-red-400 py-1 rounded-lg text-[10px] font-bold uppercase hover:bg-red-50 hover:text-red-500 transition-colors">Borrar Mes Actual</button>
                 </div>
             </div>
         </div>
@@ -523,8 +523,8 @@
                 const color = type === 'inc' ? 'text-success' : 'text-danger';
                 
                 let html = `<br>
-                <div class="mb-2">
-                    <div class="flex items-center gap-2 mb-2 px-1">
+                <div class="mb-1">
+                    <div class="flex items-center gap-2 mb-1 px-1">
                         <span class="material-symbols-outlined text-sm ${color}">${icon}</span>
                         <h4 class="font-bold text-[10px] text-slate-500 uppercase tracking-wide">${title}</h4>
                     </div>
@@ -534,16 +534,16 @@
                     const concepts = appData.concepts[c] || [];
                     html += `<br>
                     <details class="group bg-slate-50 rounded-lg border border-slate-100 overflow-hidden open:bg-white open:shadow-sm transition-all">
-                        <summary class="flex justify-between items-center p-2 cursor-pointer hover:bg-slate-100 transition-colors">
-                            <div class="flex items-center gap-2">
+                        <summary class="flex justify-between items-center p-1.5 cursor-pointer hover:bg-slate-100 transition-colors">
+                            <div class="flex items-center gap-1">
                                 <span class="material-symbols-outlined text-slate-400 text-base group-open:text-primary transition-colors">folder</span>
                                 <span class="text-[11px] font-bold text-slate-700">${c}</span>
                                 <span class="text-[9px] text-slate-400 bg-white px-1.5 rounded-full border border-slate-100">${concepts.length}</span>
                             </div>
                             <button onclick="delCat('${type}','${c}')" class="text-slate-300 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button>
                         </summary>
-                        <div class="p-2 pt-0 border-t border-slate-100 bg-white">
-                            <div class="flex flex-wrap gap-1.5 mb-2 mt-2">
+                        <div class="p-1.5 pt-0 border-t border-slate-100 bg-white">
+                            <div class="flex flex-wrap gap-1 mb-1 mt-1">
                                 ${concepts.map(con => `<br>
                                     <div class="cat-tag flex items-center gap-1 group/tag">
                                         ${con}
@@ -552,7 +552,7 @@
                                 `).join('')}
                             </div>
                             <div class="flex gap-1">
-                                <input type="text" id="newCon_${c}" placeholder="+ Subcategoría" class="w-full text-[10px] border-none bg-slate-50 rounded px-2 py-1 focus:ring-1 focus:ring-primary">
+                                <input type="text" id="newCon_${c}" placeholder="+ Subcategoría" class="w-full text-[10px] border-none bg-slate-50 rounded px-2 py-0.5 focus:ring-1 focus:ring-primary">
                                 <button onclick="manualAddConcept('${c}')" class="text-primary hover:bg-primary/10 rounded px-1"><span class="material-symbols-outlined text-sm">add</span></button>
                             </div>
                         </div>
@@ -674,7 +674,7 @@
         function manualDate(){ const[y,m]=document.getElementById('datePicker').value.split('-'); currentDate.setFullYear(y); currentDate.setMonth(m-1); updateDateUI(); loadMonthData(); }
         function updateDateUI(){ document.getElementById('monthTxt').innerText=`${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`; document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`; }
         function saveMonthlyRates() { const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; saveData(); }
-        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-200 py-2 last:border-0'; d.innerHTML=`<input value="${r.desc}" onchange="appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded p-1"><input type="number" value="${r.amount}" onchange="appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded p-1 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="appData.recurrentes.splice(${i},1);renderRecurrentesAdmin()" class="text-red-400 hover:text-red-600 font-bold px-2">x</button>`; b.appendChild(d);}); }
+        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-200 py-1 last:border-0'; d.innerHTML=`<input value="${r.desc}" onchange="appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded px-1 py-0.5"><input type="number" value="${r.amount}" onchange="appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded px-1 py-0.5 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="appData.recurrentes.splice(${i},1);renderRecurrentesAdmin()" class="text-red-400 hover:text-red-600 font-bold px-2">x</button>`; b.appendChild(d);}); }
         function addRecurrenteRow() { appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
         function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
         function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS'}); c++; }}); if(c>0){saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
