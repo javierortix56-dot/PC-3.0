@@ -67,6 +67,10 @@
 
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        /* Ajuste para eliminar margen default en details */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
     </style>
 </head>
 
@@ -209,28 +213,28 @@
             </div>
         </div>
 
-        <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0 pt-1">
-            <div class="glass-panel rounded-xl p-3 flex flex-col h-full overflow-hidden">
-                <h3 class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-2">
+        <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-2 flex-1 min-h-0 pt-1">
+            <div class="glass-panel rounded-xl p-2 flex flex-col h-full overflow-hidden">
+                <h3 class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-2 px-1">
                     <span class="material-symbols-outlined text-base text-primary">folder_open</span> Gestión de Categorías
                 </h3>
-                <div class="flex gap-2 mb-2 bg-slate-50 p-1 rounded-lg border border-slate-100">
+                <div class="flex gap-1 mb-2 bg-slate-50 p-1 rounded-lg border border-slate-100">
                     <input type="text" id="newCatName" placeholder="Nueva Categoría..." class="flex-1 bg-transparent border-none text-xs px-2 focus:ring-0 font-medium">
                     <select id="newCatType" class="bg-white border-none rounded-md text-[10px] px-2 py-1 text-slate-600 shadow-sm"><option value="exp">Gasto</option><option value="inc">Ingreso</option></select>
                     <button onclick="manualAddCat()" class="bg-slate-800 text-white size-6 rounded-md hover:bg-slate-700 flex items-center justify-center shadow-sm text-xs">+</button>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-1" id="adminTreeContainer"></div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-1" id="adminTreeContainer"></div>
             </div>
 
-            <div class="glass-panel rounded-xl p-3 flex flex-col h-full overflow-hidden">
-                <div class="flex justify-between items-center mb-2">
+            <div class="glass-panel rounded-xl p-2 flex flex-col h-full overflow-hidden">
+                <div class="flex justify-between items-center mb-2 px-1">
                     <h3 class="text-xs font-bold text-slate-800">Recurrentes</h3>
                     <div class="flex gap-2">
-                        <button onclick="populateRecurringDefaults()" class="text-slate-400 text-[10px] font-bold hover:text-primary transition-colors">SUGERIR</button>
+                        <button onclick="populateRecurringDefaults()" class="text-slate-400 text-[10px] font-bold hover:text-primary transition-colors">SUGERIR (3M)</button>
                         <button onclick="addRecurrenteRow()" class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold hover:bg-primary hover:text-white transition-colors">+ AGREGAR</button>
                     </div>
                 </div>
-                <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-lg border border-slate-100 p-2 mb-2" id="recurrente-table-body"></div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-lg border border-slate-100 p-1 mb-2" id="recurrente-table-body"></div>
                 <div class="grid grid-cols-2 gap-2 mt-auto">
                     <button onclick="saveRecurrentesConfig()" class="py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 shadow-sm">Guardar</button>
                     <button onclick="executeRecurrentes()" class="py-1.5 rounded-lg bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700 shadow-sm">Ejecutar</button>
@@ -522,9 +526,9 @@
                 const icon = type === 'inc' ? 'trending_up' : 'trending_down';
                 const color = type === 'inc' ? 'text-success' : 'text-danger';
                 
-                let html = `<br>
+                let html = `
                 <div class="mb-1">
-                    <div class="flex items-center gap-2 mb-1 px-1">
+                    <div class="flex items-center gap-2 mb-1 px-1 mt-1">
                         <span class="material-symbols-outlined text-sm ${color}">${icon}</span>
                         <h4 class="font-bold text-[10px] text-slate-500 uppercase tracking-wide">${title}</h4>
                     </div>
@@ -532,7 +536,7 @@
                 
                 cats.forEach(c => {
                     const concepts = appData.concepts[c] || [];
-                    html += `<br>
+                    html += `
                     <details class="group bg-slate-50 rounded-lg border border-slate-100 overflow-hidden open:bg-white open:shadow-sm transition-all">
                         <summary class="flex justify-between items-center p-1.5 cursor-pointer hover:bg-slate-100 transition-colors">
                             <div class="flex items-center gap-1">
@@ -544,7 +548,7 @@
                         </summary>
                         <div class="p-1.5 pt-0 border-t border-slate-100 bg-white">
                             <div class="flex flex-wrap gap-1 mb-1 mt-1">
-                                ${concepts.map(con => `<br>
+                                ${concepts.map(con => `
                                     <div class="cat-tag flex items-center gap-1 group/tag">
                                         ${con}
                                         <button onclick="delConcept('${c}','${con}')" class="text-slate-300 hover:text-red-500 hidden group-hover/tag:block"><span class="material-symbols-outlined text-[10px] font-bold">close</span></button>
@@ -552,7 +556,7 @@
                                 `).join('')}
                             </div>
                             <div class="flex gap-1">
-                                <input type="text" id="newCon_${c}" placeholder="+ Subcategoría" class="w-full text-[10px] border-none bg-slate-50 rounded px-2 py-0.5 focus:ring-1 focus:ring-primary">
+                                <input type="text" id="newCon_${c}" placeholder="+ Subcat" class="w-full text-[10px] border-none bg-slate-50 rounded px-2 py-0.5 focus:ring-1 focus:ring-primary">
                                 <button onclick="manualAddConcept('${c}')" class="text-primary hover:bg-primary/10 rounded px-1"><span class="material-symbols-outlined text-sm">add</span></button>
                             </div>
                         </div>
@@ -680,12 +684,28 @@
         function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS'}); c++; }}); if(c>0){saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
         function clearMonth(){ if(confirm('Borrar MES actual?')){ const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
         function cloneMonth() { const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); appData.txs.push(...n); saveData(); }
+        
+        // NUEVA LOGICA DE SUGERENCIAS INTELIGENTES (3 MESES)
         function populateRecurringDefaults() {
-            if(!confirm("¿Cargar sugerencias?")) return;
-            const defaults = [{desc:'Alquiler', amount:0, cat:'Esenciales'},{desc:'Expensas', amount:0, cat:'Esenciales'},{desc:'Internet', amount:0, cat:'Esenciales'},{desc:'Gimnasio', amount:0, cat:'Fitness'},{desc:'Spotify/Netflix', amount:0, cat:'Esenciales'}];
-            defaults.forEach(d => { if(!appData.recurrentes.some(r => r.desc === d.desc)) { appData.recurrentes.push(d); }});
+            if(!confirm("¿Analizar historial (3 meses) y sugerir?")) return;
+            const limitDate = new Date(); limitDate.setDate(limitDate.getDate() - 90);
+            const recent = appData.txs.filter(t => !t.deletedAt && t.type === 'exp' && new Date(t.date) >= limitDate);
+            const analysis = {};
+            recent.forEach(t => { const d = t.desc.trim(); if(!analysis[d]) analysis[d] = { count: 0, lastAmt: 0, cat: t.cat, dates: new Set() }; analysis[d].count++; analysis[d].lastAmt = t.origAmt || t.amount; analysis[d].cat = t.cat; analysis[d].dates.add(t.date.substring(0, 7)); });
+            
+            let added = 0;
+            Object.entries(analysis).forEach(([desc, data]) => {
+                // Condición: Que aparezca en al menos 2 meses distintos O más de 2 veces en total
+                if((data.dates.size >= 2 || data.count >= 2) && !appData.recurrentes.some(r => r.desc.toLowerCase() === desc.toLowerCase())) {
+                    appData.recurrentes.push({ desc: desc, amount: data.lastAmt, cat: data.cat, type: 'exp' });
+                    added++;
+                }
+            });
+            
+            if(added === 0) alert("No se encontraron nuevos patrones."); else alert(`Agregadas ${added} sugerencias.`);
             renderRecurrentesAdmin(); saveData();
         }
+
         function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } }
 
         function filterExpList() {
