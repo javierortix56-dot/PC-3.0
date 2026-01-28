@@ -70,6 +70,9 @@
         
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
+        
+        /* Utility classes for Undo/Redo state */
+        .btn-disabled { opacity: 0.3; pointer-events: none; }
     </style>
 </head>
 
@@ -118,13 +121,22 @@
             <div class="flex items-center gap-4 h-full">
                 <h2 class="text-xl font-extrabold tracking-tight text-slate-800 leading-none" id="pageTitle">Panel de Control</h2>
                 
-                <div class="flex items-center gap-1 bg-white px-2 rounded-md border border-slate-200 shadow-sm hover:border-primary/30 transition-colors relative group h-full">
-                    <button onclick="changeMonth(-1)" class="text-slate-400 hover:text-primary flex items-center"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+                <div class="flex items-center gap-1 bg-white px-2 rounded-md border border-slate-200 shadow-sm transition-colors relative group h-full">
+                    <button onclick="changeMonth(-1)" class="text-slate-400 hover:text-primary flex items-center px-1"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
                     <div class="relative min-w-[80px] text-center flex items-center justify-center h-full">
                         <span class="text-[11px] font-bold uppercase text-slate-600 tracking-wide" id="monthTxt">...</span>
                         <input type="month" id="datePicker" class="d-picker" onchange="manualDate()">
                     </div>
-                    <button onclick="changeMonth(1)" class="text-slate-400 hover:text-primary flex items-center"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+                    <button onclick="changeMonth(1)" class="text-slate-400 hover:text-primary flex items-center px-1"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+                    
+                    <div class="w-px h-4 bg-slate-200 mx-1"></div>
+                    
+                    <button onclick="undo()" id="btnUndo" class="text-slate-400 hover:text-primary flex items-center px-1 btn-disabled" title="Deshacer (Ctrl+Z)">
+                        <span class="material-symbols-outlined text-sm">undo</span>
+                    </button>
+                    <button onclick="redo()" id="btnRedo" class="text-slate-400 hover:text-primary flex items-center px-1 btn-disabled" title="Rehacer (Ctrl+Y)">
+                        <span class="material-symbols-outlined text-sm">redo</span>
+                    </button>
                 </div>
             </div>
             
@@ -135,7 +147,7 @@
                     <span class="text-[10px] font-bold text-slate-400">USD</span>
                     <div class="flex items-center h-full">
                         <span class="text-[10px] text-slate-300 mr-1">$</span>
-                        <input type="number" id="rate_ARS" onchange="saveMonthlyRates()" class="tc-input" placeholder="0">
+                        <input type="number" id="rate_ARS" onchange="pushHistory(); saveMonthlyRates()" class="tc-input" placeholder="0">
                     </div>
                 </div>
 
@@ -143,7 +155,7 @@
                     <span class="text-[10px] font-bold text-slate-400">COP</span>
                     <div class="flex items-center h-full">
                         <span class="text-[10px] text-slate-300 mr-1">$</span>
-                        <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates()" class="tc-input" placeholder="0">
+                        <input type="number" id="rate_COP" step="0.01" onchange="pushHistory(); saveMonthlyRates()" class="tc-input" placeholder="0">
                     </div>
                 </div>
             </div>
@@ -366,19 +378,79 @@
         let appData = JSON.parse(JSON.stringify(defaultData)); 
         let currentDate = new Date(); currentDate.setDate(1);
         let editId=null, cExp=null, cInc=null, drillCat=null;
+        
+        // --- HISTORY STATE ---
+        let historyStack = [];
+        let redoStack = [];
+        const MAX_HISTORY = 50;
+
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
         window.onload = () => { initApp(); };
+        
+        // --- KEYBOARD SHORTCUTS ---
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z' || e.key === 'Z'))) {
+                e.preventDefault();
+                redo();
+            }
+        });
 
         async function initApp() {
             loadLocal();
             updateDateUI(); 
             renderAdminTree();
+            updateHistoryUI(); // init buttons
             Chart.defaults.font.family = "'Manrope', sans-serif";
 
             syncIndicator(true); 
             await forceSync();
             syncIndicator(false);
+        }
+
+        // --- HISTORY LOGIC ---
+        function pushHistory() {
+            // Snapshot of current state BEFORE mutation
+            historyStack.push(JSON.stringify(appData));
+            if(historyStack.length > MAX_HISTORY) historyStack.shift();
+            redoStack = []; // Clear redo on new action
+            updateHistoryUI();
+        }
+
+        function undo() {
+            if(historyStack.length === 0) return;
+            const currentState = JSON.stringify(appData);
+            redoStack.push(currentState);
+            
+            const prevState = historyStack.pop();
+            appData = JSON.parse(prevState);
+            
+            saveData(); // Save restored state
+            updateHistoryUI();
+        }
+
+        function redo() {
+            if(redoStack.length === 0) return;
+            const currentState = JSON.stringify(appData);
+            historyStack.push(currentState);
+            
+            const nextState = redoStack.pop();
+            appData = JSON.parse(nextState);
+            
+            saveData(); // Save restored state
+            updateHistoryUI();
+        }
+
+        function updateHistoryUI() {
+            const btnUndo = document.getElementById('btnUndo');
+            const btnRedo = document.getElementById('btnRedo');
+            
+            if(historyStack.length > 0) btnUndo.classList.remove('btn-disabled'); else btnUndo.classList.add('btn-disabled');
+            if(redoStack.length > 0) btnRedo.classList.remove('btn-disabled'); else btnRedo.classList.add('btn-disabled');
         }
 
         function saveLocal() { localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData)); }
@@ -393,6 +465,8 @@
                 const r = await fetch(API_URL); 
                 const cloudData = await r.json(); 
                 if(cloudData) {
+                    // Logic to avoid overwriting newer local changes could go here, 
+                    // but simple overwrite for now as per instructions
                     appData.txs = cloudData.txs || [];
                     appData.cats = cloudData.cats || defaultData.cats;
                     appData.concepts = cloudData.concepts || defaultData.concepts; 
@@ -415,6 +489,7 @@
         
         async function saveData() {
             saveLocal();
+            // In a real app we might debounce this
             try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); } catch(e){}
             loadMonthData(); renderAdminTree();
         }
@@ -490,7 +565,6 @@
             const searchTerm = document.getElementById('searchExpInput').value;
             if(searchTerm) filterExpList();
 
-            // LOGICA ASIGNACION DESKTOP MEJORADA
             const incs = txs.filter(t=>t.type=='inc');
             
             incs.forEach(inc => {
@@ -501,7 +575,6 @@
                 const pct = Math.min(100, (spent/inc.amount)*100);
                 let barColor = pct > 90 ? 'bg-danger' : 'bg-primary';
                 
-                // Generar filas de detalle con fecha discreta
                 let rows = ''; 
                 if (subs.length > 0) {
                     subs.forEach(s => {
@@ -698,6 +771,9 @@
             const type = document.getElementById('fType').value;
             if(!cat) return alert('Selecciona categoría');
             const desc=document.getElementById('fDesc').value;
+            
+            pushHistory(); // SNAPSHOT before changes
+
             if(cat) { if(!appData.concepts[cat]) appData.concepts[cat] = []; if(!appData.concepts[cat].includes(desc)) appData.concepts[cat].push(desc); }
             
             const tx={
@@ -716,7 +792,14 @@
 
         function editTx(id){const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');document.getElementById('fDate').value=t.date; document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;document.getElementById('fAmt').value = t.origAmt || t.amount; document.getElementById('fCurr').value = t.origCurr || 'ARS';setType(t.type); setTimeout(() => {document.getElementById('fCat').value = t.cat;renderChips(t.type); if(t.type === 'exp') { document.getElementById('fLink').value = t.linkId || ""; renderLinkChips(t.linkId);}renderConcepts(t.cat);}, 50);calcConversion();document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');}
         function resetForm(){ document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null; }
-        function delTx(){ if(confirm('Eliminar?')){ appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
+        
+        function delTx(){ 
+            if(confirm('Eliminar?')){ 
+                pushHistory(); // SNAPSHOT before delete
+                appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); 
+                saveData(); closeModal(); 
+            }
+        }
         
         function renderCharts(txs) {
             renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', true, cExp, i=>cExp=i);
@@ -732,20 +815,47 @@
         }
 
         function resetCharts() { drillCat=null; loadMonthData(); }
-        function manualAddCat() { const n = document.getElementById('newCatName').value.trim(); const t = document.getElementById('newCatType').value; if(!n) return alert('Nombre?'); if(t === 'exp') { if(!appData.cats.exp.includes(n)) appData.cats.exp.push(n); } else { if(!appData.cats.inc.includes(n)) appData.cats.inc.push(n); } if(!appData.concepts[n]) appData.concepts[n] = []; document.getElementById('newCatName').value = ''; saveData(); }
-        function manualAddConcept(catName) { const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim(); if(!val) return; if(!appData.concepts[catName]) appData.concepts[catName] = []; if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val); saveData(); }
-        function delCat(type, name) { if(confirm(`¿Eliminar ${name}?`)) { if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name); delete appData.concepts[name]; saveData(); } }
-        function delConcept(cat, name) { if(confirm(`¿Eliminar ${name}?`)) { appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); } }
+        
+        function manualAddCat() { 
+            const n = document.getElementById('newCatName').value.trim(); const t = document.getElementById('newCatType').value; if(!n) return alert('Nombre?'); 
+            pushHistory();
+            if(t === 'exp') { if(!appData.cats.exp.includes(n)) appData.cats.exp.push(n); } else { if(!appData.cats.inc.includes(n)) appData.cats.inc.push(n); } if(!appData.concepts[n]) appData.concepts[n] = []; document.getElementById('newCatName').value = ''; saveData(); 
+        }
+        function manualAddConcept(catName) { 
+            const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim(); if(!val) return; 
+            pushHistory();
+            if(!appData.concepts[catName]) appData.concepts[catName] = []; if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val); saveData(); 
+        }
+        function delCat(type, name) { 
+            if(confirm(`¿Eliminar ${name}?`)) { 
+                pushHistory();
+                if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name); delete appData.concepts[name]; saveData(); 
+            } 
+        }
+        function delConcept(cat, name) { 
+            if(confirm(`¿Eliminar ${name}?`)) { 
+                pushHistory();
+                appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); 
+            } 
+        }
+        
         function changeMonth(d){ currentDate.setMonth(currentDate.getMonth()+d); updateDateUI(); loadMonthData(); }
         function manualDate(){ const[y,m]=document.getElementById('datePicker').value.split('-'); currentDate.setFullYear(y); currentDate.setMonth(m-1); updateDateUI(); loadMonthData(); }
         function updateDateUI(){ document.getElementById('monthTxt').innerText=`${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`; document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`; }
-        function saveMonthlyRates() { const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; saveData(); }
-        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-200 py-1 last:border-0'; d.innerHTML=`<input value="${r.desc}" onchange="appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded px-1 py-0.5"><input type="number" value="${r.amount}" onchange="appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded px-1 py-0.5 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="appData.recurrentes.splice(${i},1);renderRecurrentesAdmin()" class="text-red-400 hover:text-red-600 font-bold px-2">x</button>`; b.appendChild(d);}); }
-        function addRecurrenteRow() { appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
+        function saveMonthlyRates() { 
+            const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; 
+            appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; 
+            saveData(); 
+        }
+        
+        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-200 py-1 last:border-0'; d.innerHTML=`<input value="${r.desc}" onchange="pushHistory();appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded px-1 py-0.5"><input type="number" value="${r.amount}" onchange="pushHistory();appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded px-1 py-0.5 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="deleteRecurrente(${i})" class="text-red-400 hover:text-red-600 font-bold px-2">x</button>`; b.appendChild(d);}); }
+        function deleteRecurrente(i) { pushHistory(); appData.recurrentes.splice(i,1); saveData(); }
+
+        function addRecurrenteRow() { pushHistory(); appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
         function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
-        function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS'}); c++; }}); if(c>0){saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
-        function clearMonth(){ if(confirm('Borrar MES actual?')){ const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
-        function cloneMonth() { const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); appData.txs.push(...n); saveData(); }
+        function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS'}); c++; }}); if(c>0){ pushHistory(); saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
+        function clearMonth(){ if(confirm('Borrar MES actual?')){ pushHistory(); const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
+        function cloneMonth() { const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); pushHistory(); appData.txs.push(...n); saveData(); }
         
         // FUNCIONALIDADES EXTRA PORTADAS DEL MOBILE
         function autoAssign() {
@@ -760,10 +870,14 @@
 
             const unassignedExps = currentMonthTxs.filter(t => t.type === 'exp' && !t.linkId);
             let count = 0;
+            
+            // PREPARE CHANGE
+            let changesMade = false;
 
             unassignedExps.forEach(exp => {
                 const validIncome = incomes.find(inc => inc.date <= exp.date && inc.balance >= exp.amount);
                 if(validIncome) {
+                    if(!changesMade) { pushHistory(); changesMade = true; } // Snapshot only if we actually change something
                     exp.linkId = validIncome.id;
                     validIncome.balance -= exp.amount; 
                     count++;
@@ -776,6 +890,7 @@
 
         function unassignAll() {
             if(!confirm("¿Desvincular TODOS los gastos de este mes?")) return;
+            pushHistory();
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
             appData.txs.forEach(t => { 
                 if(!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m && t.type === 'exp') {
@@ -787,6 +902,7 @@
 
         function unassignGroup(incId) {
             if(!confirm("¿Desvincular gastos de este ingreso?")) return;
+            pushHistory();
             appData.txs.forEach(t => { if(t.type === 'exp' && t.linkId == incId) t.linkId = null; });
             saveData();
         }
@@ -799,8 +915,10 @@
             recent.forEach(t => { const d = t.desc.trim(); if(!analysis[d]) analysis[d] = { count: 0, lastAmt: 0, cat: t.cat, dates: new Set() }; analysis[d].count++; analysis[d].lastAmt = t.origAmt || t.amount; analysis[d].cat = t.cat; analysis[d].dates.add(t.date.substring(0, 7)); });
             
             let added = 0;
+            let changesMade = false;
             Object.entries(analysis).forEach(([desc, data]) => {
                 if((data.dates.size >= 2 || data.count >= 2) && !appData.recurrentes.some(r => r.desc.toLowerCase() === desc.toLowerCase())) {
+                    if(!changesMade) { pushHistory(); changesMade = true; }
                     appData.recurrentes.push({ desc: desc, amount: data.lastAmt, cat: data.cat, type: 'exp' });
                     added++;
                 }
