@@ -74,11 +74,14 @@
         
         .btn-disabled { opacity: 0.3; pointer-events: none; }
         
-        /* Checkbox custom style for bulk edit */
         .bulk-chk { width: 16px; height: 16px; border-radius: 4px; border: 2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:0.2s; }
         .bulk-chk.checked { background: #0e757c; border-color: #0e757c; }
         .bulk-chk i { color:white; font-size:12px; display:none; }
         .bulk-chk.checked i { display:block; }
+
+        /* Alert Styles */
+        .alert-card { transition: all 0.2s; }
+        .alert-card:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 
@@ -159,6 +162,8 @@
             </div>
         </header>
 
+        <div id="dashboardAlerts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-3 shrink-0 empty:hidden"></div>
+
         <div id="view-dashboard" class="view-container animate-fade-in flex flex-col flex-1 min-h-0 gap-3 relative">
             
             <section class="grid grid-cols-4 gap-3 shrink-0">
@@ -237,6 +242,8 @@
         </div>
 
         <div id="view-analytics" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+             <div id="analyticsAlerts" class="col-span-1 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-2 empty:hidden"></div>
+
             <div class="glass-panel rounded-xl p-4 flex flex-col h-[360px]">
                 <div class="flex justify-between items-center mb-4"><h3 class="text-xs font-bold text-slate-700">Gastos por Categoría</h3><button onclick="resetCharts()" class="text-[10px] text-primary font-bold hover:underline hidden" id="resetBtn">VOLVER</button></div>
                 <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden"><div class="relative h-[200px] w-[200px] shrink-0"><canvas id="chartExp"></canvas></div><div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legExp"></div></div>
@@ -548,8 +555,164 @@
             });
 
             txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+            
+            // --- ALERTAS INTELLIGENCE ---
+            const alerts = computeAlerts(txs);
+            renderAlerts(alerts);
+            // ---------------------------
+
             renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin(); renderAdminTree();
         }
+
+        // --- ALERT SYSTEM LOGIC ---
+
+        function computeAlerts(txs) {
+            const alerts = [];
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth(); // 0-based
+            const totalExp = txs.filter(t => t.type === 'exp').reduce((a, b) => a + b.amount, 0) || 1; // avoid div 0
+
+            // Helper for Severity Sort
+            const severityScore = { 'danger': 3, 'warning': 2, 'info': 1 };
+
+            // A) Trend Analysis (Categoría > 20% vs 3M Average)
+            const catMap = {};
+            txs.filter(t => t.type === 'exp').forEach(t => { catMap[t.cat] = (catMap[t.cat] || 0) + t.amount; });
+            
+            Object.entries(catMap).forEach(([cat, amount]) => {
+                const avg = getPastAverage(cat, m, y);
+                if (avg > 0) {
+                    const diff = (amount - avg) / avg;
+                    if (diff >= 0.20) {
+                        alerts.push({
+                            id: `trend-${cat}`, type: 'trend', severity: diff > 0.5 ? 'danger' : 'warning', amount: amount,
+                            title: `Suba en ${cat}`,
+                            desc: `+${Math.round(diff * 100)}% vs prom. 3 meses ($${fmt(avg)})`,
+                            ctaLabel: 'Ver', ctaAction: `filterExpList('${cat}')`
+                        });
+                    }
+                }
+            });
+
+            // B) Pacing (Gastaste P% y va D% del mes)
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+            const today = new Date();
+            // Solo calcular pacing si estamos en el mes actual real
+            if (today.getFullYear() === y && today.getMonth() === m) {
+                const day = today.getDate();
+                const timeProgress = day / daysInMonth; // 0.1 to 1.0
+                
+                Object.entries(catMap).forEach(([cat, amount]) => {
+                    const shareOfWallet = amount / totalExp; // % del gasto total
+                    // Regla Heurística: Si la categoría representa más del doble de lo esperado por el tiempo transcurrido
+                    // Y es un monto relevante (> 5% del gasto total)
+                    // Ej: Día 5 (16%), Supermercado es el 50% del total. 0.5 > 0.16 * 2. 
+                    if (shareOfWallet > (timeProgress * 2.5) && shareOfWallet > 0.05) {
+                         alerts.push({
+                            id: `pace-${cat}`, type: 'pace', severity: 'info', amount: amount,
+                            title: `Ritmo Alto: ${cat}`,
+                            desc: `Día ${day}, llevas ${Math.round(shareOfWallet*100)}% del gasto total.`,
+                            ctaLabel: 'Revisar', ctaAction: `filterExpList('${cat}')`
+                        });
+                    }
+                });
+            }
+
+            // C) Unassigned Expenses
+            const unassignedAmt = txs.filter(t => t.type === 'exp' && !t.linkId).reduce((a, b) => a + b.amount, 0);
+            if (unassignedAmt > 0) {
+                alerts.push({
+                    id: 'unassigned', type: 'orphan', severity: unassignedAmt > 100000 ? 'danger' : 'warning', amount: unassignedAmt,
+                    title: 'Gastos sin asignar',
+                    desc: `$${fmt(unassignedAmt)} pendientes de vincular`,
+                    ctaLabel: 'Asignar', ctaAction: "document.getElementById('searchExpInput').value='sin asignar';filterExpList()"
+                });
+            }
+
+            // D) Overspending on Income
+            const incs = txs.filter(t => t.type === 'inc');
+            let overspendCount = 0;
+            let overspendAmt = 0;
+            incs.forEach(inc => {
+                const assigned = txs.filter(t => t.type === 'exp' && t.linkId == inc.id).reduce((a,b)=>a+b.amount,0);
+                if (assigned > inc.amount) {
+                    overspendCount++;
+                    overspendAmt += (assigned - inc.amount);
+                }
+            });
+
+            if (overspendCount > 0) {
+                alerts.push({
+                    id: 'overspend', type: 'over', severity: 'danger', amount: overspendAmt,
+                    title: 'Ingresos Excedidos',
+                    desc: `${overspendCount} ingresos con saldo negativo (-$${fmt(overspendAmt)})`,
+                    ctaLabel: 'Corregir', ctaAction: "nav('dashboard', null)" // Lleva al dashboard donde se ve la asignacion
+                });
+            }
+
+            // Sort: Danger > Warning > Info, then by Amount desc
+            return alerts.sort((a, b) => {
+                const scoreDiff = severityScore[b.severity] - severityScore[a.severity];
+                if (scoreDiff !== 0) return scoreDiff;
+                return b.amount - a.amount;
+            }).slice(0, 8); // Max 8
+        }
+
+        function getPastAverage(cat, currentMonthIdx, currentYear) {
+            let sum = 0;
+            let count = 0;
+            // Look back 3 months
+            for (let i = 1; i <= 3; i++) {
+                let targetM = currentMonthIdx - i;
+                let targetY = currentYear;
+                if (targetM < 0) { targetM += 12; targetY--; }
+                
+                // Filter txs from appData directly (source of truth)
+                const monthTxs = appData.txs.filter(t => 
+                    !t.deletedAt && 
+                    t.type === 'exp' && 
+                    t.cat === cat &&
+                    parseInt(t.date.split('-')[0]) === targetY && 
+                    parseInt(t.date.split('-')[1]) === (targetM + 1)
+                );
+                
+                if (monthTxs.length > 0) {
+                    sum += monthTxs.reduce((a, b) => a + b.amount, 0);
+                    count++;
+                }
+            }
+            return count > 0 ? sum / 3 : 0; // Divide by 3 to smooth out zeros if we want a strict 3-month avg, or divide by count. Sticking to div/3 for "moving average" feel, assuming 0 if no data.
+        }
+
+        function renderAlerts(alerts) {
+            const dashboardContainer = document.getElementById('dashboardAlerts');
+            const analyticsContainer = document.getElementById('analyticsAlerts');
+            
+            const html = alerts.map(a => {
+                let colorClass = "";
+                let icon = "";
+                if (a.severity === 'danger') { colorClass = "border-l-red-500 bg-red-50 text-red-900"; icon = "warning"; }
+                else if (a.severity === 'warning') { colorClass = "border-l-amber-500 bg-amber-50 text-amber-900"; icon = "error"; }
+                else { colorClass = "border-l-blue-500 bg-blue-50 text-blue-900"; icon = "info"; }
+
+                return `
+                <div class="alert-card border-l-4 rounded-r-lg p-3 shadow-sm flex items-start justify-between gap-3 ${colorClass}">
+                    <div class="flex items-start gap-2 overflow-hidden">
+                        <span class="material-symbols-outlined text-lg mt-0.5 opacity-80 shrink-0">${icon}</span>
+                        <div class="min-w-0">
+                            <h4 class="text-xs font-bold leading-tight truncate">${a.title}</h4>
+                            <p class="text-[10px] opacity-80 leading-snug mt-0.5">${a.desc}</p>
+                        </div>
+                    </div>
+                    <button onclick="${a.ctaAction}" class="text-[10px] font-bold underline opacity-70 hover:opacity-100 shrink-0 self-center">${a.ctaLabel}</button>
+                </div>`;
+            }).join('');
+
+            if(dashboardContainer) dashboardContainer.innerHTML = html;
+            if(analyticsContainer) analyticsContainer.innerHTML = html;
+        }
+
+        // --- END ALERT SYSTEM ---
 
         // --- BULK LOGIC START ---
 
@@ -1041,13 +1204,50 @@
             renderRecurrentesAdmin(); saveData();
         }
         function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } }
-        function filterExpList() {
+        function filterExpList(filterTerm) {
+            // Support programmatic filtering via parameter or UI input
+            if(filterTerm) document.getElementById('searchExpInput').value = filterTerm;
+            
             const term = document.getElementById('searchExpInput').value.toLowerCase();
             const container = document.getElementById('list-exp');
             const rows = container.getElementsByClassName('compact-row');
+            
             Array.from(rows).forEach(row => {
+                // If special term "sin asignar" is used, custom logic
+                if (term === 'sin asignar') {
+                     // Check based on link icon presence (hacky but effective without re-rendering) 
+                     // OR re-check the data. Let's rely on data-attribute or content.
+                     // Better: check if row has the "link" icon.
+                     const hasLink = row.innerHTML.includes('link_off') || !row.innerHTML.includes('link'); // Simplified heuristic
+                     // Actually, easiest is to check text content for "link" if we rendered it.
+                     // Since we don't have easy DOM access to data, let's rely on text search mostly,
+                     // BUT for 'sin asignar' specifically, the CTA sets the input.
+                     // Let's refine: The prompt asked for CTA action.
+                     // The CTA sets input to 'sin asignar'.
+                     // This simple filter just text-matches "sin asignar" against the row text? No.
+                     // Let's fix this function to be smarter.
+                }
+
                 const text = row.innerText.toLowerCase();
-                if(text.includes(term)) { row.classList.remove('hidden'); row.classList.add('flex'); } else { row.classList.add('hidden'); row.classList.remove('flex'); }
+                
+                // Enhanced Logic for "Sin Asignar" special filter
+                if (term === 'sin asignar') {
+                     // Look for rows that are expenses but DON'T have the link badge
+                     // In renderLists, linked expenses have a link badge.
+                     // Unlinked expenses do NOT have the link badge.
+                     const isLinked = row.querySelector('.material-symbols-outlined') && row.innerHTML.includes('link');
+                     // Note: The row status icon is also material-symbol (check_circle). 
+                     // The link badge has specific class bg-slate-100.
+                     const hasLinkBadge = row.innerHTML.includes('bg-slate-100 text-slate-500');
+                     if (!hasLinkBadge) {
+                         row.classList.remove('hidden'); row.classList.add('flex');
+                     } else {
+                         row.classList.add('hidden'); row.classList.remove('flex');
+                     }
+                } else {
+                    // Standard text search
+                    if(text.includes(term)) { row.classList.remove('hidden'); row.classList.add('flex'); } else { row.classList.add('hidden'); row.classList.remove('flex'); }
+                }
             });
         }
     </script>
