@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | Pro</title>
+    <title>Finanzas J&M | Desktop</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -50,12 +50,22 @@
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
         .tc-input { 
-            -moz-appearance: textfield; background: transparent; border: none; padding: 0 4px; margin: 0; 
-            font-weight: 700; color: #334155; text-align: right; width: 90px; font-size: 12px; height: 100%;
+            -moz-appearance: textfield; 
+            background: transparent; 
+            border: none; 
+            padding: 0 4px; 
+            margin: 0; 
+            font-weight: 700; 
+            color: #334155; 
+            text-align: right; 
+            width: 90px; 
+            font-size: 12px;
+            height: 100%;
         }
         .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
         
         .h-header-el { height: 32px; }
+
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
@@ -63,10 +73,13 @@
         details > summary::-webkit-details-marker { display: none; }
         
         .btn-disabled { opacity: 0.3; pointer-events: none; }
+        
         .bulk-chk { width: 16px; height: 16px; border-radius: 4px; border: 2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:0.2s; }
         .bulk-chk.checked { background: #0e757c; border-color: #0e757c; }
         .bulk-chk i { color:white; font-size:12px; display:none; }
         .bulk-chk.checked i { display:block; }
+
+        /* Alert Styles */
         .alert-card { transition: all 0.2s; }
         .alert-card:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
@@ -80,17 +93,13 @@
                 <div class="bg-primary size-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md">
                     <span class="material-symbols-outlined text-lg">account_balance_wallet</span>
                 </div>
-                <h1 class="font-bold text-sm text-primary ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden delay-75 tracking-tight">Finanzas J&M</h1>
+                <h1 class="font-bold text-sm text-primary ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden delay-75 tracking-tight">Finanzas Personales J&M</h1>
             </div>
 
             <nav class="flex flex-col gap-1 px-2" id="main-nav">
                 <button onclick="nav('dashboard', this)" id="nav-dashboard" class="active-nav flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">dashboard</span>
                     <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Operaciones</span>
-                </button>
-                <button onclick="nav('networth', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
-                    <span class="material-symbols-outlined text-xl shrink-0">savings</span>
-                    <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Patrimonio</span>
                 </button>
                 <button onclick="nav('analytics', this)" class="flex items-center h-10 rounded-lg px-2 text-slate-500 hover:bg-slate-100 transition-colors w-full overflow-hidden">
                     <span class="material-symbols-outlined text-xl shrink-0">query_stats</span>
@@ -100,7 +109,7 @@
                     <span class="material-symbols-outlined text-xl shrink-0">settings</span>
                     <span class="ml-3 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ajustes</span>
                 </button>
-                <button onclick="forceSync()" class="flex items-center h-10 rounded-lg px-2 text-primary hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2">
+                <button onclick="forceSync()" class="flex items-center h-10 rounded-lg px-2 text-primary hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2" title="Forzar Sincronización">
                     <span class="material-symbols-outlined text-xl shrink-0" id="syncIcon">cloud_sync</span>
                     <span class="ml-3 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Sincronizar</span>
                 </button>
@@ -120,6 +129,7 @@
         <header class="flex justify-between items-center mb-3 shrink-0 gap-4 h-header-el">
             <div class="flex items-center gap-4 h-full">
                 <h2 class="text-xl font-extrabold tracking-tight text-slate-800 leading-none" id="pageTitle">Panel de Control</h2>
+                
                 <div class="flex items-center gap-1 bg-white px-2 rounded-md border border-slate-200 shadow-sm transition-colors relative group h-full">
                     <button onclick="changeMonth(-1)" class="text-slate-400 hover:text-primary flex items-center px-1"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
                     <div class="relative min-w-[80px] text-center flex items-center justify-center h-full">
@@ -128,25 +138,33 @@
                     </div>
                     <button onclick="changeMonth(1)" class="text-slate-400 hover:text-primary flex items-center px-1"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
                     <div class="w-px h-4 bg-slate-200 mx-1"></div>
-                    <button onclick="undo()" id="btnUndo" class="text-slate-400 hover:text-primary flex items-center px-1 btn-disabled" title="Deshacer"><span class="material-symbols-outlined text-sm">undo</span></button>
-                    <button onclick="redo()" id="btnRedo" class="text-slate-400 hover:text-primary flex items-center px-1 btn-disabled" title="Rehacer"><span class="material-symbols-outlined text-sm">redo</span></button>
+                    <button onclick="undo()" id="btnUndo" class="text-slate-400 hover:text-primary flex items-center px-1 btn-disabled" title="Deshacer (Ctrl+Z)"><span class="material-symbols-outlined text-sm">undo</span></button>
+                    <button onclick="redo()" id="btnRedo" class="text-slate-400 hover:text-primary flex items-center px-1 btn-disabled" title="Rehacer (Ctrl+Y)"><span class="material-symbols-outlined text-sm">redo</span></button>
                 </div>
             </div>
+            
             <div class="flex items-center gap-3 bg-white px-3 rounded-md border border-slate-200 shadow-sm h-full shrink-0">
                 <span class="material-symbols-outlined text-slate-400 text-sm">currency_exchange</span>
                 <div class="flex items-center gap-2 border-r border-slate-100 pr-3 h-full">
                     <span class="text-[10px] font-bold text-slate-400">USD</span>
-                    <div class="flex items-center h-full"><span class="text-[10px] text-slate-300 mr-1">$</span><input type="number" id="rate_ARS" onchange="pushHistory(); saveMonthlyRates()" class="tc-input" placeholder="0"></div>
+                    <div class="flex items-center h-full">
+                        <span class="text-[10px] text-slate-300 mr-1">$</span>
+                        <input type="number" id="rate_ARS" onchange="pushHistory(); saveMonthlyRates()" class="tc-input" placeholder="0">
+                    </div>
                 </div>
                 <div class="flex items-center gap-2 h-full">
                     <span class="text-[10px] font-bold text-slate-400">COP</span>
-                    <div class="flex items-center h-full"><span class="text-[10px] text-slate-300 mr-1">$</span><input type="number" id="rate_COP" step="0.01" onchange="pushHistory(); saveMonthlyRates()" class="tc-input" placeholder="0"></div>
+                    <div class="flex items-center h-full">
+                        <span class="text-[10px] text-slate-300 mr-1">$</span>
+                        <input type="number" id="rate_COP" step="0.01" onchange="pushHistory(); saveMonthlyRates()" class="tc-input" placeholder="0">
+                    </div>
                 </div>
             </div>
         </header>
 
+        <div id="dashboardAlerts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-3 shrink-0 empty:hidden"></div>
+
         <div id="view-dashboard" class="view-container animate-fade-in flex flex-col flex-1 min-h-0 gap-3 relative">
-            <div id="dashboardAlerts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-1 shrink-0 empty:hidden"></div>
             
             <section class="grid grid-cols-4 gap-3 shrink-0">
                 <div class="glass-panel p-3 rounded-xl flex flex-col justify-center">
@@ -175,87 +193,57 @@
                     </div>
                     <div class="flex-1 overflow-y-auto custom-scrollbar p-0" id="list-inc"></div>
                 </section>
+                
                 <section class="flex flex-col glass-panel rounded-xl overflow-hidden h-full">
                     <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
                         <div class="flex items-center gap-2 flex-1 mr-2">
-                            <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5 shrink-0"><span class="material-symbols-outlined text-danger text-sm">arrow_circle_down</span> Gastos</h4>
+                            <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5 shrink-0">
+                                <span class="material-symbols-outlined text-danger text-sm">arrow_circle_down</span> Gastos
+                            </h4>
                             <input type="text" id="searchExpInput" oninput="filterExpList()" placeholder="Buscar..." class="w-full max-w-[100px] bg-white border-none text-[10px] rounded-md px-2 py-0.5 focus:ring-1 focus:ring-primary shadow-sm placeholder:text-slate-300">
                         </div>
                         <div class="flex items-center gap-1">
-                             <button onclick="toggleSelectionMode()" id="btnSelectMode" class="text-slate-400 hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-base">check_box</span></button>
+                             <button onclick="toggleSelectionMode()" id="btnSelectMode" class="text-slate-400 hover:text-primary transition-colors p-1" title="Seleccionar múltiple">
+                                <span class="material-symbols-outlined text-base">check_box</span>
+                             </button>
                              <span class="bg-danger/10 text-danger text-[9px] font-bold px-1.5 py-0.5 rounded-full" id="c-exp">0</span>
                         </div>
                     </div>
                     <div class="flex-1 overflow-y-auto custom-scrollbar p-0" id="list-exp"></div>
                 </section>
+
                 <section class="flex flex-col glass-panel rounded-xl overflow-hidden h-full">
                     <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
                         <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-sm">pie_chart</span> Asignación</h4>
                     </div>
                     <div class="px-2 py-2 flex gap-2 border-b border-slate-100 bg-white">
-                        <button onclick="autoAssign()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:to-blue-700 text-white text-[10px] font-bold py-1.5 rounded-lg shadow-sm flex items-center justify-center gap-1"><span class="material-symbols-outlined text-sm">auto_fix_high</span> Auto</button>
-                        <button onclick="unassignAll()" class="flex-1 bg-white border border-slate-200 text-slate-500 text-[10px] font-bold py-1.5 rounded-lg hover:text-red-500 hover:border-red-200 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-sm">link_off</span> Reset</button>
+                        <button onclick="autoAssign()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:to-blue-700 text-white text-[10px] font-bold py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-sm">auto_fix_high</span> Auto-Asignar
+                        </button>
+                        <button onclick="unassignAll()" class="flex-1 bg-white border border-slate-200 text-slate-500 text-[10px] font-bold py-1.5 rounded-lg hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-sm">link_off</span> Desasignar Todo
+                        </button>
                     </div>
                     <div class="flex-1 overflow-y-auto custom-scrollbar p-2 flex flex-col gap-2" id="list-alloc"></div>
                 </section>
             </div>
+
             <div id="bulkBar" class="hidden absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-full shadow-xl flex items-center gap-4 z-50 animate-fade-in">
-                <span class="text-xs font-bold" id="bulkCount">0</span><div class="h-4 w-px bg-slate-700"></div><button onclick="openBulkModal()" class="text-xs font-bold hover:text-primary-300 flex items-center gap-1"><span class="material-symbols-outlined text-sm">edit_square</span> Acciones</button><button onclick="toggleSelectionMode()" class="text-xs text-slate-400 hover:text-white"><span class="material-symbols-outlined text-sm">close</span></button>
-            </div>
-        </div>
-
-        <div id="view-networth" class="view-container animate-fade-in hidden-view flex flex-col flex-1 min-h-0 gap-3">
-             <div class="grid grid-cols-1 md:grid-cols-4 gap-3 shrink-0">
-                <div class="glass-panel p-3 rounded-xl flex flex-col justify-center border-l-4 border-l-emerald-500">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Activos</p>
-                    <h3 class="text-lg font-black text-emerald-700" id="nw-assets">$0</h3>
-                </div>
-                <div class="glass-panel p-3 rounded-xl flex flex-col justify-center border-l-4 border-l-red-500">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pasivos</p>
-                    <h3 class="text-lg font-black text-red-700" id="nw-liabilities">$0</h3>
-                </div>
-                <div class="glass-panel p-3 rounded-xl flex flex-col justify-center border-l-4 border-l-slate-800">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Patrimonio Neto</p>
-                    <h3 class="text-xl font-black text-slate-800" id="nw-total">$0</h3>
-                </div>
-                 <div class="glass-panel p-3 rounded-xl flex flex-col justify-center">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Neto USD</p>
-                    <h3 class="text-lg font-bold text-primary" id="nw-usd">$0</h3>
-                </div>
+                <span class="text-xs font-bold" id="bulkCount">0 seleccionados</span>
+                <div class="h-4 w-px bg-slate-700"></div>
+                <button onclick="openBulkModal()" class="text-xs font-bold hover:text-primary-300 transition-colors flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">edit_square</span> Acciones
+                </button>
+                <button onclick="toggleSelectionMode()" class="text-xs text-slate-400 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-0">
-                <div class="col-span-1 lg:col-span-2 glass-panel rounded-xl p-4 flex flex-col">
-                    <h3 class="text-xs font-bold text-slate-700 mb-4">Evolución Patrimonio (Últimos 12 Meses)</h3>
-                    <div class="flex-1 min-h-0 relative"><canvas id="chartNetWorth"></canvas></div>
-                </div>
-                <div class="glass-panel rounded-xl p-4 flex flex-col overflow-hidden">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-xs font-bold text-slate-700">Cuentas</h3>
-                        <button onclick="addAccount()" class="bg-slate-900 text-white px-2 py-1 rounded text-[10px] font-bold hover:bg-slate-700">+ Cuenta</button>
-                    </div>
-                    <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2" id="accountsList"></div>
-                    <div id="accForm" class="hidden mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                        <input type="hidden" id="accId">
-                        <div class="grid grid-cols-2 gap-2 mb-2">
-                             <input id="accName" placeholder="Nombre" class="w-full text-xs border-none rounded bg-white p-1.5 focus:ring-1 focus:ring-primary">
-                             <select id="accKind" class="w-full text-xs border-none rounded bg-white p-1.5"><option value="asset">Activo</option><option value="liability">Pasivo</option></select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 mb-2">
-                            <select id="accCurr" class="w-full text-xs border-none rounded bg-white p-1.5"><option value="ARS">ARS</option><option value="USD">USD</option><option value="COP">COP</option></select>
-                            <input id="accInit" type="number" placeholder="Saldo Inicial" class="w-full text-xs border-none rounded bg-white p-1.5 focus:ring-1 focus:ring-primary">
-                        </div>
-                        <div class="flex justify-end gap-2">
-                            <button onclick="document.getElementById('accForm').classList.add('hidden')" class="text-xs text-slate-400 hover:text-slate-600">Cancelar</button>
-                            <button onclick="saveAccount()" class="text-xs bg-primary text-white px-3 py-1 rounded font-bold">Guardar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div id="view-analytics" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
              <div id="analyticsAlerts" class="col-span-1 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-2 empty:hidden"></div>
+
             <div class="glass-panel rounded-xl p-4 flex flex-col h-[360px]">
                 <div class="flex justify-between items-center mb-4"><h3 class="text-xs font-bold text-slate-700">Gastos por Categoría</h3><button onclick="resetCharts()" class="text-[10px] text-primary font-bold hover:underline hidden" id="resetBtn">VOLVER</button></div>
                 <div class="flex items-center gap-4 flex-1 min-h-0 overflow-hidden"><div class="relative h-[200px] w-[200px] shrink-0"><canvas id="chartExp"></canvas></div><div class="flex-1 h-full overflow-y-auto custom-scrollbar pr-1" id="legExp"></div></div>
@@ -268,9 +256,11 @@
 
         <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-2 flex-1 min-h-0 pt-1">
             <div class="glass-panel rounded-xl p-2 flex flex-col h-full overflow-hidden">
-                <h3 class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-2 px-1"><span class="material-symbols-outlined text-base text-primary">folder_open</span> Categorías</h3>
+                <h3 class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-2 px-1">
+                    <span class="material-symbols-outlined text-base text-primary">folder_open</span> Gestión de Categorías
+                </h3>
                 <div class="flex gap-1 mb-2 bg-slate-50 p-1 rounded-lg border border-slate-100">
-                    <input type="text" id="newCatName" placeholder="Nueva..." class="flex-1 bg-transparent border-none text-xs px-2 focus:ring-0 font-medium">
+                    <input type="text" id="newCatName" placeholder="Nueva Categoría..." class="flex-1 bg-transparent border-none text-xs px-2 focus:ring-0 font-medium">
                     <select id="newCatType" class="bg-white border-none rounded-md text-[10px] px-2 py-1 text-slate-600 shadow-sm"><option value="exp">Gasto</option><option value="inc">Ingreso</option></select>
                     <button onclick="manualAddCat()" class="bg-slate-800 text-white size-6 rounded-md hover:bg-slate-700 flex items-center justify-center shadow-sm text-xs">+</button>
                 </div>
@@ -279,32 +269,47 @@
             <div class="glass-panel rounded-xl p-2 flex flex-col h-full overflow-hidden">
                 <div class="flex justify-between items-center mb-2 px-1">
                     <h3 class="text-xs font-bold text-slate-800">Recurrentes</h3>
-                    <div class="flex gap-2"><button onclick="populateRecurringDefaults()" class="text-slate-400 text-[10px] font-bold hover:text-primary">SUGERIR</button><button onclick="addRecurrenteRow()" class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold">+ AGREGAR</button></div>
+                    <div class="flex gap-2">
+                        <button onclick="populateRecurringDefaults()" class="text-slate-400 text-[10px] font-bold hover:text-primary transition-colors">SUGERIR (3M)</button>
+                        <button onclick="addRecurrenteRow()" class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold hover:bg-primary hover:text-white transition-colors">+ AGREGAR</button>
+                    </div>
                 </div>
                 <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-lg border border-slate-100 p-1 mb-2" id="recurrente-table-body"></div>
                 <div class="grid grid-cols-2 gap-2 mt-auto">
-                    <button onclick="saveRecurrentesConfig()" class="py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold">Guardar</button>
-                    <button onclick="executeRecurrentes()" class="py-1.5 rounded-lg bg-slate-800 text-white text-[10px] font-bold">Ejecutar</button>
+                    <button onclick="saveRecurrentesConfig()" class="py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 shadow-sm">Guardar</button>
+                    <button onclick="executeRecurrentes()" class="py-1.5 rounded-lg bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700 shadow-sm">Ejecutar</button>
+                    <div class="col-span-2 border-t border-slate-100 my-0.5"></div>
+                    <div class="col-span-2 bg-slate-100 p-1.5 rounded-lg flex items-center justify-between">
+                         <label class="block text-[9px] font-bold text-slate-400 uppercase">Clonar Mes</label>
+                         <div class="flex gap-1">
+                            <input type="month" id="cloneSrc" class="bg-white border-none rounded-md px-1 py-0.5 text-[10px] shadow-sm w-24">
+                            <button onclick="cloneMonth()" class="text-primary font-bold text-[10px] hover:underline">Copiar</button>
+                        </div>
+                    </div>
+                    <button onclick="clearMonth()" class="col-span-2 border border-red-100 text-red-400 py-1 rounded-lg text-[10px] font-bold uppercase hover:bg-red-50 hover:text-red-500 transition-colors">Borrar Mes Actual</button>
                 </div>
             </div>
         </div>
     </main>
 
-    <button onclick="openModal()" class="fixed bottom-6 right-6 size-12 bg-slate-900 text-white rounded-xl shadow-xl shadow-slate-900/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50"><span class="material-symbols-outlined text-2xl">add</span></button>
+    <button onclick="openModal()" class="fixed bottom-6 right-6 size-12 bg-slate-900 text-white rounded-xl shadow-xl shadow-slate-900/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
+        <span class="material-symbols-outlined text-2xl">add</span>
+    </button>
 
     <div id="modalOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
         <div class="relative z-10 w-full max-w-[380px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in mx-4 max-h-[90vh]">
             <div class="flex items-center justify-between px-5 pt-5 pb-2 shrink-0">
                 <h1 class="text-lg font-bold text-slate-800" id="mTitle">Nuevo</h1>
-                <button onclick="closeModal()" class="size-7 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 transition-colors"><span class="material-symbols-outlined text-base">close</span></button>
+                <button onclick="closeModal()" class="size-7 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 transition-colors">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
             </div>
             
             <form id="txForm" class="p-5 overflow-y-auto custom-scrollbar flex-1">
-                <div class="grid grid-cols-3 p-1 bg-slate-100 rounded-xl mb-4">
-                    <button type="button" id="btnExp" onclick="setType('exp')" class="flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-danger">Gasto</button>
-                    <button type="button" id="btnInc" onclick="setType('inc')" class="flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-400">Ingreso</button>
-                    <button type="button" id="btnTrf" onclick="setType('transfer')" class="flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-400">Transf.</button>
+                <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl mb-4">
+                    <button type="button" id="btnExp" onclick="setType('exp')" class="flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-danger border border-slate-100">Gasto</button>
+                    <button type="button" id="btnInc" onclick="setType('inc')" class="flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600">Ingreso</button>
                 </div>
                 <input type="hidden" id="fType" value="exp">
 
@@ -314,34 +319,27 @@
                         <input type="number" id="fAmt" step="0.01" class="w-full pl-6 pr-3 py-2.5 bg-slate-50 border-2 border-transparent focus:bg-white focus:border-primary rounded-xl text-lg font-bold text-slate-800 outline-none text-right transition-all" placeholder="0" required oninput="calcConversion()">
                     </div>
                     <div class="w-20">
-                        <select id="fCurr" onchange="calcConversion()" class="w-full h-full bg-slate-100 border-transparent rounded-xl text-[11px] font-bold focus:border-primary focus:ring-0 text-center pl-1 pr-6"><option value="ARS">ARS</option><option value="USD">USD</option><option value="COP">COP</option></select>
+                        <select id="fCurr" onchange="calcConversion()" class="w-full h-full bg-slate-100 border-transparent rounded-xl text-[11px] font-bold focus:border-primary focus:ring-0 text-center pl-1 pr-6">
+                            <option value="ARS">ARS</option>
+                            <option value="USD">USD</option>
+                            <option value="COP">COP</option>
+                        </select>
                     </div>
                 </div>
-                <div id="convPreview" class="hidden text-right text-[10px] text-slate-500 font-medium -mt-2 mb-4 bg-slate-50 px-2 py-1 rounded inline-block float-right">= <span id="convResult" class="text-slate-800 font-bold">$0 ARS</span></div>
+                <div id="convPreview" class="hidden text-right text-[10px] text-slate-500 font-medium -mt-2 mb-4 bg-slate-50 px-2 py-1 rounded inline-block float-right">
+                    = <span id="convResult" class="text-slate-800 font-bold">$0 ARS</span>
+                </div>
                 <div class="clear-both"></div>
-
-                <div id="accSelectors" class="grid grid-cols-2 gap-3 mb-3">
-                    <div id="fromAccBox">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Desde</label>
-                        <select id="fFromAcc" class="w-full bg-slate-50 border-none rounded-xl text-xs font-bold py-2.5"></select>
-                    </div>
-                    <div id="toAccBox" class="hidden">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Hacia</label>
-                        <select id="fToAcc" class="w-full bg-slate-50 border-none rounded-xl text-xs font-bold py-2.5"></select>
-                    </div>
-                </div>
 
                 <div class="mb-3">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Fecha</label>
                     <input type="date" id="fDate" class="w-full px-3 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20" required>
                 </div>
 
-                <div id="catSection">
-                    <div class="mb-3">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Categoría</label>
-                        <div class="flex flex-wrap gap-1.5" id="chipBox"></div>
-                        <input type="hidden" id="fCat">
-                    </div>
+                <div class="mb-3">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Categoría</label>
+                    <div class="flex flex-wrap gap-1.5" id="chipBox"></div>
+                    <input type="hidden" id="fCat">
                 </div>
 
                 <div class="mb-3">
@@ -371,475 +369,668 @@
             </form>
         </div>
     </div>
-    
+
     <div id="bulkModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeBulkModal()"></div>
         <div class="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl p-4 animate-fade-in mx-4">
             <h3 class="text-sm font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2">Acciones Masivas</h3>
+            
             <div id="bulkMainOptions" class="grid grid-cols-1 gap-2">
-                <button onclick="showBulkSubOption('category')" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group"><span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Cambiar Categoría</span><span class="material-symbols-outlined text-base text-slate-400">category</span></button>
-                <div class="grid grid-cols-2 gap-2"><button onclick="bulkSetExec(true)" class="p-2 text-left rounded-lg border border-slate-200 hover:border-primary text-xs font-bold text-slate-600">Marcar Ejecutado</button><button onclick="bulkSetExec(false)" class="p-2 text-left rounded-lg border border-slate-200 hover:border-primary text-xs font-bold text-slate-600">Marcar Pendiente</button></div>
-                <button onclick="showBulkSubOption('link')" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group"><span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Asignar a Ingreso</span><span class="material-symbols-outlined text-base text-slate-400">link</span></button>
-                <button onclick="bulkUnassignIncome()" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group"><span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Desvincular</span><span class="material-symbols-outlined text-base text-slate-400">link_off</span></button>
-                <button onclick="bulkDelete()" class="p-3 text-left rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 flex items-center justify-between group"><span class="text-xs font-bold text-red-600">Eliminar Seleccionados</span><span class="material-symbols-outlined text-base text-red-400">delete</span></button>
+                <button onclick="showBulkSubOption('category')" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group">
+                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Cambiar Categoría</span>
+                    <span class="material-symbols-outlined text-base text-slate-400">category</span>
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="bulkSetExec(true)" class="p-2 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 text-xs font-bold text-slate-600">Marcar Ejecutado</button>
+                    <button onclick="bulkSetExec(false)" class="p-2 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 text-xs font-bold text-slate-600">Marcar Pendiente</button>
+                </div>
+                <button onclick="showBulkSubOption('link')" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group">
+                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Asignar a Ingreso</span>
+                    <span class="material-symbols-outlined text-base text-slate-400">link</span>
+                </button>
+                <button onclick="bulkUnassignIncome()" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group">
+                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Desvincular (Link = Null)</span>
+                    <span class="material-symbols-outlined text-base text-slate-400">link_off</span>
+                </button>
+                <button onclick="bulkDelete()" class="p-3 text-left rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 flex items-center justify-between group">
+                    <span class="text-xs font-bold text-red-600">Eliminar Seleccionados</span>
+                    <span class="material-symbols-outlined text-base text-red-400">delete</span>
+                </button>
             </div>
-            <div id="bulkSubCategory" class="hidden"><button onclick="resetBulkView()" class="mb-2 text-[10px] text-slate-400 hover:text-primary font-bold flex items-center">Volver</button><div class="mb-2"><input type="text" id="bulkCatSearch" placeholder="Buscar..." class="w-full text-xs border border-slate-200 rounded p-2"></div><div id="bulkCatList" class="max-h-[200px] overflow-y-auto custom-scrollbar flex flex-col gap-1"></div></div>
-            <div id="bulkSubLink" class="hidden"><button onclick="resetBulkView()" class="mb-2 text-[10px] text-slate-400 hover:text-primary font-bold flex items-center">Volver</button><div id="bulkLinkList" class="max-h-[200px] overflow-y-auto custom-scrollbar flex flex-col gap-1"></div></div>
+
+            <div id="bulkSubCategory" class="hidden">
+                <button onclick="resetBulkView()" class="mb-2 text-[10px] text-slate-400 hover:text-primary font-bold flex items-center"><span class="material-symbols-outlined text-sm">arrow_back</span> Volver</button>
+                <div class="mb-2"><input type="text" id="bulkCatSearch" placeholder="Buscar categoría..." class="w-full text-xs border border-slate-200 rounded p-2"></div>
+                <div id="bulkCatList" class="max-h-[200px] overflow-y-auto custom-scrollbar flex flex-col gap-1"></div>
+            </div>
+
+            <div id="bulkSubLink" class="hidden">
+                <button onclick="resetBulkView()" class="mb-2 text-[10px] text-slate-400 hover:text-primary font-bold flex items-center"><span class="material-symbols-outlined text-sm">arrow_back</span> Volver</button>
+                 <div id="bulkLinkList" class="max-h-[200px] overflow-y-auto custom-scrollbar flex flex-col gap-1"></div>
+            </div>
+
         </div>
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec";
+        
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
 
         const defaultData = { 
             txs: [], 
-            cats: { exp:['Esenciales','Deudas','Fitness','Viaje Italia','Inversiones','Proyectos'], inc:['Sueldo Famiq','Honorarios','Rentas','Otros'] }, 
-            concepts: { 'Esenciales': ['Alquiler','Expensas','Supermercado','Luz','Gas','Internet'] }, 
+            cats: { 
+                exp:['Esenciales','Deudas','Fitness','Viaje Italia','Inversiones','Proyectos'], 
+                inc:['Sueldo Famiq','Honorarios','Rentas','Otros'] 
+            }, 
+            concepts: {
+                'Esenciales': ['Alquiler','Expensas','Supermercado','Luz','Gas','Internet'],
+                'Deudas': ['Prestamo 11M','Visa','Mastercard'],
+                'Fitness': ['Cuota Gym','Proteína','Creatina','Ropa Deportiva'],
+                'Viaje Italia': ['Fondo Ahorro','Pasajes','Alojamiento'],
+                'Inversiones': ['Plan 500 USD','CEDEARs','Crypto'],
+                'Proyectos': ['ALEJEN Pediátrica','App Finance'],
+                'Sueldo Famiq': ['Mensual','Bono'],
+                'Honorarios': ['Consultas Dra','Particulares']
+            }, 
             recurrentes: [], 
-            monthlyRates: {},
-            accounts: [] 
+            monthlyRates: {} 
         };
 
         let appData = JSON.parse(JSON.stringify(defaultData)); 
         let currentDate = new Date(); currentDate.setDate(1);
         let editId=null, cExp=null, cInc=null, drillCat=null;
         
-        let historyStack = []; let redoStack = []; const MAX_HISTORY = 50;
-        let isSelectionMode = false; let selectedTxIds = new Set();
-        let nwChart = null;
+        // --- HISTORY STATE ---
+        let historyStack = [];
+        let redoStack = [];
+        const MAX_HISTORY = 50;
+
+        // --- BULK SELECTION STATE ---
+        let isSelectionMode = false;
+        let selectedTxIds = new Set();
 
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
         window.onload = () => { initApp(); };
+        
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) { e.preventDefault(); redo(); }
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z' || e.key === 'Z'))) { e.preventDefault(); redo(); }
         });
 
         async function initApp() {
             loadLocal();
-            // MIGRATION: Ensure accounts exist
-            if (!appData.accounts || appData.accounts.length === 0) {
-                appData.accounts = [{id: 'acc_def', name: 'Efectivo', kind: 'asset', currency: 'ARS', init: 0}];
-                // Migrate txs
-                appData.txs.forEach(t => {
-                    if (t.type === 'exp' && !t.fromAccountId) t.fromAccountId = 'acc_def';
-                    if (t.type === 'inc' && !t.toAccountId) t.toAccountId = 'acc_def';
-                });
-                saveLocal();
-            }
-            updateDateUI(); renderAdminTree(); updateHistoryUI(); 
+            updateDateUI(); 
+            renderAdminTree();
+            updateHistoryUI(); 
             Chart.defaults.font.family = "'Manrope', sans-serif";
-            syncIndicator(true); await forceSync(); syncIndicator(false);
+            syncIndicator(true); 
+            await forceSync();
+            syncIndicator(false);
         }
 
-        function pushHistory() { historyStack.push(JSON.stringify(appData)); if(historyStack.length>MAX_HISTORY) historyStack.shift(); redoStack=[]; updateHistoryUI(); }
-        function undo() { if(!historyStack.length)return; redoStack.push(JSON.stringify(appData)); appData=JSON.parse(historyStack.pop()); isSelectionMode=false;selectedTxIds.clear();updateSelectionUI();saveData();updateHistoryUI(); }
-        function redo() { if(!redoStack.length)return; historyStack.push(JSON.stringify(appData)); appData=JSON.parse(redoStack.pop()); isSelectionMode=false;selectedTxIds.clear();updateSelectionUI();saveData();updateHistoryUI(); }
-        function updateHistoryUI() { document.getElementById('btnUndo').classList.toggle('btn-disabled',!historyStack.length); document.getElementById('btnRedo').classList.toggle('btn-disabled',!redoStack.length); }
+        // --- HISTORY LOGIC ---
+        function pushHistory() {
+            historyStack.push(JSON.stringify(appData));
+            if(historyStack.length > MAX_HISTORY) historyStack.shift();
+            redoStack = []; 
+            updateHistoryUI();
+        }
+
+        function undo() {
+            if(historyStack.length === 0) return;
+            redoStack.push(JSON.stringify(appData));
+            appData = JSON.parse(historyStack.pop());
+            isSelectionMode = false; selectedTxIds.clear(); updateSelectionUI(); // Reset selection on undo
+            saveData(); updateHistoryUI();
+        }
+
+        function redo() {
+            if(redoStack.length === 0) return;
+            historyStack.push(JSON.stringify(appData));
+            appData = JSON.parse(redoStack.pop());
+            isSelectionMode = false; selectedTxIds.clear(); updateSelectionUI();
+            saveData(); updateHistoryUI();
+        }
+
+        function updateHistoryUI() {
+            const btnUndo = document.getElementById('btnUndo');
+            const btnRedo = document.getElementById('btnRedo');
+            if(historyStack.length > 0) btnUndo.classList.remove('btn-disabled'); else btnUndo.classList.add('btn-disabled');
+            if(redoStack.length > 0) btnRedo.classList.remove('btn-disabled'); else btnRedo.classList.add('btn-disabled');
+        }
 
         function saveLocal() { localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData)); }
-        function loadLocal() { const s=localStorage.getItem('financeFlowData_Javi'); if(s)try{appData=JSON.parse(s);}catch(e){} loadMonthData(); }
-        async function forceSync() { try{const r=await fetch(API_URL);const d=await r.json();if(d){appData.txs=d.txs||[];appData.cats=d.cats||defaultData.cats;appData.concepts=d.concepts||defaultData.concepts;appData.monthlyRates=d.monthlyRates||{};appData.recurrentes=d.recurrentes||[];appData.accounts=d.accounts||[{id:'acc_def',name:'Efectivo',kind:'asset',currency:'ARS',init:0}]; saveLocal(); loadMonthData();}}catch(e){console.log("Offline");} }
-        async function saveData() { saveLocal(); try{await fetch(API_URL,{method:'POST',body:JSON.stringify(appData)});}catch(e){} loadMonthData(); renderAdminTree(); }
-        function syncIndicator(b) { const i=document.getElementById('syncIcon'); if(i)i.classList.toggle('animate-spin',b); }
+        function loadLocal() {
+            const stored = localStorage.getItem('financeFlowData_Javi');
+            if(stored) { try { appData = JSON.parse(stored); } catch(e){ } }
+            loadMonthData();
+        }
+
+        async function forceSync() {
+            try { 
+                const r = await fetch(API_URL); 
+                const cloudData = await r.json(); 
+                if(cloudData) {
+                    appData.txs = cloudData.txs || [];
+                    appData.cats = cloudData.cats || defaultData.cats;
+                    appData.concepts = cloudData.concepts || defaultData.concepts; 
+                    appData.rates = cloudData.rates || {}; 
+                    appData.monthlyRates = cloudData.monthlyRates || appData.rates; 
+                    appData.recurrentes = cloudData.recurrentes || [];
+                    saveLocal();
+                    loadMonthData();
+                }
+            } catch(e) { console.log("Offline mode"); }
+        }
+        
+        function syncIndicator(isLoading) {
+            const btn = document.getElementById('syncIcon');
+            if(btn) { if(isLoading) btn.classList.add('animate-spin'); else btn.classList.remove('animate-spin'); }
+        }
+        
+        async function saveData() {
+            saveLocal();
+            try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); } catch(e){}
+            loadMonthData(); renderAdminTree();
+        }
 
         function loadMonthData() {
-            const y=currentDate.getFullYear(), m=currentDate.getMonth()+1;
-            const key=`${y}-${m.toString().padStart(2,'0')}`;
+            const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
+            const key = `${y}-${m.toString().padStart(2,'0')}`;
+            
             let rates = appData.monthlyRates[key] || { ARS: 1500, COP: 3700, USD: 1 };
-            document.getElementById('rate_ARS').value = rates.ARS; document.getElementById('rate_COP').value = rates.COP;
+            document.getElementById('rate_ARS').value = rates.ARS; 
+            document.getElementById('rate_COP').value = rates.COP;
             
             const txs = appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
-            // Conversion logic for display
-            txs.forEach(t => { if (!t.exec && t.origCurr && t.origCurr !== 'ARS') { if (t.origCurr === 'USD') t.amount = t.origAmt * rates.ARS; else if (t.origCurr === 'COP') t.amount = (t.origAmt / rates.COP) * rates.ARS; } });
-            txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
-
-            renderAlerts(computeAlerts(txs));
-            renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin(); renderAdminTree();
-            renderNetWorthView(); // New View Logic
-        }
-
-        // --- ACCOUNT & NET WORTH LOGIC ---
-        function getAccountsBalance() {
-            let bals = {};
-            appData.accounts.forEach(a => bals[a.id] = a.init || 0);
             
-            // Replay history
-            appData.txs.forEach(t => {
-                if(t.deletedAt) return;
-                const amt = t.origAmt || t.amount; // Use original currency amount
-                if(t.type === 'exp' && t.fromAccountId) bals[t.fromAccountId] -= amt;
-                if(t.type === 'inc' && t.toAccountId) bals[t.toAccountId] += amt;
-                if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
-                    bals[t.fromAccountId] -= amt;
-                    bals[t.toAccountId] += amt;
+            txs.forEach(t => {
+                if (!t.exec && t.origCurr && t.origCurr !== 'ARS') {
+                    if (t.origCurr === 'USD') t.amount = t.origAmt * rates.ARS;
+                    else if (t.origCurr === 'COP') t.amount = (t.origAmt / rates.COP) * rates.ARS;
                 }
             });
-            return bals;
+
+            txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+            
+            // --- ALERTAS INTELLIGENCE ---
+            const alerts = computeAlerts(txs);
+            renderAlerts(alerts);
+            // ---------------------------
+
+            renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin(); renderAdminTree();
         }
 
-        function renderNetWorthView() {
-            const bals = getAccountsBalance();
-            const list = document.getElementById('accountsList'); list.innerHTML = '';
-            const rateARS = parseFloat(document.getElementById('rate_ARS').value) || 1200;
-            const rateCOP = parseFloat(document.getElementById('rate_COP').value) || 3700;
+        // --- ALERT SYSTEM LOGIC ---
+
+        function computeAlerts(txs) {
+            const alerts = [];
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth(); // 0-based
+            const totalExp = txs.filter(t => t.type === 'exp').reduce((a, b) => a + b.amount, 0) || 1; // avoid div 0
+
+            // Helper for Severity Sort
+            const severityScore = { 'danger': 3, 'warning': 2, 'info': 1 };
+
+            // A) Trend Analysis (Categoría > 20% vs 3M Average)
+            const catMap = {};
+            txs.filter(t => t.type === 'exp').forEach(t => { catMap[t.cat] = (catMap[t.cat] || 0) + t.amount; });
             
-            let assets = 0, liabs = 0;
-
-            appData.accounts.forEach(a => {
-                const bal = bals[a.id];
-                // Convert to ARS for Net Worth Total
-                let valInARS = bal;
-                if(a.currency === 'USD') valInARS = bal * rateARS;
-                if(a.currency === 'COP') valInARS = (bal / rateCOP) * rateARS;
-
-                if(a.kind === 'asset') assets += valInARS; else liabs += Math.abs(valInARS); 
-                
-                // Card UI
-                const card = document.createElement('div');
-                card.className = "flex justify-between items-center p-2 bg-slate-50 rounded border border-slate-100";
-                card.innerHTML = `
-                    <div>
-                        <p class="text-xs font-bold text-slate-700">${a.name}</p>
-                        <p class="text-[10px] text-slate-400 uppercase">${a.kind==='asset'?'Activo':'Pasivo'} • ${a.currency}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs font-bold text-slate-800">${a.currency} ${fmt(bal)}</p>
-                        ${a.currency!=='ARS' ? `<p class="text-[9px] text-slate-400">≈ $${fmt(valInARS)}</p>` : ''}
-                    </div>
-                    <div class="ml-2 flex gap-1">
-                        <button onclick="editAccount('${a.id}')" class="text-slate-300 hover:text-primary"><span class="material-symbols-outlined text-sm">edit</span></button>
-                        <button onclick="delAccount('${a.id}')" class="text-slate-300 hover:text-red-500"><span class="material-symbols-outlined text-sm">delete</span></button>
-                    </div>
-                `;
-                list.appendChild(card);
+            Object.entries(catMap).forEach(([cat, amount]) => {
+                const avg = getPastAverage(cat, m, y);
+                if (avg > 0) {
+                    const diff = (amount - avg) / avg;
+                    if (diff >= 0.20) {
+                        alerts.push({
+                            id: `trend-${cat}`, type: 'trend', severity: diff > 0.5 ? 'danger' : 'warning', amount: amount,
+                            title: `Suba en ${cat}`,
+                            desc: `+${Math.round(diff * 100)}% vs prom. 3 meses ($${fmt(avg)})`,
+                            ctaLabel: 'Ver', ctaAction: `filterExpList('${cat}')`
+                        });
+                    }
+                }
             });
 
-            const net = assets - liabs;
-            document.getElementById('nw-assets').innerText = '$'+fmt(assets);
-            document.getElementById('nw-liabilities').innerText = '$'+fmt(liabs);
-            document.getElementById('nw-total').innerText = '$'+fmt(net);
-            document.getElementById('nw-usd').innerText = 'USD '+fmt(net/rateARS);
-
-            renderNetWorthChart();
-        }
-
-        function renderNetWorthChart() {
-            // Calc history last 12 months
-            const labels = []; const data = [];
-            const end = new Date(currentDate.getFullYear(), currentDate.getMonth()+1, 0);
-            
-            for(let i=11; i>=0; i--) {
-                const d = new Date(end.getFullYear(), end.getMonth()-i, 1);
-                const y = d.getFullYear(); const m = d.getMonth()+1;
-                const key = `${y}-${m.toString().padStart(2,'0')}`;
+            // B) Pacing (Gastaste P% y va D% del mes)
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+            const today = new Date();
+            // Solo calcular pacing si estamos en el mes actual real
+            if (today.getFullYear() === y && today.getMonth() === m) {
+                const day = today.getDate();
+                const timeProgress = day / daysInMonth; // 0.1 to 1.0
                 
-                // Get rates for that month
-                const r = appData.monthlyRates[key] || {ARS:1200, COP:3800, USD:1};
-                
-                // Calc balance up to end of that month
-                let mAssets = 0, mLiabs = 0;
-                let accBals = {}; 
-                appData.accounts.forEach(a => accBals[a.id] = a.init || 0);
-
-                // Filter txs up to end of that month
-                const lastDay = new Date(y, m, 0).toISOString().split('T')[0];
-                
-                appData.txs.forEach(t => {
-                    if(t.deletedAt || t.date > lastDay) return;
-                    const amt = t.origAmt || t.amount;
-                    if(t.type === 'exp' && t.fromAccountId) accBals[t.fromAccountId] -= amt;
-                    if(t.type === 'inc' && t.toAccountId) accBals[t.toAccountId] += amt;
-                    if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
-                        accBals[t.fromAccountId] -= amt;
-                        accBals[t.toAccountId] += amt;
+                Object.entries(catMap).forEach(([cat, amount]) => {
+                    const shareOfWallet = amount / totalExp; // % del gasto total
+                    // Regla Heurística: Si la categoría representa más del doble de lo esperado por el tiempo transcurrido
+                    // Y es un monto relevante (> 5% del gasto total)
+                    // Ej: Día 5 (16%), Supermercado es el 50% del total. 0.5 > 0.16 * 2. 
+                    if (shareOfWallet > (timeProgress * 2.5) && shareOfWallet > 0.05) {
+                         alerts.push({
+                            id: `pace-${cat}`, type: 'pace', severity: 'info', amount: amount,
+                            title: `Ritmo Alto: ${cat}`,
+                            desc: `Día ${day}, llevas ${Math.round(shareOfWallet*100)}% del gasto total.`,
+                            ctaLabel: 'Revisar', ctaAction: `filterExpList('${cat}')`
+                        });
                     }
                 });
+            }
 
-                appData.accounts.forEach(a => {
-                    let val = accBals[a.id];
-                    if(a.currency === 'USD') val = val * r.ARS;
-                    if(a.currency === 'COP') val = (val / r.COP) * r.ARS;
-                    if(a.kind === 'asset') mAssets += val; else mLiabs += val;
+            // C) Unassigned Expenses
+            const unassignedAmt = txs.filter(t => t.type === 'exp' && !t.linkId).reduce((a, b) => a + b.amount, 0);
+            if (unassignedAmt > 0) {
+                alerts.push({
+                    id: 'unassigned', type: 'orphan', severity: unassignedAmt > 100000 ? 'danger' : 'warning', amount: unassignedAmt,
+                    title: 'Gastos sin asignar',
+                    desc: `$${fmt(unassignedAmt)} pendientes de vincular`,
+                    ctaLabel: 'Asignar', ctaAction: "document.getElementById('searchExpInput').value='sin asignar';filterExpList()"
                 });
-
-                labels.push(MONTHS[m-1]);
-                data.push(mAssets - mLiabs);
             }
 
-            const ctx = document.getElementById('chartNetWorth');
-            if(nwChart) nwChart.destroy();
-            nwChart = new Chart(ctx, {
-                type: 'line',
-                data: { labels: labels, datasets: [{ label: 'Patrimonio Neto', data: data, borderColor: '#0e757c', backgroundColor: 'rgba(14, 117, 124, 0.1)', fill: true, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { y: { beginAtZero: false, ticks: { callback: v => '$'+v/1000+'k' } } } }
-            });
-        }
-
-        function addAccount() { document.getElementById('accForm').classList.remove('hidden'); document.getElementById('accId').value = ''; document.getElementById('accName').value = ''; document.getElementById('accInit').value = ''; }
-        function editAccount(id) { const a = appData.accounts.find(x => x.id === id); if(!a) return; document.getElementById('accForm').classList.remove('hidden'); document.getElementById('accId').value = a.id; document.getElementById('accName').value = a.name; document.getElementById('accKind').value = a.kind; document.getElementById('accCurr').value = a.currency; document.getElementById('accInit').value = a.init || 0; }
-        function saveAccount() {
-            const id = document.getElementById('accId').value;
-            const name = document.getElementById('accName').value;
-            const kind = document.getElementById('accKind').value;
-            const curr = document.getElementById('accCurr').value;
-            const init = parseFloat(document.getElementById('accInit').value) || 0;
-            if(!name) return alert('Nombre requerido');
-            
-            pushHistory();
-            if(id) {
-                const idx = appData.accounts.findIndex(x => x.id === id);
-                appData.accounts[idx] = { ...appData.accounts[idx], name, kind, currency: curr, init };
-            } else {
-                appData.accounts.push({ id: 'acc_'+Date.now(), name, kind, currency: curr, init });
-            }
-            document.getElementById('accForm').classList.add('hidden');
-            saveData();
-        }
-        function delAccount(id) {
-            if(!confirm("Eliminar cuenta? (No elimina transacciones históricas)")) return;
-            pushHistory();
-            appData.accounts = appData.accounts.filter(x => x.id !== id);
-            saveData();
-        }
-
-        // --- MODAL & TX LOGIC ---
-        function setType(t){
-            document.getElementById('fType').value=t;
-            const bE=document.getElementById('btnExp'), bI=document.getElementById('btnInc'), bT=document.getElementById('btnTrf');
-            const def="flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
-            bE.className=def; bI.className=def; bT.className=def;
-
-            document.getElementById('catSection').classList.remove('hidden');
-            document.getElementById('linkRow').classList.add('hidden');
-            document.getElementById('lblDesc').innerText = "Concepto";
-            document.getElementById('fCat').value = ''; document.getElementById('conceptBox').innerHTML = '';
-
-            // Render Accounts
-            renderAccountOptions();
-
-            if(t==='exp') {
-                bE.className = "flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-danger";
-                document.getElementById('linkRow').classList.remove('hidden'); renderLinkChips();
-                renderChips('exp');
-                document.getElementById('accSelectors').classList.remove('hidden');
-                document.getElementById('fromAccBox').classList.remove('hidden');
-                document.getElementById('toAccBox').classList.add('hidden');
-            } else if(t==='inc') {
-                bI.className = "flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-success";
-                renderChips('inc'); document.getElementById('lblDesc').innerText = "Detalle";
-                document.getElementById('accSelectors').classList.remove('hidden');
-                document.getElementById('fromAccBox').classList.add('hidden');
-                document.getElementById('toAccBox').classList.remove('hidden');
-            } else { // Transfer
-                bT.className = "flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-slate-800";
-                document.getElementById('catSection').classList.add('hidden');
-                document.getElementById('fCat').value = 'Transferencia';
-                document.getElementById('fDesc').value = 'Traspaso de fondos';
-                document.getElementById('accSelectors').classList.remove('hidden');
-                document.getElementById('fromAccBox').classList.remove('hidden');
-                document.getElementById('toAccBox').classList.remove('hidden');
-            }
-        }
-
-        function renderAccountOptions() {
-            const opts = appData.accounts.map(a => `<option value="${a.id}">${a.name} (${a.currency})</option>`).join('');
-            document.getElementById('fFromAcc').innerHTML = opts;
-            document.getElementById('fToAcc').innerHTML = opts;
-        }
-
-        function editTx(id) {
-            const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;
-            document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');
-            document.getElementById('fDate').value=t.date; document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;
-            document.getElementById('fAmt').value = t.origAmt || t.amount; document.getElementById('fCurr').value = t.origCurr || 'ARS';
-            
-            setType(t.type);
-            setTimeout(() => {
-                document.getElementById('fCat').value = t.cat;
-                if(t.type !== 'transfer') { renderChips(t.type); renderConcepts(t.cat); }
-                if(t.type === 'exp') { document.getElementById('fLink').value = t.linkId || ""; renderLinkChips(t.linkId); }
-                if(t.fromAccountId) document.getElementById('fFromAcc').value = t.fromAccountId;
-                if(t.toAccountId) document.getElementById('fToAcc').value = t.toAccountId;
-            }, 50);
-            calcConversion();
-            document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');
-        }
-
-        // --- ALERTS & BULK ACTIONS ---
-        function computeAlerts(txs) {
-            const alerts = []; const y = currentDate.getFullYear(); const m = currentDate.getMonth();
-            const catMap = {}; txs.filter(t => t.type === 'exp').forEach(t => { catMap[t.cat] = (catMap[t.cat] || 0) + t.amount; });
-            
-            // 1. Trends
-            Object.entries(catMap).forEach(([cat, amount]) => { 
-                const avg = getPastAverage(cat, m, y); 
-                if (avg > 0 && (amount - avg) / avg >= 0.20) {
-                     alerts.push({ id: `trend-${cat}`, severity: 'warning', title: `Suba: ${cat}`, desc: `+${Math.round(((amount-avg)/avg)*100)}% vs prom.`, ctaLabel: 'Ver', ctaAction: `filterExpList('${cat}')` }); 
+            // D) Overspending on Income
+            const incs = txs.filter(t => t.type === 'inc');
+            let overspendCount = 0;
+            let overspendAmt = 0;
+            incs.forEach(inc => {
+                const assigned = txs.filter(t => t.type === 'exp' && t.linkId == inc.id).reduce((a,b)=>a+b.amount,0);
+                if (assigned > inc.amount) {
+                    overspendCount++;
+                    overspendAmt += (assigned - inc.amount);
                 }
             });
-            
-            // 2. Unassigned
-            const unassignedAmt = txs.filter(t => t.type === 'exp' && !t.linkId).reduce((a, b) => a + b.amount, 0);
-            if (unassignedAmt > 0) alerts.push({ id: 'unassigned', severity: 'warning', title: 'Sin asignar', desc: `$${fmt(unassignedAmt)} pendientes`, ctaLabel: 'Filtrar', ctaAction: "filterExpList('sin asignar')" });
-            
-            // 3. Pacing (Simple)
-            const d = new Date();
-            if(d.getMonth() === m && d.getFullYear() === y) {
-                 const days = new Date(y, m+1, 0).getDate();
-                 const prog = d.getDate() / days;
-                 const tot = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
-                 if(tot > 0) {
-                     Object.entries(catMap).forEach(([cat, amt]) => {
-                         if((amt/tot) > (prog * 2.5) && (amt/tot) > 0.05) {
-                             alerts.push({id: `pace-${cat}`, severity: 'info', title: `Ritmo: ${cat}`, desc: `Gasto acelerado (${Math.round((amt/tot)*100)}% del total)`, ctaLabel:'Ver', ctaAction:`filterExpList('${cat}')`});
-                         }
-                     });
-                 }
+
+            if (overspendCount > 0) {
+                alerts.push({
+                    id: 'overspend', type: 'over', severity: 'danger', amount: overspendAmt,
+                    title: 'Ingresos Excedidos',
+                    desc: `${overspendCount} ingresos con saldo negativo (-$${fmt(overspendAmt)})`,
+                    ctaLabel: 'Corregir', ctaAction: "nav('dashboard', null)" // Lleva al dashboard donde se ve la asignacion
+                });
             }
 
-            return alerts.slice(0, 4);
-        }
-        function getPastAverage(cat, m, y) { let s=0, c=0; for(let i=1; i<=3; i++) { let tm=m-i, ty=y; if(tm<0){tm+=12;ty--;} const mt = appData.txs.filter(t=>!t.deletedAt && t.type=='exp' && t.cat==cat && parseInt(t.date.split('-')[0])==ty && parseInt(t.date.split('-')[1])==tm+1); if(mt.length){s+=mt.reduce((a,b)=>a+b.amount,0);c++;} } return c>0?s/3:0; }
-        function renderAlerts(alerts) { 
-            const html = alerts.map(a=>`<div class="alert-card border-l-4 rounded-r-lg p-2 shadow-sm flex items-center justify-between gap-2 ${a.severity=='warning'?'border-l-amber-500 bg-amber-50':a.severity=='danger'?'border-l-red-500 bg-red-50':'border-l-blue-500 bg-blue-50'}"><div class="min-w-0"><h4 class="text-xs font-bold truncate">${a.title}</h4><p class="text-[10px] opacity-80 truncate">${a.desc}</p></div><button onclick="${a.ctaAction}" class="text-[10px] font-bold underline">Ir</button></div>`).join('');
-            document.getElementById('dashboardAlerts').innerHTML = html;
-            document.getElementById('analyticsAlerts').innerHTML = html;
+            // Sort: Danger > Warning > Info, then by Amount desc
+            return alerts.sort((a, b) => {
+                const scoreDiff = severityScore[b.severity] - severityScore[a.severity];
+                if (scoreDiff !== 0) return scoreDiff;
+                return b.amount - a.amount;
+            }).slice(0, 8); // Max 8
         }
 
-        // --- BULK FUNCTIONS ---
-        function toggleSelectionMode(){isSelectionMode=!isSelectionMode;if(!isSelectionMode)selectedTxIds.clear();updateSelectionUI();loadMonthData();}
-        function toggleTxSelected(id){if(selectedTxIds.has(id))selectedTxIds.delete(id);else selectedTxIds.add(id);loadMonthData();updateSelectionUI();}
-        function updateSelectionUI(){const b=document.getElementById('bulkBar');if(isSelectionMode&&selectedTxIds.size>0){b.classList.remove('hidden');document.getElementById('bulkCount').innerText=selectedTxIds.size;}else b.classList.add('hidden');document.getElementById('btnSelectMode').classList.toggle('text-primary',isSelectionMode);}
-        function openBulkModal(){document.getElementById('bulkModal').classList.remove('hidden'); resetBulkView();}
-        function closeBulkModal(){document.getElementById('bulkModal').classList.add('hidden');}
-        function resetBulkView(){document.getElementById('bulkMainOptions').classList.remove('hidden');document.getElementById('bulkSubCategory').classList.add('hidden');document.getElementById('bulkSubLink').classList.add('hidden');}
-        function showBulkSubOption(t){
+        function getPastAverage(cat, currentMonthIdx, currentYear) {
+            let sum = 0;
+            let count = 0;
+            // Look back 3 months
+            for (let i = 1; i <= 3; i++) {
+                let targetM = currentMonthIdx - i;
+                let targetY = currentYear;
+                if (targetM < 0) { targetM += 12; targetY--; }
+                
+                // Filter txs from appData directly (source of truth)
+                const monthTxs = appData.txs.filter(t => 
+                    !t.deletedAt && 
+                    t.type === 'exp' && 
+                    t.cat === cat &&
+                    parseInt(t.date.split('-')[0]) === targetY && 
+                    parseInt(t.date.split('-')[1]) === (targetM + 1)
+                );
+                
+                if (monthTxs.length > 0) {
+                    sum += monthTxs.reduce((a, b) => a + b.amount, 0);
+                    count++;
+                }
+            }
+            return count > 0 ? sum / 3 : 0; // Divide by 3 to smooth out zeros if we want a strict 3-month avg, or divide by count. Sticking to div/3 for "moving average" feel, assuming 0 if no data.
+        }
+
+        function renderAlerts(alerts) {
+            const dashboardContainer = document.getElementById('dashboardAlerts');
+            const analyticsContainer = document.getElementById('analyticsAlerts');
+            
+            const html = alerts.map(a => {
+                let colorClass = "";
+                let icon = "";
+                if (a.severity === 'danger') { colorClass = "border-l-red-500 bg-red-50 text-red-900"; icon = "warning"; }
+                else if (a.severity === 'warning') { colorClass = "border-l-amber-500 bg-amber-50 text-amber-900"; icon = "error"; }
+                else { colorClass = "border-l-blue-500 bg-blue-50 text-blue-900"; icon = "info"; }
+
+                return `
+                <div class="alert-card border-l-4 rounded-r-lg p-3 shadow-sm flex items-start justify-between gap-3 ${colorClass}">
+                    <div class="flex items-start gap-2 overflow-hidden">
+                        <span class="material-symbols-outlined text-lg mt-0.5 opacity-80 shrink-0">${icon}</span>
+                        <div class="min-w-0">
+                            <h4 class="text-xs font-bold leading-tight truncate">${a.title}</h4>
+                            <p class="text-[10px] opacity-80 leading-snug mt-0.5">${a.desc}</p>
+                        </div>
+                    </div>
+                    <button onclick="${a.ctaAction}" class="text-[10px] font-bold underline opacity-70 hover:opacity-100 shrink-0 self-center">${a.ctaLabel}</button>
+                </div>`;
+            }).join('');
+
+            if(dashboardContainer) dashboardContainer.innerHTML = html;
+            if(analyticsContainer) analyticsContainer.innerHTML = html;
+        }
+
+        // --- END ALERT SYSTEM ---
+
+        // --- BULK LOGIC START ---
+
+        function toggleSelectionMode() {
+            isSelectionMode = !isSelectionMode;
+            if(!isSelectionMode) selectedTxIds.clear();
+            updateSelectionUI();
+            loadMonthData(); // Re-render lists to show/hide checkboxes
+        }
+
+        function toggleTxSelected(id) {
+            if(selectedTxIds.has(id)) selectedTxIds.delete(id);
+            else selectedTxIds.add(id);
+            // Re-render only lists to reflect check state
+            const txs = getMonthTxs();
+            renderLists(txs); 
+            updateSelectionUI();
+        }
+
+        function updateSelectionUI() {
+            const btn = document.getElementById('btnSelectMode');
+            const bar = document.getElementById('bulkBar');
+            const countEl = document.getElementById('bulkCount');
+            
+            if(isSelectionMode) {
+                btn.classList.add('text-primary'); btn.classList.remove('text-slate-400');
+                if(selectedTxIds.size > 0) {
+                    bar.classList.remove('hidden');
+                    countEl.innerText = `${selectedTxIds.size} seleccionados`;
+                } else {
+                    bar.classList.add('hidden');
+                }
+            } else {
+                btn.classList.remove('text-primary'); btn.classList.add('text-slate-400');
+                bar.classList.add('hidden');
+            }
+        }
+
+        function getMonthTxs() {
+             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
+             return appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m).sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+        }
+
+        function openBulkModal() {
+            document.getElementById('bulkModal').classList.remove('hidden');
+            resetBulkView();
+        }
+        function closeBulkModal() { document.getElementById('bulkModal').classList.add('hidden'); }
+        
+        function resetBulkView() {
+            document.getElementById('bulkMainOptions').classList.remove('hidden');
+            document.getElementById('bulkSubCategory').classList.add('hidden');
+            document.getElementById('bulkSubLink').classList.add('hidden');
+        }
+
+        function showBulkSubOption(type) {
             document.getElementById('bulkMainOptions').classList.add('hidden');
-            if(t=='category'){
+            if(type === 'category') {
                 document.getElementById('bulkSubCategory').classList.remove('hidden');
-                const l=document.getElementById('bulkCatList');l.innerHTML='';
-                appData.cats.exp.forEach(c=>{const b=document.createElement('button');b.className="text-left text-xs p-2 hover:bg-slate-50 rounded border border-transparent hover:border-primary w-full";b.innerText=c;b.onclick=()=>bulkApply('cat',c);l.appendChild(b)});
+                const list = document.getElementById('bulkCatList'); list.innerHTML = '';
+                (appData.cats.exp || []).forEach(cat => {
+                    const b = document.createElement('button');
+                    b.className = "text-left text-xs p-2 hover:bg-slate-50 rounded border border-transparent hover:border-primary";
+                    b.innerText = cat;
+                    b.onclick = () => bulkApplyCategory(cat);
+                    list.appendChild(b);
+                });
             }
-            if(t=='link'){
+            if(type === 'link') {
                 document.getElementById('bulkSubLink').classList.remove('hidden');
-                const l=document.getElementById('bulkLinkList');l.innerHTML='';
-                const y=currentDate.getFullYear(),m=currentDate.getMonth()+1;
-                appData.txs.filter(x=>!x.deletedAt&&x.type=='inc'&&parseInt(x.date.split('-')[1])==m).forEach(i=>{const b=document.createElement('button');b.className="text-left text-xs p-2 hover:bg-slate-50 rounded border border-transparent hover:border-primary w-full";b.innerHTML=`<b>${i.desc}</b> $${fmt(i.amount)}`;b.onclick=()=>bulkApply('linkId',i.id);l.appendChild(b)});
+                const list = document.getElementById('bulkLinkList'); list.innerHTML = '';
+                const incs = getMonthTxs().filter(t => t.type === 'inc');
+                if(incs.length === 0) list.innerHTML = '<span class="text-xs text-slate-400">Sin ingresos este mes</span>';
+                incs.forEach(inc => {
+                     const b = document.createElement('button');
+                    b.className = "text-left text-xs p-2 hover:bg-slate-50 rounded border border-transparent hover:border-primary";
+                    b.innerHTML = `<b>${inc.desc}</b> <span class="text-slate-400">($${fmt(inc.amount)})</span>`;
+                    b.onclick = () => bulkAssignIncome(inc.id);
+                    list.appendChild(b);
+                });
             }
         }
-        function bulkApply(field, val){
+
+        function bulkApplyCategory(cat) {
             pushHistory();
-            selectedTxIds.forEach(id=>{ const t=appData.txs.find(x=>x.id==id); if(t && t.type=='exp') t[field]=val; });
+            selectedTxIds.forEach(id => {
+                const tx = appData.txs.find(t => t.id === id);
+                if(tx && tx.type === 'exp') tx.cat = cat;
+            });
             saveData(); toggleSelectionMode(); closeBulkModal();
         }
-        function bulkSetExec(val){ pushHistory(); selectedTxIds.forEach(id=>{const t=appData.txs.find(x=>x.id==id);if(t)t.exec=val;}); saveData(); toggleSelectionMode(); closeBulkModal(); }
-        function bulkUnassignIncome(){ bulkApply('linkId',null); }
-        function bulkDelete(){ if(confirm('Eliminar seleccionados?')){ pushHistory(); selectedTxIds.forEach(id=>{const t=appData.txs.find(x=>x.id==id);if(t)t.deletedAt=Date.now();}); saveData(); toggleSelectionMode(); closeBulkModal(); } }
 
+        function bulkSetExec(val) {
+            pushHistory();
+            selectedTxIds.forEach(id => {
+                const tx = appData.txs.find(t => t.id === id);
+                if(tx) tx.exec = val;
+            });
+            saveData(); toggleSelectionMode(); closeBulkModal();
+        }
 
-        // --- STANDARD RENDER ---
+        function bulkAssignIncome(incomeId) {
+            pushHistory();
+            selectedTxIds.forEach(id => {
+                const tx = appData.txs.find(t => t.id === id);
+                if(tx && tx.type === 'exp') tx.linkId = incomeId;
+            });
+            saveData(); toggleSelectionMode(); closeBulkModal();
+        }
+
+        function bulkUnassignIncome() {
+             pushHistory();
+            selectedTxIds.forEach(id => {
+                const tx = appData.txs.find(t => t.id === id);
+                if(tx && tx.type === 'exp') tx.linkId = null;
+            });
+            saveData(); toggleSelectionMode(); closeBulkModal();
+        }
+
+        function bulkDelete() {
+            if(!confirm(`¿Eliminar ${selectedTxIds.size} elementos?`)) return;
+            pushHistory();
+            selectedTxIds.forEach(id => {
+                const tx = appData.txs.find(t => t.id === id);
+                if(tx) tx.deletedAt = Date.now();
+            });
+            saveData(); toggleSelectionMode(); closeBulkModal();
+        }
+
+        // --- END BULK LOGIC ---
+
         function renderLists(txs) {
             const lI=document.getElementById('list-inc'), lE=document.getElementById('list-exp'), lA=document.getElementById('list-alloc');
             lI.innerHTML=''; lE.innerHTML=''; lA.innerHTML=''; let rb=0;
-            const incTxs = txs.filter(t=>t.type=='inc'); const expTxs = txs.filter(t=>t.type=='exp');
-            incTxs.forEach(t=>rb+=t.amount); expTxs.forEach(t=>rb-=t.amount);
             
-            const drawRow = (t, dest) => {
-                let badge = (t.origCurr && t.origCurr !== 'ARS') ? `<span class="bg-blue-50 text-blue-600 text-[9px] px-1 ml-1 rounded font-bold">${t.origAmt} ${t.origCurr}</span>` : '';
+            txs.forEach(t => {
+                if(t.type=='inc') rb+=t.amount; else rb-=t.amount;
+                
+                let currBadge = (t.origCurr && t.origCurr !== 'ARS') ? `<span class="bg-blue-50 text-blue-600 text-[9px] px-1.5 py-0.5 rounded ml-1 font-bold">${t.origAmt} ${t.origCurr}</span>` : '';
+                let linkText = '';
+                if(t.type=='exp' && t.linkId) { 
+                    const source = appData.txs.find(x => x.id == t.linkId); 
+                    if(source) linkText = `<span class="inline-flex items-center ml-2 bg-slate-100 text-slate-500 text-[9px] px-1.5 py-0.5 rounded-md"><span class="material-symbols-outlined text-[10px] mr-0.5">link</span>${source.desc.substring(0,8)}</span>`; 
+                }
+
                 const el = document.createElement('div');
-                const isSel = selectedTxIds.has(t.id);
-                el.className = `compact-row flex items-center justify-between cursor-pointer ${isSelectionMode&&isSel?'bg-blue-50/50 selected':t.exec?'opacity-60 bg-slate-50/50 line-through':''}`;
-                el.onclick = () => { if(isSelectionMode&&t.type=='exp') toggleTxSelected(t.id); else if(!isSelectionMode) editTx(t.id); };
-                let icon = isSelectionMode && t.type=='exp' ? `<div class="bulk-chk ${isSel?'checked':''}"><i class="material-symbols-outlined text-[10px]">check</i></div>` : (t.exec ? `<span class="material-symbols-outlined text-base text-primary">check_circle</span>` : `<div class="size-4 rounded-full border-2 border-slate-200"></div>`);
-                el.innerHTML = `<div class="flex items-center gap-3 w-full"><div class="shrink-0 flex justify-center size-6">${icon}</div><div class="min-w-0 flex-1"><div class="flex justify-between"><p class="text-xs font-bold text-slate-800 truncate">${t.desc} ${badge}</p><p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ml-2">$${fmt(t.amount)}</p></div><div class="flex justify-between mt-0.5"><div class="flex gap-2"><span class="text-[9px] text-slate-500 bg-slate-100 px-1 rounded">${t.cat||'Gral'}</span></div></div></div></div>`;
-                dest.appendChild(el);
-            };
-            incTxs.forEach(t => drawRow(t, lI)); expTxs.forEach(t => drawRow(t, lE));
-            document.getElementById('c-inc').innerText = incTxs.length; document.getElementById('c-exp').innerText = expTxs.length;
-            
-            // Allocation Logic
-            incTxs.forEach(inc => {
-                const subs = expTxs.filter(t=>t.linkId==inc.id); const spent = subs.reduce((a,b)=>a+b.amount,0); const pct = Math.min(100, (spent/inc.amount)*100);
-                const el = document.createElement('div'); el.innerHTML=`<div class="rounded-xl border border-slate-200 bg-white mb-2 shadow-sm overflow-hidden"><div class="p-3 flex justify-between items-center"><div class="flex-1"><p class="text-[11px] font-bold text-slate-700">${inc.desc}</p><p class="text-[10px] font-extrabold ${inc.amount-spent>=0?'text-success':'text-danger'}">$${fmt(inc.amount-spent)}</p></div><span class="text-[9px] font-bold">${Math.round(pct)}%</span></div><div class="w-full h-1 bg-slate-100"><div class="h-full bg-primary" style="width:${pct}%"></div></div></div>`;
-                lA.appendChild(el);
+                
+                // BULK EDIT STYLING
+                const isSelected = selectedTxIds.has(t.id);
+                let baseClass = t.exec ? "opacity-60 bg-slate-50/50 line-through decoration-slate-400" : "bg-white";
+                if(isSelectionMode && isSelected) baseClass = "bg-blue-50/50";
+                
+                el.className = `compact-row group flex items-center justify-between cursor-pointer ${baseClass} ${isSelected ? 'selected' : ''}`;
+                
+                // CLICK HANDLER: Toggle selection OR Edit
+                el.onclick = () => {
+                    if(isSelectionMode && t.type === 'exp') toggleTxSelected(t.id);
+                    else if(!isSelectionMode) editTx(t.id);
+                };
+                
+                // ICON LOGIC: Checkbox vs Status Icon
+                let leftIcon = '';
+                if(isSelectionMode && t.type === 'exp') {
+                    leftIcon = `<div class="bulk-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
+                } else {
+                    leftIcon = t.exec 
+                    ? `<span class="material-symbols-outlined text-base text-primary">check_circle</span>`
+                    : `<div class="size-4 rounded-full border-2 border-slate-200 group-hover:border-primary transition-colors"></div>`;
+                }
+
+                el.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden w-full">
+                        <div class="shrink-0 flex items-center justify-center size-6">${leftIcon}</div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-xs font-bold text-slate-800 truncate leading-tight">${t.desc} ${currBadge} ${linkText}</p>
+                                <p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ml-2">$${fmt(t.amount)}</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-1">
+                                <div class="flex gap-2">
+                                    <span class="text-[9px] text-slate-500 bg-slate-100 px-1.5 rounded">${t.cat || 'Gral'}</span>
+                                    <span class="text-[9px] text-slate-400 font-medium">${t.date.split('-')[2]}</span>
+                                </div>
+                                ${t.type=='exp'?`<span class="text-[9px] font-bold ${rb>=0?'text-emerald-600':'text-rose-600'} opacity-60">Q: $${fmt(rb)}</span>`:''}
+                            </div>
+                        </div>
+                    </div>`;
+                (t.type=='inc'?lI:lE).appendChild(el);
             });
-            const orphans = expTxs.filter(t=>!t.linkId).reduce((a,b)=>a+b.amount,0);
-            if(orphans>0) { lA.innerHTML+=`<div class="rounded-xl border-l-4 border-l-danger border border-slate-200 bg-white p-3 shadow-sm mb-2"><p class="text-[11px] font-bold text-slate-700">Sin Asignar</p><p class="text-[10px] font-extrabold text-danger">$${fmt(orphans)}</p></div>`; }
-        }
-
-        function calcConversion() { const a=parseFloat(document.getElementById('fAmt').value)||0, c=document.getElementById('fCurr').value, r=parseFloat(document.getElementById('rate_ARS').value)||1200; let f=a; if(c=='USD')f=a*r; if(c=='COP')f=(a/parseFloat(document.getElementById('rate_COP').value))*r; document.getElementById('convResult').innerText=`$${fmt(f)} ARS`; document.getElementById('convPreview').classList.toggle('hidden', c=='ARS'); return f; }
-        function renderChips(t){const c=document.getElementById('chipBox');c.innerHTML='';(t=='inc'?appData.cats.inc:appData.cats.exp).forEach(x=>{const d=document.createElement('div');d.className=`chip px-3 py-1 cursor-pointer ${document.getElementById('fCat').value==x?'active':''}`;d.innerText=x;d.onclick=()=>{document.getElementById('fCat').value=x;renderChips(t);renderConcepts(x)};c.appendChild(d)})}
-        function renderConcepts(k){const b=document.getElementById('conceptBox');b.innerHTML='';(appData.concepts[k]||[]).forEach(c=>{const e=document.createElement('div');e.className='cat-tag px-2 py-1 text-xs cursor-pointer';e.innerText=c;e.onclick=()=>{document.getElementById('fDesc').value=c};b.appendChild(e)})}
-        function renderLinkChips(id){const c=document.getElementById('linkChipsContainer');c.innerHTML='';const y=currentDate.getFullYear(),m=currentDate.getMonth()+1;appData.txs.filter(t=>!t.deletedAt&&t.type=='inc'&&parseInt(t.date.split('-')[1])==m).forEach(i=>{const bal=i.amount-appData.txs.filter(x=>!x.deletedAt&&x.type=='exp'&&x.linkId==i.id&&x.id!=editId).reduce((a,b)=>a+b.amount,0);if(bal<1&&i.id!=id)return;const d=document.createElement('div');d.className=`chip px-2 py-1 ${id==i.id?'active':''}`;d.innerHTML=`<b>${i.desc}</b> <span class="opacity-70">($${fmt(bal)})</span>`;d.onclick=()=>{document.getElementById('fLink').value=i.id;renderLinkChips(i.id)};c.appendChild(d)})}
-        
-        document.getElementById('txForm').onsubmit=e=>{
-            e.preventDefault();
-            const t=document.getElementById('fType').value;
-            const cat=document.getElementById('fCat').value;
-            if(t!=='transfer' && !cat) return alert('Categoría?');
-            pushHistory();
-            if(cat && t!=='transfer') { if(!appData.concepts[cat]) appData.concepts[cat]=[]; const d=document.getElementById('fDesc').value; if(!appData.concepts[cat].includes(d)) appData.concepts[cat].push(d); }
+            document.getElementById('c-inc').innerText = txs.filter(t=>t.type=='inc').length;
+            document.getElementById('c-exp').innerText = txs.filter(t=>t.type=='exp').length;
             
-            const tx={
-                id:editId||Date.now(), date:document.getElementById('fDate').value,
-                amount:calcConversion(), origAmt:parseFloat(document.getElementById('fAmt').value), origCurr:document.getElementById('fCurr').value,
-                type:t, cat, desc:document.getElementById('fDesc').value, exec:document.getElementById('fExec').checked,
-                linkId:t=='exp'?document.getElementById('fLink').value:null, deletedAt:null,
-                fromAccountId: (t=='exp'||t=='transfer') ? document.getElementById('fFromAcc').value : null,
-                toAccountId: (t=='inc'||t=='transfer') ? document.getElementById('fToAcc').value : null
-            };
-            if(editId){const i=appData.txs.findIndex(x=>x.id==editId);appData.txs[i]=tx;}else appData.txs.push(tx);
-            saveData(); closeModal();
+            const searchTerm = document.getElementById('searchExpInput').value;
+            if(searchTerm) filterExpList();
+
+            const incs = txs.filter(t=>t.type=='inc');
+            incs.forEach(inc => {
+                const subs = txs.filter(t=>t.type=='exp' && t.linkId==inc.id);
+                const spent = subs.reduce((a,b)=>a+b.amount,0);
+                const rem = inc.amount - spent;
+                const remClass = rem >= 0 ? 'text-success' : 'text-danger';
+                const pct = Math.min(100, (spent/inc.amount)*100);
+                let barColor = pct > 90 ? 'bg-danger' : 'bg-primary';
+                
+                let rows = ''; 
+                if (subs.length > 0) {
+                    subs.forEach(s => {
+                        const day = s.date.split('-')[2];
+                        rows += `
+                        <div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})">
+                            <span class="truncate pr-2">${s.desc} <span class="text-slate-300 text-[9px] ml-1">d-${day}</span></span>
+                            <span class="font-bold shrink-0">$${fmt(s.amount)}</span>
+                        </div>`;
+                    });
+                } else {
+                    rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>';
+                }
+
+                const card = document.createElement('div');
+                card.innerHTML = `
+                <div class="rounded-xl border border-slate-200 bg-white mb-2 shadow-sm overflow-hidden group">
+                    <div class="p-3 bg-slate-50/50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors">
+                        <div onclick="this.closest('.rounded-xl').querySelector('.alloc-details').classList.toggle('hidden')" class="flex-1">
+                            <p class="text-[11px] font-bold text-slate-700">${inc.desc}</p>
+                            <p class="text-[10px] font-extrabold mt-0.5 ${remClass}">$${fmt(rem)}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[9px] font-bold text-slate-600">${Math.round(pct)}%</span>
+                            <button onclick="unassignGroup(${inc.id})" class="text-slate-300 hover:text-red-500 transition-colors" title="Desvincular gastos"><span class="material-symbols-outlined text-sm">link_off</span></button>
+                        </div>
+                    </div>
+                    <div class="w-full h-1 bg-slate-100"><div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%;"></div></div>
+                    <div class="alloc-details hidden bg-white py-1 border-t border-slate-100">${rows}</div>
+                </div>`;
+                lA.appendChild(card);
+            });
+
+            const orphans = txs.filter(t => t.type === 'exp' && !t.linkId);
+            if (orphans.length > 0) {
+                const totalOrphans = orphans.reduce((a,b) => a+b.amount, 0);
+                let orphanRows = '';
+                orphans.forEach(s => {
+                    const day = s.date.split('-')[2];
+                    orphanRows += `
+                    <div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})">
+                        <span class="truncate pr-2">${s.desc} <span class="text-slate-300 text-[9px] ml-1">d-${day}</span></span>
+                        <span class="font-bold shrink-0">$${fmt(s.amount)}</span>
+                    </div>`;
+                });
+
+                const orphanCard = document.createElement('div');
+                orphanCard.innerHTML = `
+                <div class="rounded-xl border border-l-4 border-l-danger border-slate-200 bg-white mb-2 shadow-sm overflow-hidden">
+                    <div class="p-3 cursor-pointer hover:bg-slate-50 transition-colors flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                         <p class="text-[11px] font-bold text-slate-700">Sin Asignar (${orphans.length})</p>
+                         <p class="text-[10px] font-extrabold text-danger">$${fmt(totalOrphans)}</p>
+                    </div>
+                    <div class="hidden bg-white py-1 border-t border-slate-100">${orphanRows}</div>
+                </div>`;
+                lA.appendChild(orphanCard);
+            } else if (incs.length === 0) {
+                lA.innerHTML = '<div class="text-center text-slate-400 text-xs py-8">Sin ingresos registrados</div>';
+            }
         }
 
-        function resetForm(){document.getElementById('txForm').reset();editId=null;document.getElementById('mTitle').innerText='Nuevo';document.getElementById('btnDel').classList.add('hidden');document.getElementById('fDate').value=new Date().toISOString().split('T')[0];document.getElementById('convPreview').classList.add('hidden');}
-        function delTx(){if(confirm('Eliminar?')){pushHistory();appData.txs.find(x=>x.id==editId).deletedAt=Date.now();saveData();closeModal();}}
-        function closeModal(){document.getElementById('modalOverlay').classList.add('hidden');}
-        
-        // --- CHARTS & HELPERS ---
-        function renderCharts(txs){
-             let cE=null, cI=null; 
-             const doCh=(id,d,k,pal)=>{const ctx=document.getElementById(id);if(ctx.chart)ctx.chart.destroy(); const map={}; d.forEach(t=>{const n=t[k]||'Gral';map[n]=(map[n]||0)+t.amount}); const vs=Object.entries(map).sort((a,b)=>b[1]-a[1]); ctx.chart=new Chart(ctx,{type:'doughnut',data:{labels:vs.map(x=>x[0]),datasets:[{data:vs.map(x=>x[1]),backgroundColor:pal,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});};
-             doCh('chartExp', txs.filter(t=>t.type=='exp'), 'cat', PALETTE);
-             doCh('chartInc', txs.filter(t=>t.type=='inc'), 'desc', PALETTE);
+        function updateKPIs(txs){ 
+            const tc=parseFloat(document.getElementById('rate_ARS').value)||1200; 
+            const i=txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0); 
+            const e=txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0); 
+            const bal = i-e;
+            document.getElementById('k-inc').innerText='$'+fmt(i); 
+            document.getElementById('k-exp').innerText='$'+fmt(e); 
+            const balEl = document.getElementById('k-bal');
+            balEl.innerText = '$'+fmt(bal);
+            balEl.className = `text-2xl font-black tracking-tight ${bal >= 0 ? 'text-emerald-700' : 'text-rose-700'}`;
+            document.getElementById('k-usd').innerText='USD '+fmt(bal/tc); 
         }
-        function resetCharts(){renderCharts(appData.txs.filter(t=>!t.deletedAt));} 
-        function updateKPIs(txs){const tc=parseFloat(document.getElementById('rate_ARS').value)||1200;const i=txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);const e=txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);document.getElementById('k-inc').innerText='$'+fmt(i);document.getElementById('k-exp').innerText='$'+fmt(e);const b=i-e;const be=document.getElementById('k-bal');be.innerText='$'+fmt(b);be.className=`text-2xl font-black tracking-tight ${b>=0?'text-emerald-700':'text-rose-700'}`;document.getElementById('k-usd').innerText='USD '+fmt(b/tc);}
-        function filterExpList(term){
-            const v=term||document.getElementById('searchExpInput').value.toLowerCase();
-            document.getElementById('searchExpInput').value = v;
-            const rows=document.querySelectorAll('#list-exp .compact-row');
-            rows.forEach(r=>{const t=r.innerText.toLowerCase();if((v=='sin asignar' && !r.innerHTML.includes('bg-slate-100')) || t.includes(v))r.classList.remove('hidden');else r.classList.add('hidden');});
-        }
-        function nav(v,el){document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view'));document.getElementById(`view-${v}`).classList.remove('hidden-view');document.querySelectorAll('#main-nav button').forEach(e=>e.classList.remove('active-nav'));if(el)el.classList.add('active-nav');}
-        
-        // --- Admin Functions ---
-        function manualAddCat(){const n=document.getElementById('newCatName').value;if(n){pushHistory();const t=document.getElementById('newCatType').value;if(t=='exp')appData.cats.exp.push(n);else appData.cats.inc.push(n);saveData();}}
-        function changeMonth(d){currentDate.setMonth(currentDate.getMonth()+d);updateDateUI();loadMonthData();}
-        function manualDate(){const [y,m]=document.getElementById('datePicker').value.split('-');currentDate.setFullYear(y);currentDate.setMonth(m-1);updateDateUI();loadMonthData();}
-        function updateDateUI(){document.getElementById('monthTxt').innerText=`${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`;document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`;}
-        function saveMonthlyRates() { const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; saveData(); }
-        
-        // --- Recurrentes/Auto/Clone (Previous Logic) ---
-        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-200 py-1 last:border-0'; d.innerHTML=`<input value="${r.desc}" onchange="pushHistory();appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded px-1 py-0.5"><input type="number" value="${r.amount}" onchange="pushHistory();appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded px-1 py-0.5 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="deleteRecurrente(${i})" class="text-red-400 hover:text-red-600 font-bold px-2">x</button>`; b.appendChild(d);}); }
-        function deleteRecurrente(i) { pushHistory(); appData.recurrentes.splice(i,1); saveData(); }
-        function addRecurrenteRow() { pushHistory(); appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
-        function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
-        function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS', fromAccountId:'acc_def'}); c++; }}); if(c>0){ pushHistory(); saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
-        function autoAssign() { if(!confirm("Asignar auto?")){return;} const y=currentDate.getFullYear(),m=currentDate.getMonth()+1; const txs=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m); let c=0; txs.filter(t=>t.type=='exp'&&!t.linkId).forEach(exp=>{ const inc=txs.find(i=>i.type=='inc' && i.date<=exp.date && (i.amount - txs.filter(e=>e.linkId==i.id).reduce((a,b)=>a+b.amount,0))>=exp.amount); if(inc){exp.linkId=inc.id;c++;}}); alert(c>0?`Asignados: ${c}`:'Nada nuevo'); saveData(); }
-        function unassignAll(){ if(confirm("Reset asignaciones mes?")){ pushHistory(); const y=currentDate.getFullYear(),m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(!t.deletedAt && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m && t.type=='exp') t.linkId=null;}); saveData(); }}
+
         function renderAdminTree() {
             const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
             const buildBranch = (title, type) => {
                 const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
-                let html = `<div class="mb-1"><h4 class="font-bold text-[10px] text-slate-500 uppercase">${title}</h4><div class="space-y-1">`;
+                const icon = type === 'inc' ? 'trending_up' : 'trending_down';
+                const color = type === 'inc' ? 'text-success' : 'text-danger';
+                let html = `
+                <div class="mb-1">
+                    <div class="flex items-center gap-2 mb-1 px-1 mt-1">
+                        <span class="material-symbols-outlined text-sm ${color}">${icon}</span>
+                        <h4 class="font-bold text-[10px] text-slate-500 uppercase tracking-wide">${title}</h4>
+                    </div>
+                    <div class="space-y-1">`;
                 cats.forEach(c => {
                     const concepts = appData.concepts[c] || [];
-                    html += `<details class="group bg-slate-50 rounded-lg border border-slate-100"><summary class="flex justify-between p-1.5 cursor-pointer hover:bg-slate-100"><span class="text-[11px] font-bold text-slate-700">${c}</span><span class="text-[9px] text-slate-400">${concepts.length}</span></summary><div class="p-1.5 pt-0 border-t border-slate-100 bg-white"><div class="flex flex-wrap gap-1 mb-1 mt-1">${concepts.map(con=>`<div class="cat-tag">${con}</div>`).join('')}</div></div></details>`;
+                    html += `
+                    <details class="group bg-slate-50 rounded-lg border border-slate-100 overflow-hidden open:bg-white open:shadow-sm transition-all">
+                        <summary class="flex justify-between items-center p-1.5 cursor-pointer hover:bg-slate-100 transition-colors">
+                            <div class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-slate-400 text-base group-open:text-primary transition-colors">folder</span>
+                                <span class="text-[11px] font-bold text-slate-700">${c}</span>
+                                <span class="text-[9px] text-slate-400 bg-white px-1.5 rounded-full border border-slate-100">${concepts.length}</span>
+                            </div>
+                            <button onclick="delCat('${type}','${c}')" class="text-slate-300 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button>
+                        </summary>
+                        <div class="p-1.5 pt-0 border-t border-slate-100 bg-white">
+                            <div class="flex flex-wrap gap-1 mb-1 mt-1">
+                                ${concepts.map(con => `
+                                    <div class="cat-tag flex items-center gap-1 group/tag">
+                                        ${con}
+                                        <button onclick="delConcept('${c}','${con}')" class="text-slate-300 hover:text-red-500 hidden group-hover/tag:block"><span class="material-symbols-outlined text-[10px] font-bold">close</span></button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="flex gap-1">
+                                <input type="text" id="newCon_${c}" placeholder="+ Subcat" class="w-full text-[10px] border-none bg-slate-50 rounded px-2 py-0.5 focus:ring-1 focus:ring-primary">
+                                <button onclick="manualAddConcept('${c}')" class="text-primary hover:bg-primary/10 rounded px-1"><span class="material-symbols-outlined text-sm">add</span></button>
+                            </div>
+                        </div>
+                    </details>`;
                 });
                 html += `</div></div>`;
                 container.innerHTML += html;
@@ -847,20 +1038,217 @@
             buildBranch("Gastos", "exp");
             buildBranch("Ingresos", "inc");
         }
-        function populateRecurringDefaults(){
-            if(!confirm("Sugerir recurrentes?")){return;}
-            const limit = new Date(); limit.setDate(limit.getDate()-90);
-            const rec = appData.txs.filter(t=>!t.deletedAt && t.type=='exp' && new Date(t.date)>=limit);
-            const map = {}; rec.forEach(t=>{const d=t.desc.trim(); if(!map[d])map[d]={c:0,a:t.amount,cat:t.cat}; map[d].c++;});
-            let c=0;
-            Object.entries(map).forEach(([d,v])=>{
-                if(v.c>=3 && !appData.recurrentes.some(r=>r.desc==d)){
-                    appData.recurrentes.push({desc:d, amount:v.a, cat:v.cat, type:'exp'});
-                    c++;
+
+        function openModal(){ editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); }
+        function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
+        
+        function setType(t){
+            document.getElementById('fType').value=t;
+            const btnExp = document.getElementById('btnExp'); const btnInc = document.getElementById('btnInc');
+            if(t === 'exp') {
+                btnExp.className = "flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-danger border border-slate-100";
+                btnInc.className = "flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
+                document.getElementById('linkRow').classList.remove('hidden');
+                renderChips('exp'); renderLinkChips();
+                document.getElementById('lblDesc').innerText = "Concepto"; 
+            } else {
+                btnInc.className = "flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-white text-success border border-slate-100";
+                btnExp.className = "flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-600";
+                document.getElementById('linkRow').classList.add('hidden');
+                renderChips('inc'); 
+                document.getElementById('lblDesc').innerText = "Detalle";
+            }
+            document.getElementById('fCat').value = ''; document.getElementById('conceptBox').innerHTML = '';
+        }
+
+        function renderChips(type) {
+            const container = document.getElementById('chipBox'); container.innerHTML = '';
+            const cats = type === 'inc' ? (appData.cats.inc || []) : (appData.cats.exp || []);
+            cats.forEach(c => {
+                const chip = document.createElement('div');
+                chip.className = `chip px-3 py-1 cursor-pointer select-none ${document.getElementById('fCat').value === c ? 'active' : ''}`;
+                chip.innerText = c;
+                chip.onclick = () => {
+                    document.getElementById('fCat').value = c;
+                    document.querySelectorAll('#chipBox .chip').forEach(x => x.classList.remove('active'));
+                    chip.classList.add('active');
+                    renderConcepts(c);
+                };
+                container.appendChild(chip);
+            });
+        }
+        function renderConcepts(catKey) {
+            const box = document.getElementById('conceptBox'); box.innerHTML = '';
+            const list = appData.concepts[catKey] || [];
+            list.forEach(c => {
+                const el = document.createElement('div'); el.className = 'cat-tag px-2 py-1 text-xs cursor-pointer'; el.innerText = c;
+                el.onclick = () => { document.getElementById('fDesc').value = c; };
+                box.appendChild(el);
+            });
+        }
+        function renderLinkChips(selectedId){const container = document.getElementById('linkChipsContainer'); container.innerHTML = '';const y=currentDate.getFullYear(), m=currentDate.getMonth()+1;const incs = appData.txs.filter(t=>!t.deletedAt && t.type=='inc' && parseInt(t.date.split('-')[1])==m);if(incs.length === 0) { container.innerHTML = '<span class="text-[10px] text-slate-400 italic">No hay ingresos este mes</span>'; return; }incs.forEach(i => {const sp=appData.txs.filter(x=>!x.deletedAt && x.type=='exp' && x.linkId==i.id && x.id!=editId).reduce((a,b)=>a+b.amount,0);const bal = i.amount - sp;if(bal < 1 && i.id != selectedId) return; const chip = document.createElement('div');chip.className = `chip px-2 py-1 rounded cursor-pointer select-none text-[10px] ${selectedId == i.id ? 'active' : ''}`;chip.innerHTML = `<b>${i.desc}</b> <span class="opacity-70">($${fmt(bal)})</span>`;chip.onclick = () => {document.getElementById('fLink').value = i.id;document.querySelectorAll('#linkChipsContainer .chip').forEach(x => x.classList.remove('active'));chip.classList.add('active');};container.appendChild(chip);});}
+
+        function calcConversion() {
+            const amt = parseFloat(document.getElementById('fAmt').value) || 0;
+            const curr = document.getElementById('fCurr').value;
+            const rateARS = parseFloat(document.getElementById('rate_ARS').value) || 1200;
+            let final = amt;
+            if (curr === 'USD') final = amt * rateARS;
+            if (curr === 'COP') final = (amt / parseFloat(document.getElementById('rate_COP').value)) * rateARS;
+            document.getElementById('convResult').innerText = `$${fmt(final)} ARS`;
+            document.getElementById('convPreview').classList.toggle('hidden', curr === 'ARS');
+            return final;
+        }
+
+        document.getElementById('txForm').onsubmit=e=>{
+            e.preventDefault();
+            let cat=document.getElementById('fCat').value;
+            const type = document.getElementById('fType').value;
+            if(!cat) return alert('Selecciona categoría');
+            const desc=document.getElementById('fDesc').value;
+            pushHistory();
+            if(cat) { if(!appData.concepts[cat]) appData.concepts[cat] = []; if(!appData.concepts[cat].includes(desc)) appData.concepts[cat].push(desc); }
+            const tx={
+                id:editId||Date.now(), date:document.getElementById('fDate').value,
+                amount: calcConversion(), 
+                origAmt: parseFloat(document.getElementById('fAmt').value), 
+                origCurr: document.getElementById('fCurr').value,
+                type, cat, desc, 
+                exec:document.getElementById('fExec').checked,
+                linkId:type=='exp'?document.getElementById('fLink').value:null, deletedAt:null
+            };
+            if(editId){ const i=appData.txs.findIndex(x=>x.id==editId); appData.txs[i]=tx; } else appData.txs.push(tx);
+            saveData(); closeModal();
+        }
+
+        function editTx(id){const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');document.getElementById('fDate').value=t.date; document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;document.getElementById('fAmt').value = t.origAmt || t.amount; document.getElementById('fCurr').value = t.origCurr || 'ARS';setType(t.type); setTimeout(() => {document.getElementById('fCat').value = t.cat;renderChips(t.type); if(t.type === 'exp') { document.getElementById('fLink').value = t.linkId || ""; renderLinkChips(t.linkId);}renderConcepts(t.cat);}, 50);calcConversion();document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');}
+        function resetForm(){ document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null; }
+        function delTx(){ if(confirm('Eliminar?')){ pushHistory(); appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
+        
+        function renderCharts(txs) {
+            renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), txs.filter(t=>t.type=='exp'), 'cat', true, cExp, i=>cExp=i);
+            renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), txs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
+        }
+
+        function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
+            if(inst) inst.destroy();
+            let map={}; if(drill && drillCat) { document.getElementById('resetBtn').classList.remove('hidden'); data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount); } else { if(drill) document.getElementById('resetBtn').classList.add('hidden'); data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; }); }
+            const ent = Object.entries(map).sort((a,b)=>b[1]-a[1]); const tot = ent.reduce((a,b)=>a+b[1],0);
+            setInst(new Chart(cvs, { type:'doughnut', data:{ labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:2}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{display:false}}, onClick:(e,el)=>{if(drill&&!drillCat&&el.length){drillCat=ent[el[0].index][0]; loadMonthData();}} } }));
+            leg.innerHTML = ''; ent.forEach((e,i) => { const pct = Math.round((e[1]/tot)*100); leg.innerHTML += `<div class="flex items-center justify-between text-[10px] py-1.5 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}"><div class="flex items-center gap-1.5 min-w-0"><span class="size-2 rounded-full shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span><span class="text-slate-600 font-medium truncate">${e[0]}</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-slate-400">${pct}%</span><span class="font-bold text-slate-800">$${fmt(e[1])}</span></div></div>`; });
+        }
+
+        function resetCharts() { drillCat=null; loadMonthData(); }
+        function manualAddCat() { const n = document.getElementById('newCatName').value.trim(); const t = document.getElementById('newCatType').value; if(!n) return alert('Nombre?'); pushHistory(); if(t === 'exp') { if(!appData.cats.exp.includes(n)) appData.cats.exp.push(n); } else { if(!appData.cats.inc.includes(n)) appData.cats.inc.push(n); } if(!appData.concepts[n]) appData.concepts[n] = []; document.getElementById('newCatName').value = ''; saveData(); }
+        function manualAddConcept(catName) { const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim(); if(!val) return; pushHistory(); if(!appData.concepts[catName]) appData.concepts[catName] = []; if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val); saveData(); }
+        function delCat(type, name) { if(confirm(`¿Eliminar ${name}?`)) { pushHistory(); if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name); delete appData.concepts[name]; saveData(); } }
+        function delConcept(cat, name) { if(confirm(`¿Eliminar ${name}?`)) { pushHistory(); appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); } }
+        function changeMonth(d){ currentDate.setMonth(currentDate.getMonth()+d); updateDateUI(); loadMonthData(); }
+        function manualDate(){ const[y,m]=document.getElementById('datePicker').value.split('-'); currentDate.setFullYear(y); currentDate.setMonth(m-1); updateDateUI(); loadMonthData(); }
+        function updateDateUI(){ document.getElementById('monthTxt').innerText=`${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`; document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`; }
+        function saveMonthlyRates() { const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; saveData(); }
+        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-200 py-1 last:border-0'; d.innerHTML=`<input value="${r.desc}" onchange="pushHistory();appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded px-1 py-0.5"><input type="number" value="${r.amount}" onchange="pushHistory();appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded px-1 py-0.5 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="deleteRecurrente(${i})" class="text-red-400 hover:text-red-600 font-bold px-2">x</button>`; b.appendChild(d);}); }
+        function deleteRecurrente(i) { pushHistory(); appData.recurrentes.splice(i,1); saveData(); }
+        function addRecurrenteRow() { pushHistory(); appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
+        function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
+        function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS'}); c++; }}); if(c>0){ pushHistory(); saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
+        function clearMonth(){ if(confirm('Borrar MES actual?')){ pushHistory(); const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
+        function cloneMonth() { const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); pushHistory(); appData.txs.push(...n); saveData(); }
+        function autoAssign() {
+            if(!confirm("¿Asignar automáticamente según fecha y saldo disponible?")) return;
+            const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
+            const currentMonthTxs = appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
+            let incomes = currentMonthTxs.filter(t => t.type === 'inc').map(i => {
+                const assigned = currentMonthTxs.filter(e => e.type === 'exp' && e.linkId == i.id).reduce((a,b)=>a+b.amount,0);
+                return { ...i, balance: i.amount - assigned };
+            });
+            const unassignedExps = currentMonthTxs.filter(t => t.type === 'exp' && !t.linkId);
+            let count = 0; let changesMade = false;
+            unassignedExps.forEach(exp => {
+                const validIncome = incomes.find(inc => inc.date <= exp.date && inc.balance >= exp.amount);
+                if(validIncome) {
+                    if(!changesMade) { pushHistory(); changesMade = true; }
+                    exp.linkId = validIncome.id;
+                    validIncome.balance -= exp.amount; 
+                    count++;
                 }
             });
-            alert(c>0?`Sugeridos: ${c}`:'No se encontraron patrones');
+            if(count > 0) { alert(`Asignados: ${count} gastos.`); saveData(); } else { alert("No se encontraron coincidencias válidas."); }
+        }
+        function unassignAll() {
+            if(!confirm("¿Desvincular TODOS los gastos de este mes?")) return;
+            pushHistory(); const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
+            appData.txs.forEach(t => { if(!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m && t.type === 'exp') { t.linkId = null; }});
+            saveData();
+        }
+        function unassignGroup(incId) {
+            if(!confirm("¿Desvincular gastos de este ingreso?")) return;
+            pushHistory(); appData.txs.forEach(t => { if(t.type === 'exp' && t.linkId == incId) t.linkId = null; });
+            saveData();
+        }
+        function populateRecurringDefaults() {
+            if(!confirm("¿Analizar historial (3 meses) y sugerir?")) return;
+            const limitDate = new Date(); limitDate.setDate(limitDate.getDate() - 90);
+            const recent = appData.txs.filter(t => !t.deletedAt && t.type === 'exp' && new Date(t.date) >= limitDate);
+            const analysis = {};
+            recent.forEach(t => { const d = t.desc.trim(); if(!analysis[d]) analysis[d] = { count: 0, lastAmt: 0, cat: t.cat, dates: new Set() }; analysis[d].count++; analysis[d].lastAmt = t.origAmt || t.amount; analysis[d].cat = t.cat; analysis[d].dates.add(t.date.substring(0, 7)); });
+            let added = 0; let changesMade = false;
+            Object.entries(analysis).forEach(([desc, data]) => {
+                if((data.dates.size >= 2 || data.count >= 2) && !appData.recurrentes.some(r => r.desc.toLowerCase() === desc.toLowerCase())) {
+                    if(!changesMade) { pushHistory(); changesMade = true; }
+                    appData.recurrentes.push({ desc: desc, amount: data.lastAmt, cat: data.cat, type: 'exp' });
+                    added++;
+                }
+            });
+            if(added === 0) alert("No se encontraron nuevos patrones."); else alert(`Agregadas ${added} sugerencias.`);
             renderRecurrentesAdmin(); saveData();
+        }
+        function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } }
+        function filterExpList(filterTerm) {
+            // Support programmatic filtering via parameter or UI input
+            if(filterTerm) document.getElementById('searchExpInput').value = filterTerm;
+            
+            const term = document.getElementById('searchExpInput').value.toLowerCase();
+            const container = document.getElementById('list-exp');
+            const rows = container.getElementsByClassName('compact-row');
+            
+            Array.from(rows).forEach(row => {
+                // If special term "sin asignar" is used, custom logic
+                if (term === 'sin asignar') {
+                     // Check based on link icon presence (hacky but effective without re-rendering) 
+                     // OR re-check the data. Let's rely on data-attribute or content.
+                     // Better: check if row has the "link" icon.
+                     const hasLink = row.innerHTML.includes('link_off') || !row.innerHTML.includes('link'); // Simplified heuristic
+                     // Actually, easiest is to check text content for "link" if we rendered it.
+                     // Since we don't have easy DOM access to data, let's rely on text search mostly,
+                     // BUT for 'sin asignar' specifically, the CTA sets the input.
+                     // Let's refine: The prompt asked for CTA action.
+                     // The CTA sets input to 'sin asignar'.
+                     // This simple filter just text-matches "sin asignar" against the row text? No.
+                     // Let's fix this function to be smarter.
+                }
+
+                const text = row.innerText.toLowerCase();
+                
+                // Enhanced Logic for "Sin Asignar" special filter
+                if (term === 'sin asignar') {
+                     // Look for rows that are expenses but DON'T have the link badge
+                     // In renderLists, linked expenses have a link badge.
+                     // Unlinked expenses do NOT have the link badge.
+                     const isLinked = row.querySelector('.material-symbols-outlined') && row.innerHTML.includes('link');
+                     // Note: The row status icon is also material-symbol (check_circle). 
+                     // The link badge has specific class bg-slate-100.
+                     const hasLinkBadge = row.innerHTML.includes('bg-slate-100 text-slate-500');
+                     if (!hasLinkBadge) {
+                         row.classList.remove('hidden'); row.classList.add('flex');
+                     } else {
+                         row.classList.add('hidden'); row.classList.remove('flex');
+                     }
+                } else {
+                    // Standard text search
+                    if(text.includes(term)) { row.classList.remove('hidden'); row.classList.add('flex'); } else { row.classList.add('hidden'); row.classList.remove('flex'); }
+                }
+            });
         }
     </script>
 </body>
