@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | V6 Split</title>
+    <title>Finanzas J&M | V7 Full</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -50,24 +50,25 @@
         
         .tc-input { -moz-appearance: textfield; background: transparent; border: none; padding: 0 4px; margin: 0; font-weight: 700; color: #334155; text-align: right; width: 90px; font-size: 12px; height: 100%; }
         .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
-        .tc-input:disabled { color: #94a3b8; cursor: not-allowed; }
         
         .custom-chk { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:0.2s; cursor: pointer; }
         .custom-chk:hover { border-color: #0e757c; }
         .custom-chk.checked { background: #0e757c; border-color: #0e757c; }
-        .custom-chk i { color:white; font-size:10px; display:none; }
         .custom-chk.checked i { display:block; }
+        .custom-chk i { color:white; font-size:10px; display:none; }
+        
+        /* Ejecutado (Verde, solo borde) */
         .custom-chk.exec { border-color: #15803d; background: transparent; }
         .custom-chk.exec i { display:block; color: #15803d; font-weight: 900; }
 
-        .alert-card { transition: all 0.2s; }
-        .alert-card:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
-        /* Split Styles */
+        /* Split & Bulk */
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         .split-row { border-left: 2px solid #e2e8f0; margin-left: 28px; padding-left: 8px; }
         .split-input-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr auto; gap: 4px; align-items: center; margin-bottom: 4px; }
+        
+        #bulkBar { transition: transform 0.3s ease-out; transform: translate(-50%, 100px); }
+        #bulkBar.show { transform: translate(-50%, 0); display: flex; }
     </style>
 </head>
 
@@ -218,15 +219,21 @@
                 </section>
             </div>
 
-            <div id="bulkBar" class="hidden absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-full shadow-xl flex items-center gap-4 z-50 animate-fade-in">
-                <span class="text-xs font-bold" id="bulkCount">0 seleccionados</span>
-                <div class="h-4 w-px bg-slate-700"></div>
-                <button onclick="openBulkModal()" class="text-xs font-bold hover:text-primary-300 transition-colors flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm">edit_square</span> Acciones
-                </button>
-                <button onclick="toggleSelectionMode()" class="text-xs text-slate-400 hover:text-white transition-colors">
-                    <span class="material-symbols-outlined text-sm">close</span>
-                </button>
+            <div id="bulkBar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-6 z-50 animate-fade-in">
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold" id="bulkCount">0 seleccionados</span>
+                    <button onclick="selectAllVisible()" class="text-[10px] text-slate-400 hover:text-white underline text-left">Seleccionar todos</button>
+                </div>
+                <div class="h-8 w-px bg-slate-700"></div>
+                <div class="flex items-center gap-3">
+                    <button onclick="openBulkModal()" class="flex items-center gap-1 text-xs font-bold bg-primary/20 hover:bg-primary/40 px-3 py-1.5 rounded-lg transition-all">
+                        <span class="material-symbols-outlined text-sm">edit_square</span> Acciones
+                    </button>
+                    <button onclick="bulkDelete()" class="flex items-center gap-1 text-xs font-bold bg-red-500/20 hover:bg-red-500/40 text-red-300 px-3 py-1.5 rounded-lg transition-all">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                </div>
+                <button onclick="toggleSelectionMode()" class="text-slate-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
             </div>
         </div>
 
@@ -324,8 +331,7 @@
                                 <span class="text-[9px] text-slate-500">Resultado</span>
                                 <span class="text-xs font-bold text-slate-700" id="monthCloseBalance">...</span>
                              </div>
-                             <div id="monthActionContainer">
-                                 </div>
+                             <div id="monthActionContainer"></div>
                         </div>
                     </div>
                 </div>
@@ -337,17 +343,15 @@
         <span class="material-symbols-outlined text-2xl">add</span>
     </button>
 
-    <div id="modalOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
-        <div class="relative z-10 w-full max-w-[380px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in mx-4 max-h-[90vh]">
-            <div class="flex items-center justify-between px-5 pt-5 pb-2 shrink-0">
+    <div id="modalOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-[380px] max-h-[90vh] overflow-hidden flex flex-col mx-4 animate-fade-in">
+            <div class="p-5 flex justify-between items-center border-b pb-2">
                 <h1 class="text-lg font-bold text-slate-800" id="mTitle">Nuevo</h1>
                 <button onclick="closeModal()" class="size-7 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 transition-colors">
                     <span class="material-symbols-outlined text-base">close</span>
                 </button>
             </div>
-            
-            <form id="txForm" class="p-5 overflow-y-auto custom-scrollbar flex-1">
+            <form id="txForm" class="p-5 overflow-y-auto custom-scrollbar">
                 <div class="grid grid-cols-3 p-1 bg-slate-100 rounded-xl mb-4 gap-1">
                     <button type="button" id="btnExp" onclick="setType('exp')" class="flex items-center justify-center gap-1 py-2 rounded-lg text-[10px] font-bold transition-all shadow-sm bg-white text-danger border border-slate-100">Gasto</button>
                     <button type="button" id="btnInc" onclick="setType('inc')" class="flex items-center justify-center gap-1 py-2 rounded-lg text-[10px] font-bold transition-all text-slate-400 hover:text-slate-600">Ingreso</button>
@@ -362,9 +366,7 @@
                     </div>
                     <div class="w-20">
                         <select id="fCurr" onchange="calcConversion()" class="w-full h-full bg-slate-100 border-transparent rounded-xl text-[11px] font-bold focus:border-primary focus:ring-0 text-center pl-1 pr-6">
-                            <option value="ARS">ARS</option>
-                            <option value="USD">USD</option>
-                            <option value="COP">COP</option>
+                            <option value="ARS">ARS</option><option value="USD">USD</option><option value="COP">COP</option>
                         </select>
                     </div>
                 </div>
@@ -388,15 +390,10 @@
                 </div>
 
                 <div class="mb-3 hidden" id="divSplitToggle">
-                     <label class="flex items-center cursor-pointer mb-2">
-                        <div class="relative">
-                          <input type="checkbox" id="fIsSplit" class="sr-only" onchange="toggleSplitUI()">
-                          <div class="w-10 h-6 bg-slate-200 rounded-full shadow-inner transition-colors toggle-bg"></div>
-                          <div class="dot absolute w-4 h-4 bg-white rounded-full shadow left-1 top-1 transition-transform toggle-dot"></div>
-                        </div>
-                        <div class="ml-3 text-[10px] font-bold text-slate-500 uppercase">Dividir en Categorías</div>
-                      </label>
-                      <style>.toggle-bg { transition: background-color 0.2s; } input:checked ~ .toggle-bg { background-color: #0e757c; } input:checked ~ .dot { transform: translateX(100%); }</style>
+                     <label class="flex items-center gap-2 cursor-pointer mb-2 bg-slate-50 p-2 rounded-lg">
+                        <input type="checkbox" id="fIsSplit" onchange="toggleSplitUI()" class="rounded text-primary focus:ring-primary border-slate-300">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase">Dividir en categorías (Split)</span>
+                     </label>
                 </div>
 
                 <div id="normalTxFields">
@@ -405,7 +402,6 @@
                         <div class="flex flex-wrap gap-1.5" id="chipBox"></div>
                         <input type="hidden" id="fCat">
                     </div>
-
                     <div class="mb-3">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1" id="lblDesc">Concepto</label>
                         <div class="flex flex-wrap gap-1.5 mb-2" id="conceptBox"></div>
@@ -413,8 +409,8 @@
                     </div>
                 </div>
 
-                <div id="splitContainer" class="hidden mb-4 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                    <div id="splitRows"></div>
+                <div id="splitContainer" class="hidden mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div id="splitRows" class="space-y-2"></div>
                     <button type="button" onclick="addSplitRow()" class="mt-2 w-full py-2 border border-dashed border-primary/30 text-primary text-[10px] font-bold rounded-lg hover:bg-primary/5">+ Agregar Item</button>
                     <div class="flex justify-between mt-2 text-[10px] font-bold px-1">
                         <span class="text-slate-500">Diferencia:</span>
@@ -444,8 +440,7 @@
         </div>
     </div>
 
-    <div id="accModal" class="fixed inset-0 z-[65] hidden flex items-center justify-center">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeAccountModal()"></div>
+    <div id="accModal" class="fixed inset-0 z-[65] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
         <div class="relative z-10 w-full max-w-[320px] bg-white rounded-2xl shadow-2xl p-5 animate-fade-in mx-4">
             <h3 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Gestionar Cuenta</h3>
             <form id="accForm" onsubmit="saveAccount(event)">
@@ -484,50 +479,34 @@
         </div>
     </div>
 
-    <div id="bulkModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeBulkModal()"></div>
-        <div class="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl p-4 animate-fade-in mx-4">
-            <h3 class="text-sm font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2">Acciones Masivas</h3>
-            <div id="bulkMainOptions" class="grid grid-cols-1 gap-2">
-                <button onclick="showBulkSubOption('category')" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group">
-                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Cambiar Categoría</span>
-                    <span class="material-symbols-outlined text-base text-slate-400">category</span>
-                </button>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="bulkSetExec(true)" class="p-2 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 text-xs font-bold text-slate-600">Marcar Ejecutado</button>
-                    <button onclick="bulkSetExec(false)" class="p-2 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 text-xs font-bold text-slate-600">Marcar Pendiente</button>
+    <div id="bulkModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-[320px] shadow-2xl mx-4">
+            <h3 class="text-sm font-bold text-slate-800 mb-4 border-b pb-2">Acciones Masivas</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Cambiar Categoría</label>
+                    <select id="bulkCatSelect" class="w-full mt-1 border-slate-200 rounded-lg text-xs"></select>
                 </div>
-                <button onclick="showBulkSubOption('link')" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group">
-                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Asignar a Ingreso</span>
-                    <span class="material-symbols-outlined text-base text-slate-400">link</span>
-                </button>
-                <button onclick="bulkUnassignIncome()" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group">
-                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Desvincular</span>
-                    <span class="material-symbols-outlined text-base text-slate-400">link_off</span>
-                </button>
-                <button onclick="bulkDelete()" class="p-3 text-left rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 flex items-center justify-between group">
-                    <span class="text-xs font-bold text-red-600">Eliminar Seleccionados</span>
-                    <span class="material-symbols-outlined text-base text-red-400">delete</span>
-                </button>
-            </div>
-            <div id="bulkSubCategory" class="hidden">
-                <button onclick="resetBulkView()" class="mb-2 text-[10px] text-slate-400 hover:text-primary font-bold flex items-center"><span class="material-symbols-outlined text-sm">arrow_back</span> Volver</button>
-                <div class="mb-2"><input type="text" id="bulkCatSearch" placeholder="Buscar categoría..." class="w-full text-xs border border-slate-200 rounded p-2"></div>
-                <div id="bulkCatList" class="max-h-[200px] overflow-y-auto custom-scrollbar flex flex-col gap-1"></div>
-            </div>
-            <div id="bulkSubLink" class="hidden">
-                <button onclick="resetBulkView()" class="mb-2 text-[10px] text-slate-400 hover:text-primary font-bold flex items-center"><span class="material-symbols-outlined text-sm">arrow_back</span> Volver</button>
-                 <div id="bulkLinkList" class="max-h-[200px] overflow-y-auto custom-scrollbar flex flex-col gap-1"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="bulkSetExec(true)" class="py-2 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border border-emerald-100 hover:bg-emerald-100">Marcar Pagado</button>
+                    <button onclick="bulkSetExec(false)" class="py-2 bg-slate-50 text-slate-600 text-[10px] font-bold rounded-lg border border-slate-100 hover:bg-slate-100">Marcar Pendiente</button>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Vincular a Ingreso</label>
+                    <select id="bulkLinkSelect" class="w-full mt-1 border-slate-200 rounded-lg text-xs"></select>
+                </div>
+                <button onclick="bulkApplyChanges()" class="w-full py-3 bg-primary text-white rounded-xl font-bold mt-4 shadow-md hover:bg-primary-dark">APLICAR CAMBIOS</button>
+                <button onclick="closeBulkModal()" class="w-full text-[10px] font-bold text-slate-400 py-2 hover:text-slate-600">CANCELAR</button>
             </div>
         </div>
     </div>
 
     <script>
+        // CONFIGURACIÓN Y DATOS
         const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec";
-        
         const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
-
+        
         const defaultData = { 
             txs: [], 
             cats: { 
@@ -553,155 +532,92 @@
             monthlySummary: {} 
         };
 
-        let appData = JSON.parse(JSON.stringify(defaultData)); 
+        let appData = JSON.parse(JSON.stringify(defaultData));
         let currentDate = new Date(); currentDate.setDate(1);
         let editId=null, editAccId=null, cExp=null, cInc=null, drillCat=null, cNWComp=null;
         
-        // --- HISTORY STATE ---
-        let historyStack = [];
-        let redoStack = [];
-        const MAX_HISTORY = 50;
-
-        // --- BULK SELECTION STATE ---
+        // ESTADO DE SELECCIÓN Y EDICIÓN
         let isSelectionMode = false;
         let selectedTxIds = new Set();
+        let historyStack = [];
         let netWorthChartInst = null;
-
+        
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-        window.onload = () => { initApp(); };
-        
+        window.onload = async () => {
+            loadLocal();
+            sanitizeData();
+            updateDateUI();
+            renderAdminTree();
+            await forceSync();
+            renderLists(getFilteredTxs());
+            renderNetWorthView();
+        };
+
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z' || e.key === 'Z'))) { e.preventDefault(); redo(); }
         });
 
-        async function initApp() {
-            loadLocal();
-            sanitizeData(); // REPARACIÓN DE DATOS
-            
-            // Migration check
-            if (appData.accounts && appData.accounts.length > 0) {
-                const defAcc = appData.accounts[0].id;
-                let migrated = false;
-                appData.txs.forEach(t => {
-                    if(t.type === 'exp' && !t.fromAccountId) { t.fromAccountId = defAcc; migrated = true; }
-                    if(t.type === 'inc' && !t.toAccountId) { t.toAccountId = defAcc; migrated = true; }
-                });
-                if(migrated) saveLocal();
-            }
-
-            updateDateUI(); 
-            renderAdminTree();
-            updateHistoryUI(); 
-            Chart.defaults.font.family = "'Manrope', sans-serif";
-            syncIndicator(true); 
-            await forceSync();
-            syncIndicator(false);
-            renderNetWorthView();
-        }
-
         function sanitizeData() {
-            if (!appData.cats || !appData.cats.exp) {
-                appData.cats = JSON.parse(JSON.stringify(defaultData.cats));
-            }
-            if (!appData.concepts) {
-                appData.concepts = JSON.parse(JSON.stringify(defaultData.concepts));
-            }
+            if (!appData.cats || !appData.cats.exp) appData.cats = JSON.parse(JSON.stringify(defaultData.cats));
+            if (!appData.concepts) appData.concepts = JSON.parse(JSON.stringify(defaultData.concepts));
             if (!appData.txs) appData.txs = [];
             if (!appData.closedMonths) appData.closedMonths = {};
-            if (!appData.monthlySummary) appData.monthlySummary = {};
         }
 
         // --- CORE UTILS ---
-        function getMonthKey(d) {
-            return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2,'0')}`;
+        function getFilteredTxs() {
+            const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
+            return appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
         }
-        function isMonthClosed(d = currentDate) {
-            return !!appData.closedMonths[getMonthKey(d)];
-        }
+        function getMonthKey(d) { return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2,'0')}`; }
+        function isMonthClosed(d = currentDate) { return !!appData.closedMonths[getMonthKey(d)]; }
 
-        // --- HISTORY LOGIC ---
+        // --- HISTORY ---
         function pushHistory() {
             historyStack.push(JSON.stringify(appData));
-            if(historyStack.length > MAX_HISTORY) historyStack.shift();
-            redoStack = []; 
-            updateHistoryUI();
+            if(historyStack.length > 20) historyStack.shift();
+            document.getElementById('btnUndo').classList.remove('btn-disabled');
         }
-
         function undo() {
             if(historyStack.length === 0) return;
-            redoStack.push(JSON.stringify(appData));
             appData = JSON.parse(historyStack.pop());
-            isSelectionMode = false; selectedTxIds.clear(); updateSelectionUI(); 
-            saveData(); updateHistoryUI(); renderNetWorthView();
+            saveData();
+            if(historyStack.length === 0) document.getElementById('btnUndo').classList.add('btn-disabled');
         }
 
-        function redo() {
-            if(redoStack.length === 0) return;
-            historyStack.push(JSON.stringify(appData));
-            appData = JSON.parse(redoStack.pop());
-            isSelectionMode = false; selectedTxIds.clear(); updateSelectionUI();
-            saveData(); updateHistoryUI(); renderNetWorthView();
-        }
-
-        function updateHistoryUI() {
-            const btnUndo = document.getElementById('btnUndo');
-            const btnRedo = document.getElementById('btnRedo');
-            if(historyStack.length > 0) btnUndo.classList.remove('btn-disabled'); else btnUndo.classList.add('btn-disabled');
-            if(redoStack.length > 0) btnRedo.classList.remove('btn-disabled'); else btnRedo.classList.add('btn-disabled');
-        }
-
+        // --- DATA SYNC ---
         function saveLocal() { localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData)); }
-        function loadLocal() {
-            const stored = localStorage.getItem('financeFlowData_Javi');
-            if(stored) { try { appData = JSON.parse(stored); } catch(e){ } }
-            loadMonthData();
-        }
-
+        function loadLocal() { const stored = localStorage.getItem('financeFlowData_Javi'); if(stored) appData = JSON.parse(stored); }
         async function forceSync() {
+            document.getElementById('syncIcon').classList.add('animate-spin');
             try { 
-                const r = await fetch(API_URL); 
-                const cloudData = await r.json(); 
-                if(cloudData) {
-                    appData.txs = cloudData.txs || [];
-                    appData.cats = cloudData.cats || defaultData.cats;
-                    appData.concepts = cloudData.concepts || defaultData.concepts; 
-                    appData.monthlyRates = cloudData.monthlyRates || {}; 
-                    appData.recurrentes = cloudData.recurrentes || [];
-                    appData.accounts = cloudData.accounts || defaultData.accounts;
-                    appData.closedMonths = cloudData.closedMonths || {};
-                    appData.monthlySummary = cloudData.monthlySummary || {};
-                    saveLocal();
-                    loadMonthData();
-                    renderNetWorthView();
-                }
+                const r = await fetch(API_URL); const cloudData = await r.json(); 
+                if(cloudData) { appData = cloudData; saveLocal(); loadMonthData(); }
             } catch(e) { console.log("Offline mode"); }
+            document.getElementById('syncIcon').classList.remove('animate-spin');
         }
-        
-        function syncIndicator(isLoading) {
-            const btn = document.getElementById('syncIcon');
-            if(btn) { if(isLoading) btn.classList.add('animate-spin'); else btn.classList.remove('animate-spin'); }
-        }
-        
         async function saveData() {
             saveLocal();
             try { await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) }); } catch(e){}
-            loadMonthData(); renderAdminTree(); renderNetWorthView();
+            loadMonthData(); renderNetWorthView();
         }
 
+        // --- MAIN RENDER LOOP ---
         function loadMonthData() {
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
             const key = getMonthKey(currentDate);
             const closed = isMonthClosed();
+            
             updateReadOnlyUI(closed);
 
             let rates = appData.monthlyRates[key] || { ARS: 1500, COP: 3700, USD: 1 };
             document.getElementById('rate_ARS').value = rates.ARS; 
             document.getElementById('rate_COP').value = rates.COP;
             
-            const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
+            const txs = getFilteredTxs();
             
+            // Recalc foreign currency if not exec
             txs.forEach(t => {
                 if (!t.exec && t.origCurr && t.origCurr !== 'ARS') {
                     if (t.origCurr === 'USD') t.amount = t.origAmt * rates.ARS;
@@ -712,15 +628,16 @@
             txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
             
             updateKPIs(txs);
-            const alerts = computeAlerts(txs);
-            renderAlerts(alerts);
-            renderLists(txs); renderCharts(txs); renderRecurrentesAdmin(); renderAdminTree();
+            renderLists(txs);
+            renderCharts(txs);
+            renderRecurrentesAdmin();
+            renderAdminTree();
 
-            const dashTxs = txs;
+            // Month Close Status
+            const dashTxs = txs.filter(t => t.type !== 'transfer');
             const i = dashTxs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
             const e = dashTxs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
             document.getElementById('monthCloseBalance').innerText = `$${fmt(i-e)}`;
-            
             const badge = document.getElementById('monthStatusBadge');
             const actionContainer = document.getElementById('monthActionContainer');
             
@@ -732,463 +649,113 @@
                 actionContainer.innerHTML = `<button onclick="closeMonth()" class="bg-primary text-white text-[10px] px-3 py-1.5 rounded shadow hover:bg-primary-dark font-bold">CERRAR MES</button>`;
             }
         }
-        
+
         function updateReadOnlyUI(closed) {
             document.getElementById('rate_ARS').disabled = closed;
             document.getElementById('rate_COP').disabled = closed;
             document.getElementById('lockIcon').classList.toggle('hidden', !closed);
             document.getElementById('monthTxt').classList.toggle('text-red-500', closed);
             
-            const newBtn = document.getElementById('newBtnContainer');
-            const fab = document.getElementById('fabNew');
-            const alloc = document.getElementById('allocControls');
-            const bulk = document.getElementById('bulkBar');
-            const selectMode = document.getElementById('btnSelectMode');
-            
-            if (closed) {
-                newBtn.classList.add('opacity-0', 'pointer-events-none');
-                fab.classList.add('hidden');
-                alloc.classList.add('opacity-50', 'pointer-events-none');
-                selectMode.classList.add('hidden');
-                if(!bulk.classList.contains('hidden')) toggleSelectionMode();
-            } else {
-                newBtn.classList.remove('opacity-0', 'pointer-events-none');
-                fab.classList.remove('hidden');
-                alloc.classList.remove('opacity-50', 'pointer-events-none');
-                selectMode.classList.remove('hidden');
-            }
-        }
-
-        // --- CLOSE MONTH LOGIC ---
-        function closeMonth() {
-            if(!confirm("¿Cerrar mes? Esto congelará todas las transacciones y tasas de cambio. No podrás editar nada hasta reabrirlo.")) return;
-            pushHistory();
-            const key = getMonthKey(currentDate);
-            const y = currentDate.getFullYear();
-            const m = currentDate.getMonth() + 1;
-            
-            appData.txs.forEach(t => {
-                if (!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m) {
-                    t.exec = true; 
-                    if(t.origCurr && t.origCurr !== 'ARS') {
-                        let rate = 1;
-                        const rArs = parseFloat(document.getElementById('rate_ARS').value);
-                        const rCop = parseFloat(document.getElementById('rate_COP').value);
-                        if(t.origCurr === 'USD') rate = rArs;
-                        else if(t.origCurr === 'COP') rate = rArs / rCop; 
-                    }
+            const els = ['newBtnContainer', 'fabNew', 'allocControls', 'btnSelectMode'];
+            els.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    if(closed) { el.classList.add('opacity-50', 'pointer-events-none'); if(id=='fabNew') el.classList.add('hidden'); }
+                    else { el.classList.remove('opacity-50', 'pointer-events-none'); if(id=='fabNew') el.classList.remove('hidden'); }
                 }
             });
-
-            saveMonthlyRates();
-
-            const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
-            const inc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
-            const exp = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
-            
-            appData.monthlySummary[key] = {
-                income: inc,
-                expense: exp,
-                balance: inc - exp,
-                usdEstimate: (inc - exp) / parseFloat(document.getElementById('rate_ARS').value),
-                closedAt: Date.now()
-            };
-            appData.closedMonths[key] = true;
-            saveData();
-            alert("Mes cerrado correctamente.");
+            if(closed && isSelectionMode) toggleSelectionMode();
         }
 
-        function reopenMonth() {
-            const pass = prompt("Para reabrir, escribe 'REABRIR':");
-            if(pass !== 'REABRIR') return alert("Incorrecto.");
-            pushHistory();
-            const key = getMonthKey(currentDate);
-            appData.closedMonths[key] = false;
-            saveData();
-        }
-
-        // --- ALERT SYSTEM LOGIC ---
-        function computeAlerts(txs) {
-            const alerts = [];
-            const y = currentDate.getFullYear();
-            const m = currentDate.getMonth(); 
-            const createdAlertIds = new Set(); 
-
-            // Flatten splits for alerts
-            const flatTxs = [];
-            txs.filter(t=>t.type==='exp').forEach(t => {
-                 if(t.children && t.children.length > 0) {
-                     t.children.forEach(c => flatTxs.push({cat: c.cat, amount: c.amount}));
-                 } else {
-                     flatTxs.push(t);
-                 }
-            });
-
-            const catMap = {};
-            flatTxs.forEach(t => { catMap[t.cat] = (catMap[t.cat] || 0) + t.amount; });
-            
-            Object.entries(catMap).forEach(([cat, amount]) => {
-                const avg = getPastAverage(cat, m, y);
-                if (avg > 0) {
-                    const diff = (amount - avg) / avg;
-                    if (diff >= 0.20) {
-                        const alertId = `trend-${cat}`;
-                        if (!createdAlertIds.has(alertId)) {
-                            alerts.push({
-                                id: alertId, type: 'trend', severity: diff > 0.5 ? 'danger' : 'warning', amount: amount,
-                                title: `Suba en ${cat}`,
-                                desc: `+${Math.round(diff * 100)}% vs prom. ($${fmt(avg)})`,
-                                ctaLabel: 'Ver', ctaAction: `filterExpList('${cat}')`
-                            });
-                            createdAlertIds.add(alertId);
-                        }
-                    }
-                }
-            });
-
-            const unassignedAmt = txs.filter(t => t.type === 'exp' && !t.linkId).reduce((a, b) => a + b.amount, 0);
-            if (unassignedAmt > 0) {
-                const alertId = 'unassigned';
-                if(!createdAlertIds.has(alertId)) {
-                    alerts.push({
-                        id: alertId, type: 'orphan', severity: unassignedAmt > 100000 ? 'danger' : 'warning', amount: unassignedAmt,
-                        title: 'Gastos sin asignar',
-                        desc: `$${fmt(unassignedAmt)} pendientes de vincular`,
-                        ctaLabel: 'Asignar', ctaAction: "document.getElementById('searchExpInput').value='sin asignar';filterExpList()"
-                    });
-                    createdAlertIds.add(alertId);
-                }
-            }
-            return alerts.sort((a, b) => {
-                const severityScore = { 'danger': 3, 'warning': 2, 'info': 1 };
-                const scoreDiff = severityScore[b.severity] - severityScore[a.severity];
-                if (scoreDiff !== 0) return scoreDiff;
-                return b.amount - a.amount;
-            }).slice(0, 8);
-        }
-
-        function getPastAverage(cat, currentMonthIdx, currentYear) {
-            let sum = 0; let count = 0;
-            for (let i = 1; i <= 3; i++) {
-                let targetM = currentMonthIdx - i; let targetY = currentYear;
-                if (targetM < 0) { targetM += 12; targetY--; }
-                // Here we stick to basic calculation, deep scanning splits in history is complex for this func size
-                // We use simplified parent cat check for past
-                const monthTxs = appData.txs.filter(t => !t.deletedAt && t.type === 'exp' && t.cat === cat && parseInt(t.date.split('-')[0]) === targetY && parseInt(t.date.split('-')[1]) === (targetM + 1));
-                if (monthTxs.length > 0) { sum += monthTxs.reduce((a, b) => a + b.amount, 0); count++; }
-            }
-            return count > 0 ? sum / 3 : 0;
-        }
-
-        function renderAlerts(alerts) {
-            const dashboardContainer = document.getElementById('dashboardAlerts');
-            const analyticsContainer = document.getElementById('analyticsAlerts');
-            const html = alerts.map(a => {
-                let colorClass = a.severity === 'danger' ? "border-l-red-500 bg-red-50 text-red-900" : "border-l-amber-500 bg-amber-50 text-amber-900";
-                return `<div class="alert-card border-l-4 rounded-r-lg p-3 shadow-sm flex items-start justify-between gap-3 ${colorClass}"><div><h4 class="text-xs font-bold">${a.title}</h4><p class="text-[10px] opacity-80">${a.desc}</p></div><button onclick="${a.ctaAction}" class="text-[10px] font-bold underline">Ver</button></div>`;
-            }).join('');
-            if(dashboardContainer) dashboardContainer.innerHTML = html;
-            if(analyticsContainer) analyticsContainer.innerHTML = html;
-        }
-
-        // --- NET WORTH LOGIC ---
-        function renderNetWorthView() {
-            const list = document.getElementById('list-accounts'); list.innerHTML = '';
-            const rateARS = parseFloat(document.getElementById('rate_ARS').value) || 1200;
-            const rateCOP = parseFloat(document.getElementById('rate_COP').value) || 3700;
-            const rates = { ARS: rateARS, COP: rateCOP, USD: 1 };
-
-            const balances = {}; 
-            appData.accounts.forEach(a => balances[a.id] = (a.initBal || 0));
-            const sortedTxs = appData.txs.filter(t => !t.deletedAt).sort((a,b) => a.date.localeCompare(b.date));
-            
-            sortedTxs.forEach(t => {
-                const getAmountForAccount = (accId, tx) => {
-                    const acc = appData.accounts.find(a => a.id === accId);
-                    if (!acc) return 0;
-                    if (acc.currency === 'USD') {
-                        if (tx.origCurr === 'USD') return (tx.origAmt || tx.amount);
-                        return tx.amount / rates.ARS; 
-                    }
-                    if (acc.currency === 'COP') {
-                        if (tx.origCurr === 'COP') return (tx.origAmt || tx.amount);
-                         return (tx.amount / rates.ARS) * rates.COP; 
-                    }
-                    return tx.amount; 
-                };
-
-                if(t.type === 'inc' && t.toAccountId) {
-                    balances[t.toAccountId] = (balances[t.toAccountId] || 0) + getAmountForAccount(t.toAccountId, t);
-                } else if(t.type === 'exp' && t.fromAccountId) {
-                    balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
-                } else if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
-                    balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
-                    if (t.destAmount) {
-                         balances[t.toAccountId] = (balances[t.toAccountId] || 0) + t.destAmount;
-                    } else {
-                        balances[t.toAccountId] = (balances[t.toAccountId] || 0) + getAmountForAccount(t.toAccountId, t);
-                    }
-                }
-            });
-
-            let totalAssets = 0, totalLiabs = 0;
-            appData.accounts.forEach(a => {
-                const bal = balances[a.id] || 0;
-                const balARS = convertValue(bal, a.currency, rates);
-                if (a.kind === 'asset') totalAssets += balARS; else totalLiabs += balARS;
-                
-                const el = document.createElement('div');
-                el.className = "flex items-center justify-between p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 group";
-                el.innerHTML = `
-                    <div class="flex items-center gap-3 cursor-pointer" onclick="editAccount('${a.id}')">
-                        <div class="size-8 rounded-full flex items-center justify-center ${a.kind==='asset'?'bg-emerald-100 text-emerald-600':'bg-rose-100 text-rose-600'}">
-                            <span class="material-symbols-outlined text-lg">${a.kind==='asset'?'account_balance':'credit_card'}</span>
-                        </div>
-                        <div>
-                            <p class="text-xs font-bold text-slate-700">${a.name}</p>
-                            <p class="text-[10px] text-slate-400">${a.currency}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs font-bold ${bal >= 0 ? 'text-slate-700' : 'text-red-500'}">${a.currency} ${fmt(bal)}</p>
-                        ${a.currency !== 'ARS' ? `<p class="text-[9px] text-slate-400">≈ $${fmt(balARS)}</p>` : ''}
-                    </div>`;
-                list.appendChild(el);
-            });
-
-            const nw = totalAssets + totalLiabs; 
-            document.getElementById('nw-total').innerText = `$${fmt(nw)}`;
-            document.getElementById('nw-usd').innerText = `USD ${fmt(nw / rateARS)}`;
-            document.getElementById('nw-assets').innerText = `$${fmt(totalAssets)}`; 
-            document.getElementById('nw-liabs').innerText = `$${fmt(totalLiabs)}`; 
-            renderNetWorthChart();
-            renderNetWorthComposition(balances, rates);
-        }
-
-        function convertValue(amt, curr, rates) {
-            if (curr === 'ARS') return amt;
-            if (curr === 'USD') return amt * rates.ARS;
-            if (curr === 'COP') return (amt / rates.COP) * rates.ARS;
-            return amt;
-        }
-
-        function renderNetWorthChart() {
-            const ctx = document.getElementById('chartNetWorth');
-            if(netWorthChartInst) netWorthChartInst.destroy();
-            const labels = []; const dataAssets = []; const dataLiabs = []; const dataNet = [];
-            let d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 11); 
-            
-            for(let i=0; i<12; i++) {
-                const y = d.getFullYear(), m = d.getMonth() + 1;
-                const key = `${y}-${m.toString().padStart(2,'0')}`;
-                labels.push(MONTHS[d.getMonth()]);
-                const monthRates = appData.monthlyRates[key] || { ARS: 1500, COP: 3700, USD: 1 };
-                const endOfMonth = new Date(y, m, 0); 
-                const subTxs = appData.txs.filter(t => !t.deletedAt && new Date(t.date) <= endOfMonth);
-                const tmpBal = {};
-                appData.accounts.forEach(a => tmpBal[a.id] = (a.initBal || 0));
-                
-                subTxs.forEach(t => {
-                   if(t.type === 'inc' && t.toAccountId) tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount);
-                   else if(t.type === 'exp' && t.fromAccountId) tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
-                   else if(t.type === 'transfer') {
-                       tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
-                       tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount); 
-                   }
-                });
-                let mAssets = 0, mLiabs = 0;
-                appData.accounts.forEach(a => {
-                    const val = convertValue(tmpBal[a.id], a.currency, monthRates);
-                    if(a.kind === 'asset') mAssets += val; else mLiabs += val;
-                });
-                dataAssets.push(mAssets); dataLiabs.push(mLiabs); dataNet.push(mAssets + mLiabs);
-                d.setMonth(d.getMonth() + 1);
-            }
-
-            netWorthChartInst = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Activos', data: dataAssets, backgroundColor: '#10b981', stack: 'Stack 0' },
-                        { label: 'Pasivos', data: dataLiabs, backgroundColor: '#ef4444', stack: 'Stack 0' },
-                        { type: 'line', label: 'Neto', data: dataNet, borderColor: '#0f172a', borderWidth: 2, tension: 0.3, pointRadius: 0 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: {boxWidth: 8, font:{size:9}} } }, scales: { x: { grid: {display: false} }, y: { ticks: { callback: (v) => '$' + (v/1000000).toFixed(1) + 'M', font:{size:9} } } } }
-            });
-        }
-        
-        function renderNetWorthComposition(balances, rates) {
-            const cvs = document.getElementById('chartNWComp');
-            if(cNWComp) cNWComp.destroy();
-            const data = []; const labels = [];
-            appData.accounts.filter(a => a.kind === 'asset').forEach(a => {
-                 const val = convertValue(balances[a.id] || 0, a.currency, rates);
-                 if(val > 0) { labels.push(a.name); data.push(val); }
-            });
-            cNWComp = new Chart(cvs, { type:'doughnut', data:{ labels:labels, datasets:[{data:data, backgroundColor:PALETTE, borderWidth:0}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{display:false}} } });
-        }
-
-        // --- ACCOUNT MODAL ---
-        function openAccountModal() { editAccId=null; document.getElementById('accForm').reset(); document.getElementById('btnDelAcc').classList.add('hidden'); document.getElementById('accModal').classList.remove('hidden'); }
-        function closeAccountModal() { document.getElementById('accModal').classList.add('hidden'); }
-        function editAccount(id) {
-            editAccId = id; const a = appData.accounts.find(x => x.id === id);
-            document.getElementById('accName').value = a.name;
-            document.getElementById('accKind').value = a.kind;
-            document.getElementById('accCurr').value = a.currency;
-            document.getElementById('accInit').value = a.initBal;
-            document.getElementById('btnDelAcc').classList.remove('hidden');
-            document.getElementById('accModal').classList.remove('hidden');
-        }
-        function saveAccount(e) {
-            e.preventDefault(); pushHistory();
-            const acc = {
-                id: editAccId || 'acc_'+Date.now(),
-                name: document.getElementById('accName').value,
-                kind: document.getElementById('accKind').value,
-                currency: document.getElementById('accCurr').value,
-                initBal: parseFloat(document.getElementById('accInit').value) || 0
-            };
-            if(editAccId) { const i = appData.accounts.findIndex(x=>x.id===editAccId); appData.accounts[i] = acc; }
-            else appData.accounts.push(acc);
-            saveData(); closeAccountModal();
-        }
-        function deleteAccount() {
-            if(!confirm('¿Eliminar cuenta?')) return;
-            pushHistory();
-            appData.accounts = appData.accounts.filter(x => x.id !== editAccId);
-            saveData(); closeAccountModal();
-        }
-
-        // --- RENDERERS ---
-
+        // --- LIST RENDERING ---
         function renderLists(txs) {
-            const lI=document.getElementById('list-inc'), lE=document.getElementById('list-exp'), lA=document.getElementById('list-alloc');
-            lI.innerHTML=''; lE.innerHTML=''; lA.innerHTML=''; let rb=0;
-            const dashboardTxs = txs.filter(t => t.type !== 'transfer');
+            const lI = document.getElementById('list-inc'), lE = document.getElementById('list-exp'), lA = document.getElementById('list-alloc');
+            lI.innerHTML = ''; lE.innerHTML = ''; lA.innerHTML = '';
+            
+            const search = document.getElementById('searchExpInput').value.toLowerCase();
+            const dashTxs = txs.filter(t => t.type !== 'transfer');
 
-            dashboardTxs.forEach(t => {
-                if(t.type=='inc') rb+=t.amount; else rb-=t.amount;
+            dashTxs.forEach(t => {
+                // Filter search
+                if(t.type === 'exp' && search && !t.desc.toLowerCase().includes(search)) return;
+
+                const isSplit = t.children && t.children.length > 0;
+                const isSelected = selectedTxIds.has(t.id);
                 
+                const el = document.createElement(isSplit ? 'details' : 'div');
+                el.className = `compact-row group flex flex-col cursor-pointer ${isSelected ? 'selected' : (t.exec ? 'opacity-60' : '')}`;
+                
+                let iconHtml = '';
+                if(isSelectionMode && t.type === 'exp') {
+                    iconHtml = `<div onclick="toggleSelectTx(${t.id}, event)" class="custom-chk ${isSelected ? 'checked' : ''}"><i class="material-symbols-outlined">check</i></div>`;
+                } else {
+                    iconHtml = `<div onclick="toggleExec(${t.id}, event)" class="custom-chk ${t.exec ? 'exec' : ''}"><i class="material-symbols-outlined">check</i></div>`;
+                }
+
+                // Currency Badge
                 let currBadge = (t.origCurr && t.origCurr !== 'ARS') ? `<span class="bg-blue-50 text-blue-600 text-[9px] px-1.5 py-0.5 rounded ml-1 font-bold">${t.origAmt} ${t.origCurr}</span>` : '';
+                // Link Badge
                 let linkText = '';
                 if(t.type=='exp' && t.linkId) { 
                     const source = appData.txs.find(x => x.id == t.linkId); 
                     if(source) linkText = `<span class="inline-flex items-center ml-2 bg-slate-100 text-slate-500 text-[9px] px-1.5 py-0.5 rounded-md"><span class="material-symbols-outlined text-[10px] mr-0.5">link</span>${source.desc.substring(0,8)}</span>`; 
                 }
 
-                // SPLIT RENDERING LOGIC
-                const isSplit = t.children && t.children.length > 0;
-                
-                // Outer Container
-                const el = document.createElement(isSplit ? 'details' : 'div');
-                const isSelected = selectedTxIds.has(t.id);
-                let baseClass = t.exec ? "opacity-60 bg-slate-50/50 line-through decoration-slate-400" : "bg-white";
-                if(isSelectionMode && isSelected) baseClass = "bg-blue-50/50";
-                
-                // Class assignment. Note: details uses 'open' attr, but class styling applies to summary usually
-                el.className = `compact-row group ${isSplit?'':'flex items-center justify-between'} cursor-pointer ${baseClass} ${isSelected ? 'selected' : ''}`;
-                
-                let leftIcon = '';
-                let clickAction = '';
-                
-                if(isSelectionMode && t.type === 'exp') {
-                    leftIcon = `<div onclick="toggleTxSelected(${t.id}, event)" class="custom-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
-                    clickAction = `toggleTxSelected(${t.id}, event)`;
-                } else {
-                    leftIcon = `<div onclick="toggleExec(${t.id}, event)" class="custom-chk ${t.exec?'exec':''}" title="Marcar como Ejecutado"><i class="material-symbols-outlined">check</i></div>`;
-                    clickAction = `editTx(${t.id})`;
-                }
-
-                const catLabel = isSplit ? `<span class="text-[9px] text-white bg-slate-400 px-1.5 rounded flex items-center gap-1"><span class="material-symbols-outlined text-[10px]">call_split</span> Split</span>` : `<span class="text-[9px] text-slate-500 bg-slate-100 px-1.5 rounded">${t.cat || 'Gral'}</span>`;
-
-                const mainContent = `
-                    <div class="flex items-center gap-3 overflow-hidden w-full">
-                        <div class="shrink-0 flex items-center justify-center size-6 pointer-events-none">${leftIcon}</div>
-                        <div class="min-w-0 flex-1" onclick="${isSelectionMode ? clickAction : (!isSplit ? clickAction : '')}">
+                const content = `
+                    <div class="flex items-center gap-3 w-full">
+                        <div class="shrink-0 flex items-center justify-center size-6">${iconHtml}</div>
+                        <div class="min-w-0 flex-1" onclick="${isSelectionMode ? `toggleSelectTx(${t.id}, event)` : (isSplit ? '' : `editTx(${t.id})`)}">
                             <div class="flex items-center justify-between">
-                                <p class="text-xs font-bold text-slate-800 truncate leading-tight">${t.desc} ${currBadge} ${linkText}</p>
-                                <p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ml-2">$${fmt(t.amount)}</p>
+                                <p class="text-xs font-bold text-slate-800 truncate">${t.desc} ${currBadge} ${linkText}</p>
+                                <p class="text-xs font-bold ${t.type === 'inc' ? 'text-success' : 'text-danger'}">$${fmt(t.amount)}</p>
                             </div>
-                            <div class="flex items-center justify-between mt-1">
-                                <div class="flex gap-2 items-center">
-                                    ${catLabel}
-                                    <span class="text-[9px] text-slate-400 font-medium">${t.date.split('-')[2]}</span>
-                                </div>
-                                ${t.type=='exp'?`<span class="text-[9px] font-bold ${rb>=0?'text-emerald-600':'text-rose-600'} opacity-60">Q: $${fmt(rb)}</span>`:''}
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[9px] px-1.5 bg-slate-100 rounded text-slate-500">${isSplit ? 'SPLIT' : (t.cat || 'Gral')}</span>
+                                <span class="text-[9px] text-slate-400">${t.date.split('-')[2]}</span>
                             </div>
                         </div>
-                    </div>`;
+                    </div>
+                `;
 
-                if (isSplit) {
-                    // It's a details element
-                    let childrenHtml = `<div class="pt-2 pb-1 space-y-2">`;
-                    t.children.forEach(child => {
-                        childrenHtml += `
-                        <div class="flex justify-between items-center split-row">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-700">${child.desc || 'Item'}</p>
-                                <span class="text-[9px] text-slate-500 bg-slate-100 px-1 rounded">${child.cat}</span>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-600">$${fmt(child.amount)}</span>
-                        </div>`;
+                if(isSplit) {
+                    el.innerHTML = `<summary class="list-none outline-none select-none">${content}</summary>`;
+                    let childHtml = `<div class="mt-2 space-y-1 pl-9 border-l-2 ml-3">`;
+                    t.children.forEach(c => {
+                        childHtml += `<div class="flex justify-between text-[10px] text-slate-500"><span>${c.desc} (${c.cat})</span><span class="font-bold">$${fmt(c.amount)}</span></div>`;
                     });
-                    childrenHtml += `<div class="text-right mt-1"><button onclick="editTx(${t.id})" class="text-[9px] font-bold text-primary underline">Editar Split</button></div></div>`;
-                    
-                    el.innerHTML = `<summary class="list-none select-none">${mainContent}</summary>${childrenHtml}`;
+                    childHtml += `<button onclick="editTx(${t.id})" class="text-[9px] text-primary underline mt-1">Editar Split</button></div>`;
+                    el.innerHTML += childHtml;
                 } else {
-                    el.innerHTML = mainContent;
+                    el.innerHTML = content;
                 }
 
-                (t.type=='inc'?lI:lE).appendChild(el);
+                (t.type === 'inc' ? lI : lE).appendChild(el);
             });
-            document.getElementById('c-inc').innerText = dashboardTxs.filter(t=>t.type=='inc').length;
-            document.getElementById('c-exp').innerText = dashboardTxs.filter(t=>t.type=='exp').length;
             
-            // Allocations Logic
-            const incs = dashboardTxs.filter(t=>t.type=='inc');
+            document.getElementById('c-inc').innerText = dashTxs.filter(t => t.type === 'inc').length;
+            document.getElementById('c-exp').innerText = dashTxs.filter(t => t.type === 'exp').length;
+
+            // Render Allocations
+            const incs = dashTxs.filter(t=>t.type=='inc');
             incs.forEach(inc => {
-                const subs = dashboardTxs.filter(t=>t.type=='exp' && t.linkId==inc.id);
+                const subs = dashTxs.filter(t=>t.type=='exp' && t.linkId==inc.id);
                 const spent = subs.reduce((a,b)=>a+b.amount,0);
                 const rem = inc.amount - spent;
-                const remClass = rem >= 0 ? 'text-success' : 'text-danger';
                 const pct = Math.min(100, (spent/inc.amount)*100);
-                let barColor = pct > 90 ? 'bg-danger' : 'bg-primary';
+                
                 let rows = ''; 
-                if (subs.length > 0) { subs.forEach(s => { const day = s.date.split('-')[2]; rows += `<div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc} <span class="text-slate-300 text-[9px] ml-1">d-${day}</span></span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`; }); } else { rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>'; }
+                if (subs.length > 0) { subs.forEach(s => { rows += `<div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc}</span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`; }); } 
+                else { rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>'; }
+                
                 const card = document.createElement('div');
-                card.innerHTML = `<div class="rounded-xl border border-slate-200 bg-white mb-2 shadow-sm overflow-hidden group"><div class="p-3 bg-slate-50/50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors"><div onclick="this.closest('.rounded-xl').querySelector('.alloc-details').classList.toggle('hidden')" class="flex-1"><p class="text-[11px] font-bold text-slate-700">${inc.desc}</p><p class="text-[10px] font-extrabold mt-0.5 ${remClass}">$${fmt(rem)}</p></div><div class="flex items-center gap-3"><span class="text-[9px] font-bold text-slate-600">${Math.round(pct)}%</span><button onclick="unassignGroup(${inc.id})" class="text-slate-300 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-sm">link_off</span></button></div></div><div class="w-full h-1 bg-slate-100"><div class="h-full ${barColor} transition-all duration-500" style="width: ${pct}%;"></div></div><div class="alloc-details hidden bg-white py-1 border-t border-slate-100">${rows}</div></div>`;
+                card.innerHTML = `<div class="rounded-xl border border-slate-200 bg-white mb-2 shadow-sm overflow-hidden group"><div class="p-3 bg-slate-50/50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors"><div onclick="this.closest('.rounded-xl').querySelector('.alloc-details').classList.toggle('hidden')" class="flex-1"><p class="text-[11px] font-bold text-slate-700">${inc.desc}</p><p class="text-[10px] font-extrabold mt-0.5 ${rem>=0?'text-success':'text-danger'}">$${fmt(rem)}</p></div><div class="flex items-center gap-3"><span class="text-[9px] font-bold text-slate-600">${Math.round(pct)}%</span><button onclick="unassignGroup(${inc.id})" class="text-slate-300 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-sm">link_off</span></button></div></div><div class="w-full h-1 bg-slate-100"><div class="h-full ${pct>90?'bg-danger':'bg-primary'}" style="width: ${pct}%;"></div></div><div class="alloc-details hidden bg-white py-1 border-t border-slate-100">${rows}</div></div>`;
                 lA.appendChild(card);
             });
-             const orphans = dashboardTxs.filter(t => t.type === 'exp' && !t.linkId);
-            if (orphans.length > 0) {
-                 const totalOrphans = orphans.reduce((a,b) => a+b.amount, 0);
-                 let orphanRows = ''; orphans.forEach(s => { const day = s.date.split('-')[2]; orphanRows += `<div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc} <span class="text-slate-300 text-[9px] ml-1">d-${day}</span></span><span class="font-bold shrink-0">$${fmt(totalOrphans)}</span></div>`; });
-                 const orphanCard = document.createElement('div'); orphanCard.innerHTML = `<div class="rounded-xl border border-l-4 border-l-danger border-slate-200 bg-white mb-2 shadow-sm overflow-hidden"><div class="p-3 cursor-pointer hover:bg-slate-50 transition-colors flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')"><p class="text-[11px] font-bold text-slate-700">Sin Asignar (${orphans.length})</p><p class="text-[10px] font-extrabold text-danger">$${fmt(totalOrphans)}</p></div><div class="hidden bg-white py-1 border-t border-slate-100">${orphanRows}</div></div>`; lA.appendChild(orphanCard);
-            }
-        }
-        
-        function toggleExec(id, event) {
-            event.stopPropagation();
-            if(isMonthClosed()) return alert("Mes cerrado.");
-            pushHistory();
-            const tx = appData.txs.find(t => t.id === id);
-            if(tx) tx.exec = !tx.exec;
-            saveData();
         }
 
-        function updateAccountSelects() {
-            const fAcc = document.getElementById('fFromAcc');
-            const tAcc = document.getElementById('fToAcc');
-            fAcc.innerHTML = ''; tAcc.innerHTML = '';
-            appData.accounts.forEach(a => {
-                const opt = `<option value="${a.id}">${a.name} (${a.currency})</option>`;
-                fAcc.innerHTML += opt; tAcc.innerHTML += opt;
-            });
-        }
+        function filterExpList() { renderLists(getFilteredTxs()); }
 
+        // --- SPLIT & FORM LOGIC ---
         function setType(t){
             document.getElementById('fType').value=t;
             const btnExp = document.getElementById('btnExp'); const btnInc = document.getElementById('btnInc'); const btnTrf = document.getElementById('btnTrf');
@@ -1201,7 +768,6 @@
             btnExp.className = btnInc.className = btnTrf.className = "flex items-center justify-center gap-1 py-2 rounded-lg text-[10px] font-bold transition-all text-slate-400 hover:text-slate-600";
             updateAccountSelects();
             
-            // Defaults
             divSplit.classList.add('hidden');
             normalTx.classList.remove('hidden');
 
@@ -1209,7 +775,7 @@
                 btnExp.className = "flex items-center justify-center gap-1 py-2 rounded-lg text-[10px] font-bold transition-all shadow-sm bg-white text-danger border border-slate-100";
                 divFrom.classList.remove('hidden'); divTo.classList.add('hidden');
                 divCat.classList.remove('hidden'); linkRow.classList.remove('hidden');
-                divSplit.classList.remove('hidden'); // Allow split for expense
+                divSplit.classList.remove('hidden');
                 renderChips('exp'); renderLinkChips();
                 document.getElementById('lblDesc').innerText = "Concepto"; 
             } else if(t === 'inc') {
@@ -1225,10 +791,9 @@
                 document.getElementById('lblDesc').innerText = "Descripción";
             }
             document.getElementById('fCat').value = ''; document.getElementById('conceptBox').innerHTML = '';
-            document.getElementById('fIsSplit').checked = false; toggleSplitUI(); // Reset split state
+            document.getElementById('fIsSplit').checked = false; toggleSplitUI();
         }
 
-        // --- SPLIT UI LOGIC ---
         function toggleSplitUI() {
             const isSplit = document.getElementById('fIsSplit').checked;
             const container = document.getElementById('splitContainer');
@@ -1238,7 +803,7 @@
             if(isSplit) {
                 container.classList.remove('hidden');
                 normalFields.classList.add('hidden');
-                if(rows.innerHTML === '') addSplitRow(); // Add first row if empty
+                if(rows.innerHTML === '') addSplitRow(); 
                 calcSplitDiff();
             } else {
                 container.classList.add('hidden');
@@ -1250,8 +815,6 @@
             const container = document.getElementById('splitRows');
             const div = document.createElement('div');
             div.className = 'split-input-row';
-            
-            // Cat Select (Simplified for space)
             let catOpts = '';
             (appData.cats.exp || []).forEach(c => catOpts += `<option value="${c}" ${data.cat===c?'selected':''}>${c}</option>`);
             
@@ -1281,7 +844,6 @@
 
         document.getElementById('txForm').onsubmit=e=>{
             e.preventDefault();
-            
             const d = new Date(document.getElementById('fDate').value + 'T00:00:00');
             if(isMonthClosed(d)) return alert("El mes de esa fecha está cerrado. No puedes agregar ni editar.");
 
@@ -1293,51 +855,24 @@
             let children = [];
 
             if(isSplit) {
-                // Split Validation
                 const diff = calcSplitDiff();
-                if(Math.abs(diff) > 1) return alert(`La suma de los items no coincide con el total. Diferencia: $${fmt(diff)}`);
-                
+                if(Math.abs(diff) > 1) return alert(`La suma de los items no coincide con el total.`);
                 const rows = document.querySelectorAll('.split-input-row');
-                if(rows.length === 0) return alert("Agrega al menos un ítem.");
-                
                 rows.forEach(r => {
-                    const rCat = r.querySelector('.split-cat').value;
-                    const rDesc = r.querySelector('.split-desc').value;
                     const rAmt = parseFloat(r.querySelector('.split-amt').value) || 0;
-                    if(rAmt > 0) children.push({id: Date.now()+Math.random(), cat: rCat, desc: rDesc, amount: rAmt});
+                    if(rAmt > 0) children.push({id: Date.now()+Math.random(), cat: r.querySelector('.split-cat').value, desc: r.querySelector('.split-desc').value, amount: rAmt});
                 });
-                
-                cat = 'Múltiples'; // Parent cat
-                desc = document.getElementById('fDesc').value || 'Gasto dividido'; // Parent desc (optional override)
+                cat = 'Múltiples'; desc = document.getElementById('fDesc').value || 'Gasto dividido';
             } else {
                 cat=document.getElementById('fCat').value;
                 if(type !== 'transfer' && !cat) return alert('Selecciona categoría');
                 desc=document.getElementById('fDesc').value;
             }
 
-            const fromAcc = document.getElementById('fFromAcc').value;
-            const toAcc = document.getElementById('fToAcc').value;
-
             pushHistory();
-            
-            // Concept learning logic (only for non-split)
             if(!isSplit && cat && type !== 'transfer') { 
                 if(!appData.concepts[cat]) appData.concepts[cat] = []; 
                 if(!appData.concepts[cat].includes(desc)) appData.concepts[cat].push(desc); 
-            }
-            
-            let destAmount = null;
-            if (type === 'transfer') {
-                const toAccObj = appData.accounts.find(a => a.id === toAcc);
-                if (toAccObj) {
-                     let valInArs = calcConversion(); 
-                     const rArs = parseFloat(document.getElementById('rate_ARS').value);
-                     const rCop = parseFloat(document.getElementById('rate_COP').value);
-                     
-                     if (toAccObj.currency === 'ARS') destAmount = valInArs;
-                     else if (toAccObj.currency === 'USD') destAmount = valInArs / rArs;
-                     else if (toAccObj.currency === 'COP') destAmount = (valInArs / rArs) * rCop;
-                }
             }
 
             const tx={
@@ -1349,55 +884,120 @@
                 exec:document.getElementById('fExec').checked,
                 linkId:type=='exp'?document.getElementById('fLink').value:null, 
                 deletedAt:null,
-                fromAccountId: (type === 'exp' || type === 'transfer') ? fromAcc : null,
-                toAccountId: (type === 'inc' || type === 'transfer') ? toAcc : null,
-                destAmount: destAmount,
-                children: isSplit ? children : [] // Save children
+                fromAccountId: (type === 'exp' || type === 'transfer') ? document.getElementById('fFromAcc').value : null,
+                toAccountId: (type === 'inc' || type === 'transfer') ? document.getElementById('fToAcc').value : null,
+                children: isSplit ? children : []
             };
+            
             if(editId){ const i=appData.txs.findIndex(x=>x.id==editId); appData.txs[i]=tx; } else appData.txs.push(tx);
             saveData(); closeModal();
         }
 
-        function editTx(id){
-            if(isMonthClosed()) return alert("Mes cerrado. No se puede editar.");
-            const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;
-            document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');
-            document.getElementById('fDate').value=t.date; 
-            document.getElementById('fExec').checked=t.exec;
-            document.getElementById('fAmt').value = t.origAmt || t.amount; document.getElementById('fCurr').value = t.origCurr || 'ARS';
-            
-            setType(t.type); 
-            
-            // Restore Split State
-            if(t.children && t.children.length > 0) {
-                document.getElementById('fIsSplit').checked = true;
-                toggleSplitUI();
-                document.getElementById('splitRows').innerHTML = ''; // Clear defaults
-                t.children.forEach(c => addSplitRow(c));
-                document.getElementById('fDesc').value = t.desc; // Restore parent desc
-            } else {
-                 if(t.type !== 'transfer') {
-                    document.getElementById('fDesc').value=t.desc;
-                    document.getElementById('fCat').value = t.cat; renderChips(t.type); 
-                    if(t.type === 'exp') { document.getElementById('fLink').value = t.linkId || ""; renderLinkChips(t.linkId);}
-                    renderConcepts(t.cat);
-                }
-            }
-
-            if(t.fromAccountId) document.getElementById('fFromAcc').value = t.fromAccountId;
-            if(t.toAccountId) document.getElementById('fToAcc').value = t.toAccountId;
-            
-            calcConversion();
-            document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');
-        }
-
-        function openModal(){ 
+        // --- BULK LOGIC ---
+        function toggleSelectionMode() {
             if(isMonthClosed()) return alert("Mes cerrado.");
-            editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); 
+            isSelectionMode = !isSelectionMode;
+            if(!isSelectionMode) selectedTxIds.clear(); 
+            const btn = document.getElementById('btnSelectMode');
+            btn.classList.toggle('text-primary', isSelectionMode);
+            btn.classList.toggle('text-slate-400', !isSelectionMode);
+            updateSelectionUI();
+            renderLists(getFilteredTxs()); 
         }
-        function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
-        function resetForm(){ document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null; document.getElementById('splitRows').innerHTML='';}
+
+        function toggleSelectTx(id, event) {
+            if(event) event.stopPropagation();
+            if(isMonthClosed()) return alert("Mes cerrado.");
+            if(selectedTxIds.has(id)) selectedTxIds.delete(id); 
+            else selectedTxIds.add(id); 
+            updateSelectionUI();
+            renderLists(getFilteredTxs()); 
+        }
+
+        function updateSelectionUI() {
+            const bar = document.getElementById('bulkBar');
+            const countEl = document.getElementById('bulkCount');
+            if(selectedTxIds.size > 0) {
+                bar.classList.add('show');
+                countEl.innerText = `${selectedTxIds.size} seleccionados`;
+            } else {
+                bar.classList.remove('show');
+                if(!isSelectionMode) bar.classList.add('hidden'); else bar.classList.remove('hidden');
+            }
+        }
+
+        function selectAllVisible() {
+            const visible = getFilteredTxs().filter(t => t.type === 'exp');
+            visible.forEach(t => selectedTxIds.add(t.id));
+            updateSelectionUI();
+            renderLists(getFilteredTxs());
+        }
+
+        function openBulkModal() {
+            const catSel = document.getElementById('bulkCatSelect');
+            catSel.innerHTML = '<option value="">Sin cambios</option>';
+            appData.cats.exp.forEach(c => catSel.innerHTML += `<option value="${c}">${c}</option>`);
+
+            const linkSel = document.getElementById('bulkLinkSelect');
+            linkSel.innerHTML = '<option value="">Sin cambios</option><option value="unassign">Desvincular</option>';
+            const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
+            const incs = appData.txs.filter(t => !t.deletedAt && t.type === 'inc' && parseInt(t.date.split('-')[1]) === m);
+            incs.forEach(i => linkSel.innerHTML += `<option value="${i.id}">${i.desc}</option>`);
+            document.getElementById('bulkModal').classList.remove('hidden');
+        }
+
+        function closeBulkModal() { document.getElementById('bulkModal').classList.add('hidden'); }
+
+        function bulkApplyChanges() {
+            pushHistory();
+            const newCat = document.getElementById('bulkCatSelect').value;
+            const newLink = document.getElementById('bulkLinkSelect').value;
+            
+            appData.txs.forEach(t => {
+                if(selectedTxIds.has(t.id)) {
+                    if(newCat) t.cat = newCat;
+                    if(newLink === 'unassign') t.linkId = null;
+                    else if(newLink) t.linkId = newLink;
+                }
+            });
+            saveData(); toggleSelectionMode(); closeBulkModal();
+        }
+
+        function bulkSetExec(val) {
+            pushHistory();
+            appData.txs.forEach(t => { if(selectedTxIds.has(t.id)) t.exec = val; });
+            saveData(); toggleSelectionMode(); closeBulkModal();
+        }
+
+        function bulkDelete() {
+            if(!confirm(`¿Eliminar ${selectedTxIds.size} registros?`)) return;
+            pushHistory();
+            appData.txs.forEach(t => { if(selectedTxIds.has(t.id)) t.deletedAt = Date.now(); });
+            saveData(); toggleSelectionMode(); closeBulkModal();
+        }
+
+        // --- CHARTS (Flattened for Split) ---
+        function renderCharts(txs) {
+            const dashboardTxs = txs.filter(t => t.type !== 'transfer');
+            const expTxs = [];
+            dashboardTxs.filter(t => t.type === 'exp').forEach(t => {
+                if(t.children && t.children.length > 0) t.children.forEach(c => expTxs.push({cat: c.cat, amount: c.amount, desc: c.desc}));
+                else expTxs.push(t);
+            });
+            renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), expTxs, 'cat', true, cExp, i=>cExp=i);
+            renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), dashboardTxs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
+        }
         
+        function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
+            if(inst) inst.destroy();
+            let map={}; if(drill && drillCat) { document.getElementById('resetBtn').classList.remove('hidden'); data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount); } else { if(drill) document.getElementById('resetBtn').classList.add('hidden'); data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; }); }
+            const ent = Object.entries(map).sort((a,b)=>b[1]-a[1]); const tot = ent.reduce((a,b)=>a+b[1],0);
+            setInst(new Chart(cvs, { type:'doughnut', data:{ labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:2}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{display:false}}, onClick:(e,el)=>{if(drill&&!drillCat&&el.length){drillCat=ent[el[0].index][0]; loadMonthData();}} } }));
+            leg.innerHTML = ''; ent.forEach((e,i) => { const pct = Math.round((e[1]/tot)*100); leg.innerHTML += `<div class="flex items-center justify-between text-[10px] py-1.5 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}"><div class="flex items-center gap-1.5 min-w-0"><span class="size-2 rounded-full shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span><span class="text-slate-600 font-medium truncate">${e[0]}</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-slate-400">${pct}%</span><span class="font-bold text-slate-800">$${fmt(e[1])}</span></div></div>`; });
+        }
+        function resetCharts() { drillCat=null; loadMonthData(); }
+
+        // --- EXTRAS ---
         function renderChips(type) {
             const container = document.getElementById('chipBox'); container.innerHTML = '';
             const cats = type === 'inc' ? (appData.cats.inc || []) : (appData.cats.exp || []);
@@ -1426,157 +1026,147 @@
             document.getElementById('convPreview').classList.toggle('hidden', curr === 'ARS');
             return final;
         }
-        function delTx(){ if(confirm('Eliminar?')){ pushHistory(); appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
-        
-        // --- CHART LOGIC UPDATED FOR SPLITS ---
-        function renderCharts(txs) {
-            const dashboardTxs = txs.filter(t => t.type !== 'transfer');
+        function editTx(id){
+            if(isMonthClosed()) return alert("Mes cerrado. No se puede editar.");
+            const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;
+            document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');
+            document.getElementById('fDate').value=t.date; 
+            document.getElementById('fExec').checked=t.exec;
+            document.getElementById('fAmt').value = t.origAmt || t.amount; document.getElementById('fCurr').value = t.origCurr || 'ARS';
+            setType(t.type); 
             
-            // Flatten for Expense Chart
-            const expTxs = [];
-            dashboardTxs.filter(t => t.type === 'exp').forEach(t => {
-                if(t.children && t.children.length > 0) {
-                    t.children.forEach(c => expTxs.push({cat: c.cat, amount: c.amount, desc: c.desc}));
-                } else {
-                    expTxs.push(t);
-                }
-            });
-
-            renderDoughnut(document.getElementById('chartExp'), document.getElementById('legExp'), expTxs, 'cat', true, cExp, i=>cExp=i);
-            renderDoughnut(document.getElementById('chartInc'), document.getElementById('legInc'), dashboardTxs.filter(t=>t.type=='inc'), 'desc', false, cInc, i=>cInc=i);
-        }
-        
-        function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
-            if(inst) inst.destroy();
-            let map={}; if(drill && drillCat) { document.getElementById('resetBtn').classList.remove('hidden'); data.filter(t=>t.cat==drillCat).forEach(t=>map[t.desc]=(map[t.desc]||0)+t.amount); } else { if(drill) document.getElementById('resetBtn').classList.add('hidden'); data.forEach(t=>{ const k = t[key] || 'General'; map[k]=(map[k]||0)+t.amount; }); }
-            const ent = Object.entries(map).sort((a,b)=>b[1]-a[1]); const tot = ent.reduce((a,b)=>a+b[1],0);
-            setInst(new Chart(cvs, { type:'doughnut', data:{ labels:ent.map(e=>e[0]), datasets:[{data:ent.map(e=>e[1]), backgroundColor:PALETTE, borderWidth:0, hoverOffset:2}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{display:false}}, onClick:(e,el)=>{if(drill&&!drillCat&&el.length){drillCat=ent[el[0].index][0]; loadMonthData();}} } }));
-            leg.innerHTML = ''; ent.forEach((e,i) => { const pct = Math.round((e[1]/tot)*100); leg.innerHTML += `<div class="flex items-center justify-between text-[10px] py-1.5 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill&&!drillCat?`drillCat='${e[0]}';loadMonthData()`:''}"><div class="flex items-center gap-1.5 min-w-0"><span class="size-2 rounded-full shrink-0" style="background:${PALETTE[i%PALETTE.length]}"></span><span class="text-slate-600 font-medium truncate">${e[0]}</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-slate-400">${pct}%</span><span class="font-bold text-slate-800">$${fmt(e[1])}</span></div></div>`; });
-        }
-        function resetCharts() { drillCat=null; loadMonthData(); }
-        function manualAddCat() { const n = document.getElementById('newCatName').value.trim(); const t = document.getElementById('newCatType').value; if(!n) return alert('Nombre?'); pushHistory(); if(t === 'exp') { if(!appData.cats.exp.includes(n)) appData.cats.exp.push(n); } else { if(!appData.cats.inc.includes(n)) appData.cats.inc.push(n); } if(!appData.concepts[n]) appData.concepts[n] = []; document.getElementById('newCatName').value = ''; saveData(); }
-        function delCat(type, name) { if(confirm(`¿Eliminar ${name}?`)) { pushHistory(); if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name); delete appData.concepts[name]; saveData(); } }
-        function manualAddConcept(catName) { const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim(); if(!val) return; pushHistory(); if(!appData.concepts[catName]) appData.concepts[catName] = []; if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val); saveData(); }
-        function delConcept(cat, name) { if(confirm(`¿Eliminar ${name}?`)) { pushHistory(); appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); } }
-        function changeMonth(d){ currentDate.setMonth(currentDate.getMonth()+d); updateDateUI(); loadMonthData(); }
-        function manualDate(){ const[y,m]=document.getElementById('datePicker').value.split('-'); currentDate.setFullYear(y); currentDate.setMonth(m-1); updateDateUI(); loadMonthData(); }
-        function updateDateUI(){ document.getElementById('monthTxt').innerText=`${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`; document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`; }
-        function saveMonthlyRates() { const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; saveData(); }
-        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-200 py-1 last:border-0'; d.innerHTML=`<input value="${r.desc}" onchange="pushHistory();appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded px-1 py-0.5"><input type="number" value="${r.amount}" onchange="pushHistory();appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded px-1 py-0.5 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="deleteRecurrente(${i})" class="text-red-400 hover:text-red-600 font-bold px-2">x</button>`; b.appendChild(d);}); }
-        function deleteRecurrente(i) { pushHistory(); appData.recurrentes.splice(i,1); saveData(); }
-        function addRecurrenteRow() { pushHistory(); appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
-        function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
-        function executeRecurrentes() { 
-            if(isMonthClosed()) return alert("Mes cerrado."); 
-            const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; 
-            let c=0; const defAcc = appData.accounts[0].id; 
-            appData.recurrentes.forEach(r=>{ 
-                if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ 
-                    // clone children logic if ever needed, for now recurrentes are simple
-                    appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS', fromAccountId: r.type==='exp'?defAcc:null, toAccountId:r.type==='inc'?defAcc:null, children: []}); 
-                    c++; 
-                }
-            }); 
-            if(c>0){ pushHistory(); saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); 
-        }
-        function autoAssign() { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Asignar automáticamente?")) return; const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; const currentMonthTxs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m); let incomes = currentMonthTxs.filter(t => t.type === 'inc').map(i => { const assigned = currentMonthTxs.filter(e => e.type === 'exp' && e.linkId == i.id).reduce((a,b)=>a+b.amount,0); return { ...i, balance: i.amount - assigned }; }); const unassignedExps = currentMonthTxs.filter(t => t.type === 'exp' && !t.linkId); let count = 0; let changesMade = false; unassignedExps.forEach(exp => { const validIncome = incomes.find(inc => inc.date <= exp.date && inc.balance >= exp.amount); if(validIncome) { if(!changesMade) { pushHistory(); changesMade = true; } exp.linkId = validIncome.id; validIncome.balance -= exp.amount; count++; } }); if(count > 0) { alert(`Asignados: ${count} gastos.`); saveData(); } else { alert("No se encontraron coincidencias válidas."); } }
-        function unassignAll() { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Desvincular TODOS los gastos?")) return; pushHistory(); const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.txs.forEach(t => { if(!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m && t.type === 'exp') { t.linkId = null; }}); saveData(); }
-        function unassignGroup(incId) { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Desvincular gastos?")) return; pushHistory(); appData.txs.forEach(t => { if(t.type === 'exp' && t.linkId == incId) t.linkId = null; }); saveData(); }
-        function populateRecurringDefaults() { if(!confirm("¿Sugerir recurrentes?")) return; const limitDate = new Date(); limitDate.setDate(limitDate.getDate() - 90); const recent = appData.txs.filter(t => !t.deletedAt && t.type === 'exp' && new Date(t.date) >= limitDate); const analysis = {}; recent.forEach(t => { const d = t.desc.trim(); if(!analysis[d]) analysis[d] = { count: 0, lastAmt: 0, cat: t.cat, dates: new Set() }; analysis[d].count++; analysis[d].lastAmt = t.origAmt || t.amount; analysis[d].cat = t.cat; analysis[d].dates.add(t.date.substring(0, 7)); }); let added = 0; let changesMade = false; Object.entries(analysis).forEach(([desc, data]) => { if((data.dates.size >= 2 || data.count >= 2) && !appData.recurrentes.some(r => r.desc.toLowerCase() === desc.toLowerCase())) { if(!changesMade) { pushHistory(); changesMade = true; } appData.recurrentes.push({ desc: desc, amount: data.lastAmt, cat: data.cat, type: 'exp' }); added++; } }); if(added === 0) alert("Sin novedades."); else alert(`Agregadas ${added} sugerencias.`); renderRecurrentesAdmin(); saveData(); }
-        function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } if(v==='networth') renderNetWorthView(); }
-        function filterExpList(filterTerm) {
-            if(filterTerm) document.getElementById('searchExpInput').value = filterTerm;
-            const term = document.getElementById('searchExpInput').value.toLowerCase();
-            const container = document.getElementById('list-exp');
-            const rows = container.getElementsByClassName('compact-row');
-            Array.from(rows).forEach(row => {
-                if (term === 'sin asignar') {
-                     const hasLinkBadge = row.innerHTML.includes('bg-slate-100 text-slate-500');
-                     if (!hasLinkBadge) { row.classList.remove('hidden'); row.classList.add('flex'); } else { row.classList.add('hidden'); row.classList.remove('flex'); }
-                } else {
-                    const text = row.innerText.toLowerCase();
-                    if(text.includes(term)) { row.classList.remove('hidden'); row.classList.add('flex'); } else { row.classList.add('hidden'); row.classList.remove('flex'); }
-                }
-            });
-        }
-        function toggleSelectionMode() {
-            if(isMonthClosed()) return alert("Mes cerrado.");
-            isSelectionMode = !isSelectionMode;
-            if(!isSelectionMode) selectedTxIds.clear(); 
-            updateSelectionUI();
-            loadMonthData(); 
-        }
-
-        function toggleTxSelected(id, event) {
-            if(event) event.stopPropagation();
-            if(isMonthClosed()) return alert("Mes cerrado.");
-            
-            if(selectedTxIds.has(id)) selectedTxIds.delete(id); 
-            else selectedTxIds.add(id); 
-            
-            updateSelectionUI();
-            loadMonthData(); 
-        }
-
-        function updateSelectionUI() {
-            const btn = document.getElementById('btnSelectMode');
-            const bar = document.getElementById('bulkBar');
-            const countEl = document.getElementById('bulkCount');
-            
-            if(isSelectionMode) {
-                btn.classList.add('text-primary'); btn.classList.remove('text-slate-400');
-                if(selectedTxIds.size > 0) {
-                    bar.classList.remove('hidden');
-                    countEl.innerText = `${selectedTxIds.size} seleccionados`;
-                } else {
-                    bar.classList.add('hidden');
-                }
+            if(t.children && t.children.length > 0) {
+                document.getElementById('fIsSplit').checked = true; toggleSplitUI();
+                document.getElementById('splitRows').innerHTML = ''; 
+                t.children.forEach(c => addSplitRow(c));
+                document.getElementById('fDesc').value = t.desc;
             } else {
-                btn.classList.remove('text-primary'); btn.classList.add('text-slate-400');
-                bar.classList.add('hidden');
+                 if(t.type !== 'transfer') {
+                    document.getElementById('fDesc').value=t.desc;
+                    document.getElementById('fCat').value = t.cat; renderChips(t.type); 
+                    if(t.type === 'exp') { document.getElementById('fLink').value = t.linkId || ""; renderLinkChips(t.linkId);}
+                    renderConcepts(t.cat);
+                }
             }
+            if(t.fromAccountId) document.getElementById('fFromAcc').value = t.fromAccountId;
+            if(t.toAccountId) document.getElementById('fToAcc').value = t.toAccountId;
+            calcConversion(); document.getElementById('modalOverlay').classList.remove('hidden');
+        }
+        function delTx(){ if(confirm('Eliminar?')){ pushHistory(); appData.txs.find(x=>x.id==editId).deletedAt=Date.now(); saveData(); closeModal(); }}
+        function updateDateUI(){ document.getElementById('monthTxt').innerText=`${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`; document.getElementById('datePicker').value=`${currentDate.getFullYear()}-${(currentDate.getMonth()+1).toString().padStart(2,'0')}`; }
+        function manualDate(){ const[y,m]=document.getElementById('datePicker').value.split('-'); currentDate.setFullYear(y); currentDate.setMonth(m-1); updateDateUI(); loadMonthData(); }
+        function changeMonth(d){ currentDate.setMonth(currentDate.getMonth()+d); updateDateUI(); loadMonthData(); }
+        function openModal(){ if(isMonthClosed()) return alert("Mes cerrado."); editId=null; document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('splitRows').innerHTML=''; setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); }
+        function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); }
+        
+        // --- NET WORTH & ACCOUNT LOGIC ---
+        function renderNetWorthView() {
+            const list = document.getElementById('list-accounts'); list.innerHTML = '';
+            const rateARS = parseFloat(document.getElementById('rate_ARS').value) || 1200;
+            const rateCOP = parseFloat(document.getElementById('rate_COP').value) || 3700;
+            const rates = { ARS: rateARS, COP: rateCOP, USD: 1 };
+            const balances = {}; appData.accounts.forEach(a => balances[a.id] = (a.initBal || 0));
+            appData.txs.filter(t => !t.deletedAt).sort((a,b) => a.date.localeCompare(b.date)).forEach(t => {
+                const getAmountForAccount = (accId, tx) => {
+                    const acc = appData.accounts.find(a => a.id === accId); if (!acc) return 0;
+                    if (acc.currency === 'USD') return (tx.origCurr === 'USD') ? (tx.origAmt || tx.amount) : tx.amount / rates.ARS;
+                    if (acc.currency === 'COP') return (tx.origCurr === 'COP') ? (tx.origAmt || tx.amount) : (tx.amount / rates.ARS) * rates.COP;
+                    return tx.amount;
+                };
+                if(t.type === 'inc' && t.toAccountId) balances[t.toAccountId] = (balances[t.toAccountId] || 0) + getAmountForAccount(t.toAccountId, t);
+                else if(t.type === 'exp' && t.fromAccountId) balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
+                else if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
+                    balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
+                    balances[t.toAccountId] = (balances[t.toAccountId] || 0) + (t.destAmount || getAmountForAccount(t.toAccountId, t));
+                }
+            });
+            let totalAssets = 0, totalLiabs = 0;
+            appData.accounts.forEach(a => {
+                const bal = balances[a.id] || 0;
+                const balARS = (a.currency === 'ARS') ? bal : (a.currency === 'USD' ? bal * rates.ARS : (bal / rates.COP) * rates.ARS);
+                if (a.kind === 'asset') totalAssets += balARS; else totalLiabs += balARS;
+                const el = document.createElement('div');
+                el.className = "flex items-center justify-between p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 group";
+                el.innerHTML = `<div class="flex items-center gap-3 cursor-pointer" onclick="editAccount('${a.id}')"><div class="size-8 rounded-full flex items-center justify-center ${a.kind==='asset'?'bg-emerald-100 text-emerald-600':'bg-rose-100 text-rose-600'}"><span class="material-symbols-outlined text-lg">${a.kind==='asset'?'account_balance':'credit_card'}</span></div><div><p class="text-xs font-bold text-slate-700">${a.name}</p><p class="text-[10px] text-slate-400">${a.currency}</p></div></div><div class="text-right"><p class="text-xs font-bold ${bal >= 0 ? 'text-slate-700' : 'text-red-500'}">${a.currency} ${fmt(bal)}</p>${a.currency !== 'ARS' ? `<p class="text-[9px] text-slate-400">≈ $${fmt(balARS)}</p>` : ''}</div>`;
+                list.appendChild(el);
+            });
+            const nw = totalAssets + totalLiabs; 
+            document.getElementById('nw-total').innerText = `$${fmt(nw)}`;
+            document.getElementById('nw-usd').innerText = `USD ${fmt(nw / rateARS)}`;
+            document.getElementById('nw-assets').innerText = `$${fmt(totalAssets)}`; 
+            document.getElementById('nw-liabs').innerText = `$${fmt(totalLiabs)}`; 
+            renderNetWorthChart(); renderNetWorthComposition(balances, rates);
         }
 
-        function openBulkModal() { document.getElementById('bulkModal').classList.remove('hidden'); resetBulkView(); }
-        function closeBulkModal() { document.getElementById('bulkModal').classList.add('hidden'); }
-        function resetBulkView() { document.getElementById('bulkMainOptions').classList.remove('hidden'); document.getElementById('bulkSubCategory').classList.add('hidden'); document.getElementById('bulkSubLink').classList.add('hidden'); }
-        function showBulkSubOption(type) { document.getElementById('bulkMainOptions').classList.add('hidden'); if(type === 'category') { document.getElementById('bulkSubCategory').classList.remove('hidden'); const list = document.getElementById('bulkCatList'); list.innerHTML = ''; (appData.cats.exp || []).forEach(cat => { const b = document.createElement('button'); b.className = "text-left text-xs p-2 hover:bg-slate-50 rounded border border-transparent hover:border-primary"; b.innerText = cat; b.onclick = () => bulkApplyCategory(cat); list.appendChild(b); }); } if(type === 'link') { document.getElementById('bulkSubLink').classList.remove('hidden'); const list = document.getElementById('bulkLinkList'); list.innerHTML = ''; const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; const incs = appData.txs.filter(t=>!t.deletedAt && t.type=='inc' && parseInt(t.date.split('-')[0])===y && parseInt(t.date.split('-')[1])===m); if(incs.length === 0) list.innerHTML = '<span class="text-xs text-slate-400">Sin ingresos este mes</span>'; incs.forEach(inc => { const b = document.createElement('button'); b.className = "text-left text-xs p-2 hover:bg-slate-50 rounded border border-transparent hover:border-primary"; b.innerHTML = `<b>${inc.desc}</b> <span class="text-slate-400">($${fmt(inc.amount)})</span>`; b.onclick = () => bulkAssignIncome(inc.id); list.appendChild(b); }); } }
-        function bulkApplyCategory(cat) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.cat = cat; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
-        function bulkSetExec(val) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx) tx.exec = val; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
-        function bulkAssignIncome(incomeId) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.linkId = incomeId; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
-        function bulkUnassignIncome() { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.linkId = null; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
-        function bulkDelete() { if(!confirm(`¿Eliminar ${selectedTxIds.size} elementos?`)) return; pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx) tx.deletedAt = Date.now(); }); saveData(); toggleSelectionMode(); closeBulkModal(); }
-        
-        function updateKPIs(txs){ 
-            const dashTxs = txs.filter(t => t.type !== 'transfer');
-            const tc=parseFloat(document.getElementById('rate_ARS').value)||1200; 
-            const i=dashTxs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0); 
-            const e=dashTxs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0); 
-            const bal = i-e;
-            document.getElementById('k-inc').innerText='$'+fmt(i); 
-            document.getElementById('k-exp').innerText='$'+fmt(e); 
-            const balEl = document.getElementById('k-bal');
-            balEl.innerText = '$'+fmt(bal);
-            balEl.className = `text-2xl font-black tracking-tight ${bal >= 0 ? 'text-emerald-700' : 'text-rose-700'}`;
-            document.getElementById('k-usd').innerText='USD '+fmt(bal/tc); 
+        function renderNetWorthChart() {
+            const ctx = document.getElementById('chartNetWorth'); if(netWorthChartInst) netWorthChartInst.destroy();
+            const labels = []; const dataAssets = []; const dataLiabs = []; const dataNet = [];
+            let d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 11); 
+            for(let i=0; i<12; i++) {
+                const y = d.getFullYear(), m = d.getMonth() + 1;
+                const key = `${y}-${m.toString().padStart(2,'0')}`; labels.push(MONTHS[d.getMonth()]);
+                const monthRates = appData.monthlyRates[key] || { ARS: 1500, COP: 3700, USD: 1 };
+                const endOfMonth = new Date(y, m, 0); const subTxs = appData.txs.filter(t => !t.deletedAt && new Date(t.date) <= endOfMonth);
+                const tmpBal = {}; appData.accounts.forEach(a => tmpBal[a.id] = (a.initBal || 0));
+                subTxs.forEach(t => {
+                   if(t.type === 'inc' && t.toAccountId) tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount);
+                   else if(t.type === 'exp' && t.fromAccountId) tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
+                   else if(t.type === 'transfer') { tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount); tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount); }
+                });
+                let mAssets = 0, mLiabs = 0;
+                appData.accounts.forEach(a => { const val = (a.currency === 'ARS') ? tmpBal[a.id] : (a.currency === 'USD' ? tmpBal[a.id] * monthRates.ARS : (tmpBal[a.id] / monthRates.COP) * monthRates.ARS); if(a.kind === 'asset') mAssets += val; else mLiabs += val; });
+                dataAssets.push(mAssets); dataLiabs.push(mLiabs); dataNet.push(mAssets + mLiabs); d.setMonth(d.getMonth() + 1);
+            }
+            netWorthChartInst = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [ { label: 'Activos', data: dataAssets, backgroundColor: '#10b981' }, { label: 'Pasivos', data: dataLiabs, backgroundColor: '#ef4444' }, { type: 'line', label: 'Neto', data: dataNet, borderColor: '#0f172a' } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: {display: false} }, y: { ticks: { callback: (v) => '$' + (v/1000000).toFixed(1) + 'M' } } } } });
         }
+        function renderNetWorthComposition(balances, rates) {
+            const cvs = document.getElementById('chartNWComp'); if(cNWComp) cNWComp.destroy();
+            const data = []; const labels = []; appData.accounts.filter(a => a.kind === 'asset').forEach(a => { const val = (a.currency === 'ARS') ? (balances[a.id] || 0) : (a.currency === 'USD' ? (balances[a.id] || 0) * rates.ARS : ((balances[a.id] || 0) / rates.COP) * rates.ARS); if(val > 0) { labels.push(a.name); data.push(val); } });
+            cNWComp = new Chart(cvs, { type:'doughnut', data:{ labels:labels, datasets:[{data:data, backgroundColor:PALETTE, borderWidth:0}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{display:false}} } });
+        }
+        function openAccountModal() { editAccId=null; document.getElementById('accForm').reset(); document.getElementById('btnDelAcc').classList.add('hidden'); document.getElementById('accModal').classList.remove('hidden'); }
+        function closeAccountModal() { document.getElementById('accModal').classList.add('hidden'); }
+        function editAccount(id) { editAccId = id; const a = appData.accounts.find(x => x.id === id); document.getElementById('accName').value = a.name; document.getElementById('accKind').value = a.kind; document.getElementById('accCurr').value = a.currency; document.getElementById('accInit').value = a.initBal; document.getElementById('btnDelAcc').classList.remove('hidden'); document.getElementById('accModal').classList.remove('hidden'); }
+        function saveAccount(e) { e.preventDefault(); pushHistory(); const acc = { id: editAccId || 'acc_'+Date.now(), name: document.getElementById('accName').value, kind: document.getElementById('accKind').value, currency: document.getElementById('accCurr').value, initBal: parseFloat(document.getElementById('accInit').value) || 0 }; if(editAccId) { const i = appData.accounts.findIndex(x=>x.id===editAccId); appData.accounts[i] = acc; } else appData.accounts.push(acc); saveData(); closeAccountModal(); }
+        function deleteAccount() { if(!confirm('¿Eliminar cuenta?')) return; pushHistory(); appData.accounts = appData.accounts.filter(x => x.id !== editAccId); saveData(); closeAccountModal(); }
+        function saveMonthlyRates() { const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; saveData(); }
+        
+        // --- ADMIN & RECURRENTES ---
         function renderAdminTree() {
             const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
             const buildBranch = (title, type) => {
                 const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
-                const icon = type === 'inc' ? 'trending_up' : 'trending_down';
-                const color = type === 'inc' ? 'text-success' : 'text-danger';
-                let html = `<div class="mb-1"><div class="flex items-center gap-2 mb-1 px-1 mt-1"><span class="material-symbols-outlined text-sm ${color}">${icon}</span><h4 class="font-bold text-[10px] text-slate-500 uppercase tracking-wide">${title}</h4></div><div class="space-y-1">`;
+                let html = `<div class="mb-1"><div class="flex items-center gap-2 mb-1 px-1 mt-1"><span class="material-symbols-outlined text-sm text-slate-500">${type === 'inc' ? 'trending_up' : 'trending_down'}</span><h4 class="font-bold text-[10px] text-slate-500 uppercase">${title}</h4></div><div class="space-y-1">`;
                 cats.forEach(c => {
                     const concepts = appData.concepts[c] || [];
-                    html += `<details class="group bg-slate-50 rounded-lg border border-slate-100 overflow-hidden open:bg-white open:shadow-sm transition-all"><summary class="flex justify-between items-center p-1.5 cursor-pointer hover:bg-slate-100 transition-colors"><div class="flex items-center gap-1"><span class="material-symbols-outlined text-slate-400 text-base group-open:text-primary transition-colors">folder</span><span class="text-[11px] font-bold text-slate-700">${c}</span><span class="text-[9px] text-slate-400 bg-white px-1.5 rounded-full border border-slate-100">${concepts.length}</span></div><button onclick="delCat('${type}','${c}')" class="text-slate-300 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button></summary><div class="p-1.5 pt-0 border-t border-slate-100 bg-white"><div class="flex flex-wrap gap-1 mb-1 mt-1">${concepts.map(con => `<div class="cat-tag flex items-center gap-1 group/tag">${con}<button onclick="delConcept('${c}','${con}')" class="text-slate-300 hover:text-red-500 hidden group-hover/tag:block"><span class="material-symbols-outlined text-[10px] font-bold">close</span></button></div>`).join('')}</div><div class="flex gap-1"><input type="text" id="newCon_${c}" placeholder="+ Subcat" class="w-full text-[10px] border-none bg-slate-50 rounded px-2 py-0.5 focus:ring-1 focus:ring-primary"><button onclick="manualAddConcept('${c}')" class="text-primary hover:bg-primary/10 rounded px-1"><span class="material-symbols-outlined text-sm">add</span></button></div></div></details>`;
+                    html += `<details class="group bg-slate-50 rounded-lg border border-slate-100 open:bg-white"><summary class="flex justify-between items-center p-1.5 cursor-pointer"><div class="flex items-center gap-1"><span class="material-symbols-outlined text-slate-400 text-base">folder</span><span class="text-[11px] font-bold text-slate-700">${c}</span></div><button onclick="delCat('${type}','${c}')" class="text-slate-300 hover:text-red-500"><span class="material-symbols-outlined text-sm">delete</span></button></summary><div class="p-1.5 pt-0 border-t"><div class="flex flex-wrap gap-1 mb-1 mt-1">${concepts.map(con => `<div class="cat-tag flex items-center gap-1 group/tag">${con}<button onclick="delConcept('${c}','${con}')" class="text-slate-300 hover:text-red-500 hidden group-hover/tag:block">×</button></div>`).join('')}</div><div class="flex gap-1"><input type="text" id="newCon_${c}" placeholder="+ Subcat" class="w-full text-[10px] border-none bg-slate-50 rounded px-2 py-0.5"><button onclick="manualAddConcept('${c}')" class="text-primary hover:bg-primary/10 rounded px-1">+</button></div></div></details>`;
                 });
-                html += `</div></div>`;
-                container.innerHTML += html;
+                html += `</div></div>`; container.innerHTML += html;
             };
-            buildBranch("Gastos", "exp");
-            buildBranch("Ingresos", "inc");
+            buildBranch("Gastos", "exp"); buildBranch("Ingresos", "inc");
         }
+        function manualAddCat() { const n = document.getElementById('newCatName').value.trim(); const t = document.getElementById('newCatType').value; if(!n) return alert('Nombre?'); pushHistory(); if(t === 'exp') { if(!appData.cats.exp.includes(n)) appData.cats.exp.push(n); } else { if(!appData.cats.inc.includes(n)) appData.cats.inc.push(n); } if(!appData.concepts[n]) appData.concepts[n] = []; document.getElementById('newCatName').value = ''; saveData(); }
+        function delCat(type, name) { if(confirm(`¿Eliminar ${name}?`)) { pushHistory(); if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name); delete appData.concepts[name]; saveData(); } }
+        function manualAddConcept(catName) { const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim(); if(!val) return; pushHistory(); if(!appData.concepts[catName]) appData.concepts[catName] = []; if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val); saveData(); }
+        function delConcept(cat, name) { if(confirm(`¿Eliminar ${name}?`)) { pushHistory(); appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); } }
+        
+        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-200 py-1 last:border-0'; d.innerHTML=`<input value="${r.desc}" onchange="pushHistory();appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded px-1 py-0.5"><input type="number" value="${r.amount}" onchange="pushHistory();appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded px-1 py-0.5 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="deleteRecurrente(${i})" class="text-red-400 hover:text-red-600 font-bold px-2">x</button>`; b.appendChild(d);}); }
+        function deleteRecurrente(i) { pushHistory(); appData.recurrentes.splice(i,1); saveData(); }
+        function addRecurrenteRow() { pushHistory(); appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
+        function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
+        function executeRecurrentes() { if(isMonthClosed()) return alert("Mes cerrado."); const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; const defAcc = appData.accounts[0].id; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS', fromAccountId: r.type==='exp'?defAcc:null, toAccountId:r.type==='inc'?defAcc:null, children: []}); c++; }}); if(c>0){ pushHistory(); saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
+        function populateRecurringDefaults() { if(!confirm("¿Sugerir recurrentes?")) return; const limitDate = new Date(); limitDate.setDate(limitDate.getDate() - 90); const recent = appData.txs.filter(t => !t.deletedAt && t.type === 'exp' && new Date(t.date) >= limitDate); const analysis = {}; recent.forEach(t => { const d = t.desc.trim(); if(!analysis[d]) analysis[d] = { count: 0, lastAmt: 0, cat: t.cat, dates: new Set() }; analysis[d].count++; analysis[d].lastAmt = t.origAmt || t.amount; analysis[d].cat = t.cat; analysis[d].dates.add(t.date.substring(0, 7)); }); let added = 0; Object.entries(analysis).forEach(([desc, data]) => { if((data.dates.size >= 2 || data.count >= 2) && !appData.recurrentes.some(r => r.desc.toLowerCase() === desc.toLowerCase())) { appData.recurrentes.push({ desc: desc, amount: data.lastAmt, cat: data.cat, type: 'exp' }); added++; } }); if(added === 0) alert("Sin novedades."); else alert(`Agregadas ${added} sugerencias.`); renderRecurrentesAdmin(); saveData(); }
+
+        function autoAssign() { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Asignar automáticamente?")) return; const txs = getFilteredTxs(); let incomes = txs.filter(t => t.type === 'inc').map(i => { const assigned = txs.filter(e => e.type === 'exp' && e.linkId == i.id).reduce((a,b)=>a+b.amount,0); return { ...i, balance: i.amount - assigned }; }); const unassigned = txs.filter(t => t.type === 'exp' && !t.linkId); let count = 0; unassigned.forEach(exp => { const valid = incomes.find(inc => inc.date <= exp.date && inc.balance >= exp.amount); if(valid) { exp.linkId = valid.id; valid.balance -= exp.amount; count++; } }); if(count > 0) { alert(`Asignados: ${count}`); saveData(); } else alert("No se encontraron coincidencias."); }
+        function unassignAll() { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Desvincular TODOS?")) return; pushHistory(); getFilteredTxs().forEach(t => { if(t.type === 'exp') t.linkId = null; }); saveData(); }
+        function unassignGroup(incId) { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Desvincular grupo?")) return; pushHistory(); appData.txs.forEach(t => { if(t.type === 'exp' && t.linkId == incId) t.linkId = null; }); saveData(); }
+        
+        // --- NAVIGATION ---
+        function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } if(v==='networth') renderNetWorthView(); }
+
+        // --- MONTH CLOSE ---
+        function closeMonth() { if(!confirm("¿Cerrar mes?")) return; pushHistory(); const key = getMonthKey(currentDate); const txs = getFilteredTxs(); txs.forEach(t => { t.exec = true; }); saveMonthlyRates(); const i = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0); const e = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0); appData.monthlySummary[key] = { income: i, expense: e, balance: i - e, closedAt: Date.now() }; appData.closedMonths[key] = true; saveData(); }
+        function reopenMonth() { if(prompt("Escribe 'REABRIR':") !== 'REABRIR') return alert("Incorrecto"); pushHistory(); appData.closedMonths[getMonthKey(currentDate)] = false; saveData(); }
     </script>
 </body>
 </html>
