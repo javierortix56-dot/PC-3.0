@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | V9 Final</title>
+    <title>Finanzas J&M | V10 Final</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -64,7 +64,7 @@
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
         .split-row { border-left: 2px solid #e2e8f0; margin-left: 28px; padding-left: 8px; }
-        .split-input-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr auto; gap: 4px; align-items: center; margin-bottom: 4px; }
+        .split-input-row { display: grid; grid-template-columns: 1.2fr 1.5fr 1fr auto; gap: 4px; align-items: center; margin-bottom: 4px; }
         
         #bulkBar { transition: transform 0.3s ease-out; transform: translate(-50%, 100px); }
         #bulkBar.show { transform: translate(-50%, 0); display: flex; }
@@ -726,11 +726,9 @@
 
             dashTxs.forEach(t => {
                 if(t.type === 'exp') {
-                     // Check search in desc or children desc
                      const matchSelf = t.desc.toLowerCase().includes(search);
                      const matchChild = t.children && t.children.some(c => c.desc.toLowerCase().includes(search));
                      if(search && !matchSelf && !matchChild && search !== 'sin asignar') return;
-                     // Check 'sin asignar' filter
                      if(search === 'sin asignar' && t.linkId) return;
                 }
 
@@ -739,7 +737,6 @@
                 
                 const el = document.createElement(isSplit ? 'details' : 'div');
                 
-                // VISUAL CORRECTION: STRIKETHROUGH FOR EXECUTED
                 let baseClass = t.exec ? "opacity-60 bg-slate-50/50 line-through decoration-slate-400" : "bg-white";
                 if(isSelectionMode && isSelected) baseClass = "bg-blue-50/50";
                 
@@ -800,9 +797,16 @@
                 const rem = inc.amount - spent;
                 const pct = Math.min(100, (spent/inc.amount)*100);
                 
+                // CORRECCIÓN DE TACHADO EN ASIGNACIÓN
                 let rows = ''; 
-                if (subs.length > 0) { subs.forEach(s => { rows += `<div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc}</span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`; }); } 
-                else { rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>'; }
+                if (subs.length > 0) { 
+                    subs.forEach(s => { 
+                        const style = s.exec ? 'line-through text-slate-400 opacity-70' : 'text-slate-600';
+                        rows += `<div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${style}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc}</span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`; 
+                    }); 
+                } else { 
+                    rows = '<span class="text-[10px] text-slate-300 italic px-2">Sin asignaciones</span>'; 
+                }
                 
                 const card = document.createElement('div');
                 card.innerHTML = `<div class="rounded-xl border border-slate-200 bg-white mb-2 shadow-sm overflow-hidden group"><div class="p-3 bg-slate-50/50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors"><div onclick="this.closest('.rounded-xl').querySelector('.alloc-details').classList.toggle('hidden')" class="flex-1"><p class="text-[11px] font-bold text-slate-700">${inc.desc}</p><p class="text-[10px] font-extrabold mt-0.5 ${rem>=0?'text-success':'text-danger'}">$${fmt(rem)}</p></div><div class="flex items-center gap-3"><span class="text-[9px] font-bold text-slate-600">${Math.round(pct)}%</span><button onclick="unassignGroup(${inc.id})" class="text-slate-300 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-sm">link_off</span></button></div></div><div class="w-full h-1 bg-slate-100"><div class="h-full ${pct>90?'bg-danger':'bg-primary'}" style="width: ${pct}%;"></div></div><div class="alloc-details hidden bg-white py-1 border-t border-slate-100">${rows}</div></div>`;
@@ -879,21 +883,46 @@
             }
         }
 
+        // --- NUEVA LÓGICA DE SPLIT CON CONCEPTOS ---
         function addSplitRow(data = {}) {
             const container = document.getElementById('splitRows');
             const div = document.createElement('div');
+            const rowId = `split_${Date.now()}_${Math.random().toString(36).substr(2,9)}`;
             div.className = 'split-input-row';
-            let catOpts = '';
-            (appData.cats.exp || []).forEach(c => catOpts += `<option value="${c}" ${data.cat===c?'selected':''}>${c}</option>`);
             
+            // Build Cat Select
+            let catOpts = '';
+            const cats = appData.cats.exp || [];
+            cats.forEach(c => catOpts += `<option value="${c}" ${data.cat===c?'selected':''}>${c}</option>`);
+            
+            // Build Datalist for Concepts based on current selection
+            const currentCat = data.cat || cats[0];
+            const concepts = appData.concepts[currentCat] || [];
+            let datalistOpts = '';
+            concepts.forEach(c => datalistOpts += `<option value="${c}">`);
+
             div.innerHTML = `
-                <select class="split-cat w-full text-[10px] border border-slate-200 rounded p-1 bg-white">${catOpts}</select>
-                <input type="text" class="split-desc w-full text-[10px] border border-slate-200 rounded p-1" placeholder="Desc" value="${data.desc||''}">
+                <select class="split-cat w-full text-[10px] border border-slate-200 rounded p-1 bg-white" onchange="updateSplitConcepts(this, '${rowId}')">${catOpts}</select>
+                
+                <input type="text" list="list_${rowId}" class="split-desc w-full text-[10px] border border-slate-200 rounded p-1" placeholder="Concepto" value="${data.desc||''}">
+                <datalist id="list_${rowId}">${datalistOpts}</datalist>
+
                 <input type="number" class="split-amt w-full text-[10px] border border-slate-200 rounded p-1 text-right font-bold" placeholder="0" value="${data.amount||''}" step="0.01" oninput="calcSplitDiff()">
                 <button type="button" onclick="this.parentElement.remove();calcSplitDiff()" class="text-red-400 hover:text-red-600 font-bold px-1">x</button>
             `;
             container.appendChild(div);
             calcSplitDiff();
+        }
+
+        function updateSplitConcepts(selectEl, rowId) {
+            const newCat = selectEl.value;
+            const concepts = appData.concepts[newCat] || [];
+            const datalist = document.getElementById(`list_${rowId}`);
+            if(datalist) {
+                datalist.innerHTML = '';
+                concepts.forEach(c => datalist.innerHTML += `<option value="${c}">`);
+            }
+            // Optional: Clear input if cat changes? Let's keep it to avoid data loss
         }
 
         function calcSplitDiff() {
@@ -913,7 +942,7 @@
         document.getElementById('txForm').onsubmit=e=>{
             e.preventDefault();
             const d = new Date(document.getElementById('fDate').value + 'T00:00:00');
-            if(isMonthClosed(d)) return alert("El mes de esa fecha está cerrado. No puedes agregar ni editar.");
+            if(isMonthClosed(d)) return alert("El mes de esa fecha está cerrado.");
 
             const type = document.getElementById('fType').value;
             const isSplit = document.getElementById('fIsSplit').checked && type === 'exp';
@@ -924,11 +953,19 @@
 
             if(isSplit) {
                 const diff = calcSplitDiff();
-                if(Math.abs(diff) > 1) return alert(`La suma de los items no coincide con el total.`);
+                if(Math.abs(diff) > 1) return alert(`La suma no coincide. Diferencia: ${diff}`);
                 const rows = document.querySelectorAll('.split-input-row');
                 rows.forEach(r => {
                     const rAmt = parseFloat(r.querySelector('.split-amt').value) || 0;
-                    if(rAmt > 0) children.push({id: Date.now()+Math.random(), cat: r.querySelector('.split-cat').value, desc: r.querySelector('.split-desc').value, amount: rAmt});
+                    const rCat = r.querySelector('.split-cat').value;
+                    const rDesc = r.querySelector('.split-desc').value;
+                    
+                    if(rAmt > 0) {
+                        children.push({id: Date.now()+Math.random(), cat: rCat, desc: rDesc, amount: rAmt});
+                        // Learn new concepts from split
+                        if(!appData.concepts[rCat]) appData.concepts[rCat] = [];
+                        if(rDesc && !appData.concepts[rCat].includes(rDesc)) appData.concepts[rCat].push(rDesc);
+                    }
                 });
                 cat = 'Múltiples'; desc = document.getElementById('fDesc').value || 'Gasto dividido';
             } else {
@@ -968,6 +1005,23 @@
             const tx = appData.txs.find(t => t.id === id);
             if(tx) tx.exec = !tx.exec;
             saveData();
+        }
+
+        // --- NAVIGATION FIXED ---
+        function nav(v, el) {
+            document.querySelectorAll('.view-container').forEach(e => e.classList.add('hidden-view'));
+            const target = document.getElementById(`view-${v}`);
+            if(target) target.classList.remove('hidden-view');
+            
+            document.querySelectorAll('#main-nav button').forEach(e => {
+                e.classList.remove('active-nav');
+                e.classList.add('text-slate-500');
+            });
+            if(el) {
+                el.classList.add('active-nav');
+                el.classList.remove('text-slate-500');
+            }
+            if(v === 'networth') renderNetWorthView();
         }
 
         // --- BULK LOGIC ---
@@ -1139,6 +1193,221 @@
             const fAcc = document.getElementById('fFromAcc'); const tAcc = document.getElementById('fToAcc');
             fAcc.innerHTML = ''; tAcc.innerHTML = '';
             appData.accounts.forEach(a => { const opt = `<option value="${a.id}">${a.name} (${a.currency})</option>`; fAcc.innerHTML += opt; tAcc.innerHTML += opt; });
+        }
+        
+        // ADMIN AND RECURRENTES FUNCTIONS
+        function manualAddCat() { const n = document.getElementById('newCatName').value.trim(); const t = document.getElementById('newCatType').value; if(!n) return alert('Nombre?'); pushHistory(); if(t === 'exp') { if(!appData.cats.exp.includes(n)) appData.cats.exp.push(n); } else { if(!appData.cats.inc.includes(n)) appData.cats.inc.push(n); } if(!appData.concepts[n]) appData.concepts[n] = []; document.getElementById('newCatName').value = ''; saveData(); }
+        function delCat(type, name) { if(confirm(`¿Eliminar ${name}?`)) { pushHistory(); if(type === 'exp') appData.cats.exp = appData.cats.exp.filter(x => x !== name); else appData.cats.inc = appData.cats.inc.filter(x => x !== name); delete appData.concepts[name]; saveData(); } }
+        function manualAddConcept(catName) { const input = document.getElementById(`newCon_${catName}`); const val = input.value.trim(); if(!val) return; pushHistory(); if(!appData.concepts[catName]) appData.concepts[catName] = []; if(!appData.concepts[catName].includes(val)) appData.concepts[catName].push(val); saveData(); renderAdminTree(); }
+        function delConcept(cat, name) { if(confirm(`¿Eliminar ${name}?`)) { pushHistory(); appData.concepts[cat] = appData.concepts[cat].filter(x => x !== name); saveData(); } }
+        function renderAdminTree() {
+            const container = document.getElementById('adminTreeContainer'); container.innerHTML = '';
+            const buildBranch = (title, type) => {
+                const cats = type === 'inc' ? appData.cats.inc : appData.cats.exp;
+                const icon = type === 'inc' ? 'trending_up' : 'trending_down';
+                const color = type === 'inc' ? 'text-success' : 'text-danger';
+                let html = `<div class="mb-1"><div class="flex items-center gap-2 mb-1 px-1 mt-1"><span class="material-symbols-outlined text-sm ${color}">${icon}</span><h4 class="font-bold text-[10px] text-slate-500 uppercase tracking-wide">${title}</h4></div><div class="space-y-1">`;
+                cats.forEach(c => {
+                    const concepts = appData.concepts[c] || [];
+                    html += `<details class="group bg-slate-50 rounded-lg border border-slate-100 overflow-hidden open:bg-white open:shadow-sm transition-all"><summary class="flex justify-between items-center p-1.5 cursor-pointer hover:bg-slate-100 transition-colors"><div class="flex items-center gap-1"><span class="material-symbols-outlined text-slate-400 text-base group-open:text-primary transition-colors">folder</span><span class="text-[11px] font-bold text-slate-700">${c}</span><span class="text-[9px] text-slate-400 bg-white px-1.5 rounded-full border border-slate-100">${concepts.length}</span></div><button onclick="delCat('${type}','${c}')" class="text-slate-300 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button></summary><div class="p-1.5 pt-0 border-t border-slate-100 bg-white"><div class="flex flex-wrap gap-1 mb-1 mt-1">${concepts.map(con => `<div class="cat-tag flex items-center gap-1 group/tag">${con}<button onclick="delConcept('${c}','${con}')" class="text-slate-300 hover:text-red-500 hidden group-hover/tag:block"><span class="material-symbols-outlined text-[10px] font-bold">close</span></button></div>`).join('')}</div><div class="flex gap-1"><input type="text" id="newCon_${c}" placeholder="+ Subcat" class="w-full text-[10px] border-none bg-slate-50 rounded px-2 py-0.5 focus:ring-1 focus:ring-primary"><button onclick="manualAddConcept('${c}')" class="text-primary hover:bg-primary/10 rounded px-1"><span class="material-symbols-outlined text-sm">add</span></button></div></div></details>`;
+                });
+                html += `</div></div>`;
+                container.innerHTML += html;
+            };
+            buildBranch("Gastos", "exp");
+            buildBranch("Ingresos", "inc");
+        }
+        function saveMonthlyRates() { const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.monthlyRates[`${y}-${m.toString().padStart(2,'0')}`] = { ARS: parseFloat(document.getElementById('rate_ARS').value), COP: parseFloat(document.getElementById('rate_COP').value), USD: 1 }; saveData(); }
+        function renderRecurrentesAdmin() { const b=document.getElementById('recurrente-table-body'); b.innerHTML=''; appData.recurrentes.forEach((r,i)=>{const d=document.createElement('div'); d.className='flex gap-2 items-center text-xs border-b border-slate-200 py-1 last:border-0'; d.innerHTML=`<input value="${r.desc}" onchange="pushHistory();appData.recurrentes[${i}].desc=this.value" class="w-1/3 border-slate-200 rounded px-1 py-0.5"><input type="number" value="${r.amount}" onchange="pushHistory();appData.recurrentes[${i}].amount=parseFloat(this.value)" class="w-1/4 border-slate-200 rounded px-1 py-0.5 text-right"><span class="text-slate-400 text-[10px] w-1/4">${r.cat}</span><button onclick="deleteRecurrente(${i})" class="text-red-400 hover:text-red-600 font-bold px-2">x</button>`; b.appendChild(d);}); }
+        function deleteRecurrente(i) { pushHistory(); appData.recurrentes.splice(i,1); saveData(); }
+        function addRecurrenteRow() { pushHistory(); appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
+        function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
+        function executeRecurrentes() { 
+            if(isMonthClosed()) return alert("Mes cerrado."); 
+            const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; 
+            let c=0; const defAcc = appData.accounts[0].id; 
+            appData.recurrentes.forEach(r=>{ 
+                if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ 
+                    appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS', fromAccountId: r.type==='exp'?defAcc:null, toAccountId:r.type==='inc'?defAcc:null, children: []}); 
+                    c++; 
+                }
+            }); 
+            if(c>0){ pushHistory(); saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); 
+        }
+        function autoAssign() { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Asignar automáticamente?")) return; const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; const currentMonthTxs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m); let incomes = currentMonthTxs.filter(t => t.type === 'inc').map(i => { const assigned = currentMonthTxs.filter(e => e.type === 'exp' && e.linkId == i.id).reduce((a,b)=>a+b.amount,0); return { ...i, balance: i.amount - assigned }; }); const unassignedExps = currentMonthTxs.filter(t => t.type === 'exp' && !t.linkId); let count = 0; let changesMade = false; unassignedExps.forEach(exp => { const validIncome = incomes.find(inc => inc.date <= exp.date && inc.balance >= exp.amount); if(validIncome) { if(!changesMade) { pushHistory(); changesMade = true; } exp.linkId = validIncome.id; validIncome.balance -= exp.amount; count++; } }); if(count > 0) { alert(`Asignados: ${count} gastos.`); saveData(); } else { alert("No se encontraron coincidencias válidas."); } }
+        function unassignAll() { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Desvincular TODOS los gastos?")) return; pushHistory(); const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.txs.forEach(t => { if(!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m && t.type === 'exp') { t.linkId = null; }}); saveData(); }
+        function unassignGroup(incId) { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Desvincular gastos?")) return; pushHistory(); appData.txs.forEach(t => { if(t.type === 'exp' && t.linkId == incId) t.linkId = null; }); saveData(); }
+        function populateRecurringDefaults() { if(!confirm("¿Sugerir recurrentes?")) return; const limitDate = new Date(); limitDate.setDate(limitDate.getDate() - 90); const recent = appData.txs.filter(t => !t.deletedAt && t.type === 'exp' && new Date(t.date) >= limitDate); const analysis = {}; recent.forEach(t => { const d = t.desc.trim(); if(!analysis[d]) analysis[d] = { count: 0, lastAmt: 0, cat: t.cat, dates: new Set() }; analysis[d].count++; analysis[d].lastAmt = t.origAmt || t.amount; analysis[d].cat = t.cat; analysis[d].dates.add(t.date.substring(0, 7)); }); let added = 0; let changesMade = false; Object.entries(analysis).forEach(([desc, data]) => { if((data.dates.size >= 2 || data.count >= 2) && !appData.recurrentes.some(r => r.desc.toLowerCase() === desc.toLowerCase())) { if(!changesMade) { pushHistory(); changesMade = true; } appData.recurrentes.push({ desc: desc, amount: data.lastAmt, cat: data.cat, type: 'exp' }); added++; } }); if(added === 0) alert("Sin novedades."); else alert(`Agregadas ${added} sugerencias.`); renderRecurrentesAdmin(); saveData(); }
+        
+        // --- NET WORTH LOGIC ---
+        function renderNetWorthView() {
+            const list = document.getElementById('list-accounts'); list.innerHTML = '';
+            const rateARS = parseFloat(document.getElementById('rate_ARS').value) || 1200;
+            const rateCOP = parseFloat(document.getElementById('rate_COP').value) || 3700;
+            const rates = { ARS: rateARS, COP: rateCOP, USD: 1 };
+
+            const balances = {}; 
+            appData.accounts.forEach(a => balances[a.id] = (a.initBal || 0));
+            const sortedTxs = appData.txs.filter(t => !t.deletedAt).sort((a,b) => a.date.localeCompare(b.date));
+            
+            sortedTxs.forEach(t => {
+                const getAmountForAccount = (accId, tx) => {
+                    const acc = appData.accounts.find(a => a.id === accId);
+                    if (!acc) return 0;
+                    if (acc.currency === 'USD') {
+                        if (tx.origCurr === 'USD') return (tx.origAmt || tx.amount);
+                        return tx.amount / rates.ARS; 
+                    }
+                    if (acc.currency === 'COP') {
+                        if (tx.origCurr === 'COP') return (tx.origAmt || tx.amount);
+                         return (tx.amount / rates.ARS) * rates.COP; 
+                    }
+                    return tx.amount; 
+                };
+
+                if(t.type === 'inc' && t.toAccountId) {
+                    balances[t.toAccountId] = (balances[t.toAccountId] || 0) + getAmountForAccount(t.toAccountId, t);
+                } else if(t.type === 'exp' && t.fromAccountId) {
+                    balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
+                } else if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
+                    balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
+                    if (t.destAmount) {
+                         balances[t.toAccountId] = (balances[t.toAccountId] || 0) + t.destAmount;
+                    } else {
+                        balances[t.toAccountId] = (balances[t.toAccountId] || 0) + getAmountForAccount(t.toAccountId, t);
+                    }
+                }
+            });
+
+            let totalAssets = 0, totalLiabs = 0;
+            appData.accounts.forEach(a => {
+                const bal = balances[a.id] || 0;
+                const balARS = convertValue(bal, a.currency, rates);
+                if (a.kind === 'asset') totalAssets += balARS; else totalLiabs += balARS;
+                
+                const el = document.createElement('div');
+                el.className = "flex items-center justify-between p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 group";
+                el.innerHTML = `
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="editAccount('${a.id}')">
+                        <div class="size-8 rounded-full flex items-center justify-center ${a.kind==='asset'?'bg-emerald-100 text-emerald-600':'bg-rose-100 text-rose-600'}">
+                            <span class="material-symbols-outlined text-lg">${a.kind==='asset'?'account_balance':'credit_card'}</span>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-700">${a.name}</p>
+                            <p class="text-[10px] text-slate-400">${a.currency}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold ${bal >= 0 ? 'text-slate-700' : 'text-red-500'}">${a.currency} ${fmt(bal)}</p>
+                        ${a.currency !== 'ARS' ? `<p class="text-[9px] text-slate-400">≈ $${fmt(balARS)}</p>` : ''}
+                    </div>`;
+                list.appendChild(el);
+            });
+
+            const nw = totalAssets + totalLiabs; 
+            document.getElementById('nw-total').innerText = `$${fmt(nw)}`;
+            document.getElementById('nw-usd').innerText = `USD ${fmt(nw / rateARS)}`;
+            document.getElementById('nw-assets').innerText = `$${fmt(totalAssets)}`; 
+            document.getElementById('nw-liabs').innerText = `$${fmt(totalLiabs)}`; 
+            renderNetWorthChart();
+            renderNetWorthComposition(balances, rates);
+        }
+
+        function convertValue(amt, curr, rates) {
+            if (curr === 'ARS') return amt;
+            if (curr === 'USD') return amt * rates.ARS;
+            if (curr === 'COP') return (amt / rates.COP) * rates.ARS;
+            return amt;
+        }
+
+        function renderNetWorthChart() {
+            const ctx = document.getElementById('chartNetWorth');
+            if(netWorthChartInst) netWorthChartInst.destroy();
+            const labels = []; const dataAssets = []; const dataLiabs = []; const dataNet = [];
+            let d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 11); 
+            
+            for(let i=0; i<12; i++) {
+                const y = d.getFullYear(), m = d.getMonth() + 1;
+                const key = `${y}-${m.toString().padStart(2,'0')}`;
+                labels.push(MONTHS[d.getMonth()]);
+                const monthRates = appData.monthlyRates[key] || { ARS: 1500, COP: 3700, USD: 1 };
+                const endOfMonth = new Date(y, m, 0); 
+                const subTxs = appData.txs.filter(t => !t.deletedAt && new Date(t.date) <= endOfMonth);
+                const tmpBal = {};
+                appData.accounts.forEach(a => tmpBal[a.id] = (a.initBal || 0));
+                
+                subTxs.forEach(t => {
+                   if(t.type === 'inc' && t.toAccountId) tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount);
+                   else if(t.type === 'exp' && t.fromAccountId) tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
+                   else if(t.type === 'transfer') {
+                       tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
+                       tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount); 
+                   }
+                });
+                let mAssets = 0, mLiabs = 0;
+                appData.accounts.forEach(a => {
+                    const val = convertValue(tmpBal[a.id], a.currency, monthRates);
+                    if(a.kind === 'asset') mAssets += val; else mLiabs += val;
+                });
+                dataAssets.push(mAssets); dataLiabs.push(mLiabs); dataNet.push(mAssets + mLiabs);
+                d.setMonth(d.getMonth() + 1);
+            }
+
+            netWorthChartInst = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Activos', data: dataAssets, backgroundColor: '#10b981', stack: 'Stack 0' },
+                        { label: 'Pasivos', data: dataLiabs, backgroundColor: '#ef4444', stack: 'Stack 0' },
+                        { type: 'line', label: 'Neto', data: dataNet, borderColor: '#0f172a', borderWidth: 2, tension: 0.3, pointRadius: 0 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: {boxWidth: 8, font:{size:9}} } }, scales: { x: { grid: {display: false} }, y: { ticks: { callback: (v) => '$' + (v/1000000).toFixed(1) + 'M', font:{size:9} } } } }
+            });
+        }
+        
+        function renderNetWorthComposition(balances, rates) {
+            const cvs = document.getElementById('chartNWComp');
+            if(cNWComp) cNWComp.destroy();
+            const data = []; const labels = [];
+            appData.accounts.filter(a => a.kind === 'asset').forEach(a => {
+                 const val = convertValue(balances[a.id] || 0, a.currency, rates);
+                 if(val > 0) { labels.push(a.name); data.push(val); }
+            });
+            cNWComp = new Chart(cvs, { type:'doughnut', data:{ labels:labels, datasets:[{data:data, backgroundColor:PALETTE, borderWidth:0}] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{display:false}} } });
+        }
+
+        // --- ACCOUNT MODAL ---
+        function openAccountModal() { editAccId=null; document.getElementById('accForm').reset(); document.getElementById('btnDelAcc').classList.add('hidden'); document.getElementById('accModal').classList.remove('hidden'); }
+        function closeAccountModal() { document.getElementById('accModal').classList.add('hidden'); }
+        function editAccount(id) {
+            editAccId = id; const a = appData.accounts.find(x => x.id === id);
+            document.getElementById('accName').value = a.name;
+            document.getElementById('accKind').value = a.kind;
+            document.getElementById('accCurr').value = a.currency;
+            document.getElementById('accInit').value = a.initBal;
+            document.getElementById('btnDelAcc').classList.remove('hidden');
+            document.getElementById('accModal').classList.remove('hidden');
+        }
+        function saveAccount(e) {
+            e.preventDefault(); pushHistory();
+            const acc = {
+                id: editAccId || 'acc_'+Date.now(),
+                name: document.getElementById('accName').value,
+                kind: document.getElementById('accKind').value,
+                currency: document.getElementById('accCurr').value,
+                initBal: parseFloat(document.getElementById('accInit').value) || 0
+            };
+            if(editAccId) { const i = appData.accounts.findIndex(x=>x.id===editAccId); appData.accounts[i] = acc; }
+            else appData.accounts.push(acc);
+            saveData(); closeAccountModal();
+        }
+        function deleteAccount() {
+            if(!confirm('¿Eliminar cuenta?')) return;
+            pushHistory();
+            appData.accounts = appData.accounts.filter(x => x.id !== editAccId);
+            saveData(); closeAccountModal();
         }
     </script>
 </body>
