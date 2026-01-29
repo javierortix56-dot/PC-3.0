@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | App V2</title>
+    <title>Finanzas J&M | Control Mensual</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -50,6 +50,7 @@
         
         .tc-input { -moz-appearance: textfield; background: transparent; border: none; padding: 0 4px; margin: 0; font-weight: 700; color: #334155; text-align: right; width: 90px; font-size: 12px; height: 100%; }
         .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
+        .tc-input:disabled { color: #94a3b8; cursor: not-allowed; }
         
         .h-header-el { height: 32px; }
         .animate-spin { animation: spin 1s linear infinite; }
@@ -59,7 +60,6 @@
         details > summary::-webkit-details-marker { display: none; }
         .btn-disabled { opacity: 0.3; pointer-events: none; }
         
-        /* Checkbox Custom Style */
         .custom-chk { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:0.2s; cursor: pointer; }
         .custom-chk:hover { border-color: #0e757c; }
         .custom-chk.checked { background: #0e757c; border-color: #0e757c; }
@@ -70,6 +70,9 @@
 
         .alert-card { transition: all 0.2s; }
         .alert-card:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        
+        /* Locked State */
+        .locked-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.5); z-index: 10; cursor: not-allowed; }
     </style>
 </head>
 
@@ -108,7 +111,7 @@
             </nav>
         </div>
 
-        <div class="px-2">
+        <div class="px-2" id="newBtnContainer">
             <button onclick="openModal()" class="flex items-center justify-center w-full h-10 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all mb-4 group-hover:justify-start group-hover:px-3">
                 <span class="material-symbols-outlined text-xl">add</span>
                 <span class="ml-3 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Nuevo</span>
@@ -120,11 +123,12 @@
         
         <header class="flex justify-between items-center mb-3 shrink-0 gap-4 h-header-el">
             <div class="flex items-center gap-4 h-full">
-                <h2 class="text-xl font-extrabold tracking-tight text-slate-800 leading-none" id="pageTitle">Panel de Control</h2>
+                <h2 class="text-xl font-extrabold tracking-tight text-slate-800 leading-none" id="pageTitle">Panel</h2>
                 
                 <div class="flex items-center gap-1 bg-white px-2 rounded-md border border-slate-200 shadow-sm transition-colors relative group h-full">
                     <button onclick="changeMonth(-1)" class="text-slate-400 hover:text-primary flex items-center px-1"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
-                    <div class="relative min-w-[80px] text-center flex items-center justify-center h-full">
+                    <div class="relative min-w-[100px] text-center flex items-center justify-center h-full gap-1">
+                        <span class="material-symbols-outlined text-xs text-slate-400 hidden" id="lockIcon" title="Mes Cerrado">lock</span>
                         <span class="text-[11px] font-bold uppercase text-slate-600 tracking-wide" id="monthTxt">...</span>
                         <input type="month" id="datePicker" class="d-picker" onchange="manualDate()">
                     </div>
@@ -207,7 +211,7 @@
                     <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
                         <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-sm">pie_chart</span> Asignación</h4>
                     </div>
-                    <div class="px-3 py-2 flex justify-between gap-4 border-b border-slate-100 bg-white items-center">
+                    <div class="px-3 py-2 flex justify-between gap-4 border-b border-slate-100 bg-white items-center" id="allocControls">
                         <button onclick="autoAssign()" class="text-[10px] font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">auto_fix_high</span> Auto-Asignar
                         </button>
@@ -308,26 +312,33 @@
                     </div>
                 </div>
                 <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-lg border border-slate-100 p-1 mb-2" id="recurrente-table-body"></div>
-                <div class="grid grid-cols-2 gap-2 mt-auto">
-                    <button onclick="saveRecurrentesConfig()" class="py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 shadow-sm">Guardar Recurrentes</button>
-                    <button onclick="executeRecurrentes()" class="py-1.5 rounded-lg bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700 shadow-sm">Ejecutar Mes</button>
-                    
-                    <div class="col-span-2 border-t border-slate-100 my-0.5"></div>
-                    <div class="col-span-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Cierre de Mes</div>
-                    
-                    <div class="col-span-2 bg-slate-100 p-2 rounded-lg flex items-center justify-between">
-                         <div class="flex flex-col">
-                            <span class="text-[9px] text-slate-500">Saldo Mes Actual</span>
-                            <span class="text-xs font-bold text-slate-700" id="monthCloseBalance">...</span>
-                         </div>
-                         <button onclick="closeMonthAndTransfer()" class="bg-primary text-white text-[10px] px-3 py-1.5 rounded shadow hover:bg-primary-dark font-bold">CERRAR MES</button>
+                
+                <div class="mt-auto border-t border-slate-100 pt-2">
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button onclick="saveRecurrentesConfig()" class="py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 shadow-sm">Guardar Recurrentes</button>
+                        <button onclick="executeRecurrentes()" class="py-1.5 rounded-lg bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700 shadow-sm">Ejecutar Mes</button>
+                    </div>
+
+                    <div class="bg-slate-100 p-3 rounded-lg flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Control Mensual</span>
+                            <div id="monthStatusBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500">ABIERTO</div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                             <div class="flex flex-col">
+                                <span class="text-[9px] text-slate-500">Resultado</span>
+                                <span class="text-xs font-bold text-slate-700" id="monthCloseBalance">...</span>
+                             </div>
+                             <div id="monthActionContainer">
+                                 </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <button onclick="openModal()" class="fixed bottom-6 right-6 size-12 bg-slate-900 text-white rounded-xl shadow-xl shadow-slate-900/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
+    <button id="fabNew" onclick="openModal()" class="fixed bottom-6 right-6 size-12 bg-slate-900 text-white rounded-xl shadow-xl shadow-slate-900/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
         <span class="material-symbols-outlined text-2xl">add</span>
     </button>
 
@@ -519,7 +530,9 @@
             monthlyRates: {},
             accounts: [
                 { id: 'acc_cash', name: 'Efectivo ARS', kind: 'asset', currency: 'ARS', initBal: 0 }
-            ]
+            ],
+            closedMonths: {}, // NEW: { '2025-01': true }
+            monthlySummary: {} // NEW: { '2025-01': { income: 100, expense: 50... } }
         };
 
         let appData = JSON.parse(JSON.stringify(defaultData)); 
@@ -548,6 +561,8 @@
         async function initApp() {
             loadLocal();
             if (!appData.accounts || appData.accounts.length === 0) appData.accounts = JSON.parse(JSON.stringify(defaultData.accounts));
+            if (!appData.closedMonths) appData.closedMonths = {}; 
+            if (!appData.monthlySummary) appData.monthlySummary = {};
             
             // Migration check
             const defAcc = appData.accounts[0].id;
@@ -566,6 +581,14 @@
             await forceSync();
             syncIndicator(false);
             renderNetWorthView();
+        }
+
+        // --- CORE UTILS ---
+        function getMonthKey(d) {
+            return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2,'0')}`;
+        }
+        function isMonthClosed(d = currentDate) {
+            return !!appData.closedMonths[getMonthKey(d)];
         }
 
         // --- HISTORY LOGIC ---
@@ -617,6 +640,8 @@
                     appData.monthlyRates = cloudData.monthlyRates || {}; 
                     appData.recurrentes = cloudData.recurrentes || [];
                     appData.accounts = cloudData.accounts || defaultData.accounts;
+                    appData.closedMonths = cloudData.closedMonths || {};
+                    appData.monthlySummary = cloudData.monthlySummary || {};
                     saveLocal();
                     loadMonthData();
                     renderNetWorthView();
@@ -637,8 +662,12 @@
 
         function loadMonthData() {
             const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1;
-            const key = `${y}-${m.toString().padStart(2,'0')}`;
+            const key = getMonthKey(currentDate);
+            const closed = isMonthClosed();
             
+            // UI Updates for Closed Month
+            updateReadOnlyUI(closed);
+
             let rates = appData.monthlyRates[key] || { ARS: 1500, COP: 3700, USD: 1 };
             document.getElementById('rate_ARS').value = rates.ARS; 
             document.getElementById('rate_COP').value = rates.COP;
@@ -646,6 +675,7 @@
             // Filter txs
             const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
             
+            // Dynamic calc ONLY if not executed/closed
             txs.forEach(t => {
                 if (!t.exec && t.origCurr && t.origCurr !== 'ARS') {
                     if (t.origCurr === 'USD') t.amount = t.origAmt * rates.ARS;
@@ -655,18 +685,118 @@
 
             txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
             
-            // Update Dashboard KPIs
             updateKPIs(txs);
-
             const alerts = computeAlerts(txs);
             renderAlerts(alerts);
             renderLists(txs); renderCharts(txs); renderRecurrentesAdmin(); renderAdminTree();
 
-            // Update Admin Month Close Preview
+            // Admin Panel Status
             const dashTxs = txs;
             const i = dashTxs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
             const e = dashTxs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
             document.getElementById('monthCloseBalance').innerText = `$${fmt(i-e)}`;
+            
+            const badge = document.getElementById('monthStatusBadge');
+            const actionContainer = document.getElementById('monthActionContainer');
+            
+            if(closed) {
+                badge.innerText = "CERRADO"; badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200";
+                actionContainer.innerHTML = `<button onclick="reopenMonth()" class="bg-white border border-slate-300 text-slate-600 text-[10px] px-3 py-1.5 rounded shadow-sm hover:bg-slate-50 font-bold">REABRIR</button>`;
+            } else {
+                badge.innerText = "ABIERTO"; badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 border border-emerald-200";
+                actionContainer.innerHTML = `<button onclick="closeMonth()" class="bg-primary text-white text-[10px] px-3 py-1.5 rounded shadow hover:bg-primary-dark font-bold">CERRAR MES</button>`;
+            }
+        }
+        
+        function updateReadOnlyUI(closed) {
+            document.getElementById('rate_ARS').disabled = closed;
+            document.getElementById('rate_COP').disabled = closed;
+            document.getElementById('lockIcon').classList.toggle('hidden', !closed);
+            document.getElementById('monthTxt').classList.toggle('text-red-500', closed);
+            
+            // Hide specific buttons
+            const newBtn = document.getElementById('newBtnContainer');
+            const fab = document.getElementById('fabNew');
+            const alloc = document.getElementById('allocControls');
+            const bulk = document.getElementById('bulkBar');
+            const selectMode = document.getElementById('btnSelectMode');
+            
+            if (closed) {
+                newBtn.classList.add('opacity-0', 'pointer-events-none');
+                fab.classList.add('hidden');
+                alloc.classList.add('opacity-50', 'pointer-events-none');
+                selectMode.classList.add('hidden');
+                if(!bulk.classList.contains('hidden')) toggleSelectionMode(); // force close bulk
+            } else {
+                newBtn.classList.remove('opacity-0', 'pointer-events-none');
+                fab.classList.remove('hidden');
+                alloc.classList.remove('opacity-50', 'pointer-events-none');
+                selectMode.classList.remove('hidden');
+            }
+        }
+
+        // --- CLOSE MONTH LOGIC ---
+        function closeMonth() {
+            if(!confirm("¿Cerrar mes? Esto congelará todas las transacciones y tasas de cambio. No podrás editar nada hasta reabrirlo.")) return;
+            pushHistory();
+            
+            const key = getMonthKey(currentDate);
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth() + 1;
+            
+            // 1. Force Execute all Txs
+            appData.txs.forEach(t => {
+                if (!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m) {
+                    t.exec = true; 
+                    // Ensure amount is fixed to current rate if it wasn't already
+                    if(t.origCurr && t.origCurr !== 'ARS') {
+                        // Recalculate one last time to freeze at CURRENT header rate
+                        let rate = 1;
+                        const rArs = parseFloat(document.getElementById('rate_ARS').value);
+                        const rCop = parseFloat(document.getElementById('rate_COP').value);
+                        
+                        if(t.origCurr === 'USD') rate = rArs;
+                        else if(t.origCurr === 'COP') rate = rArs / rCop; // logic simplified for amount freeze
+                        
+                        // We rely on the view logic which already calculated t.amount correctly in loadMonthData
+                        // Since loadMonthData ran before this click, t.amount is up to date with header.
+                        // We just need to ensure next load doesn't change it.
+                        // Setting exec=true does that.
+                    }
+                }
+            });
+
+            // 2. Save Rates Snapshot
+            saveMonthlyRates(); // ensures appData.monthlyRates is current
+
+            // 3. Create Summary Snapshot
+            const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
+            const inc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
+            const exp = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
+            
+            appData.monthlySummary[key] = {
+                income: inc,
+                expense: exp,
+                balance: inc - exp,
+                usdEstimate: (inc - exp) / parseFloat(document.getElementById('rate_ARS').value),
+                closedAt: Date.now()
+            };
+
+            // 4. Lock
+            appData.closedMonths[key] = true;
+            
+            saveData();
+            alert("Mes cerrado correctamente.");
+        }
+
+        function reopenMonth() {
+            const pass = prompt("Para reabrir, escribe 'REABRIR':");
+            if(pass !== 'REABRIR') return alert("Incorrecto.");
+            
+            pushHistory();
+            const key = getMonthKey(currentDate);
+            appData.closedMonths[key] = false;
+            saveData();
         }
 
         // --- ALERT SYSTEM LOGIC ---
@@ -765,7 +895,7 @@
             if(analyticsContainer) analyticsContainer.innerHTML = html;
         }
 
-        // --- NET WORTH LOGIC (FIXED MULTI-CURRENCY) ---
+        // --- NET WORTH LOGIC ---
         function renderNetWorthView() {
             const list = document.getElementById('list-accounts'); list.innerHTML = '';
             const rateARS = parseFloat(document.getElementById('rate_ARS').value) || 1200;
@@ -778,22 +908,17 @@
             const sortedTxs = appData.txs.filter(t => !t.deletedAt).sort((a,b) => a.date.localeCompare(b.date));
             
             sortedTxs.forEach(t => {
-                // FIXED: Lógica para descontar el monto correcto según la moneda de la cuenta
                 const getAmountForAccount = (accId, tx) => {
                     const acc = appData.accounts.find(a => a.id === accId);
                     if (!acc) return 0;
-                    
-                    // Si la cuenta es USD, necesitamos el valor en USD
                     if (acc.currency === 'USD') {
                         if (tx.origCurr === 'USD') return (tx.origAmt || tx.amount);
-                        return tx.amount / rates.ARS; // Convertir ARS base a USD
+                        return tx.amount / rates.ARS; 
                     }
-                    // Si la cuenta es COP
                     if (acc.currency === 'COP') {
                         if (tx.origCurr === 'COP') return (tx.origAmt || tx.amount);
-                         return (tx.amount / rates.ARS) * rates.COP; // Convertir ARS base a COP
+                         return (tx.amount / rates.ARS) * rates.COP; 
                     }
-                    // Si la cuenta es ARS (Default)
                     return tx.amount; 
                 };
 
@@ -802,14 +927,10 @@
                 } else if(t.type === 'exp' && t.fromAccountId) {
                     balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
                 } else if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
-                    // Restar del origen
                     balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
-                    
-                    // Sumar al destino
                     if (t.destAmount) {
                          balances[t.toAccountId] = (balances[t.toAccountId] || 0) + t.destAmount;
                     } else {
-                        // Fallback para datos viejos
                         balances[t.toAccountId] = (balances[t.toAccountId] || 0) + getAmountForAccount(t.toAccountId, t);
                     }
                 }
@@ -881,17 +1002,14 @@
                 const monthRates = appData.monthlyRates[key] || { ARS: 1500, COP: 3700, USD: 1 };
                 const endOfMonth = new Date(y, m, 0); 
                 
-                // Calc balance at THAT moment in time
                 const subTxs = appData.txs.filter(t => !t.deletedAt && new Date(t.date) <= endOfMonth);
                 const tmpBal = {};
                 appData.accounts.forEach(a => tmpBal[a.id] = (a.initBal || 0));
                 
                 subTxs.forEach(t => {
-                   // Simplified historical calc (can be improved)
                    if(t.type === 'inc' && t.toAccountId) tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount);
                    else if(t.type === 'exp' && t.fromAccountId) tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
                    else if(t.type === 'transfer') {
-                       // Very rough historical estimate as we can't easily reproduce exact cross-rates
                        tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
                        tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount); 
                    }
@@ -980,7 +1098,7 @@
             saveData(); closeAccountModal();
         }
 
-        // --- MAIN RENDERERS ---
+        // --- RENDERERS ---
 
         function renderLists(txs) {
             const lI=document.getElementById('list-inc'), lE=document.getElementById('list-exp'), lA=document.getElementById('list-alloc');
@@ -1004,7 +1122,6 @@
                 
                 el.className = `compact-row group flex items-center justify-between cursor-pointer ${baseClass} ${isSelected ? 'selected' : ''}`;
                 
-                // FIXED: Better selection UX
                 let leftIcon = '';
                 if(isSelectionMode && t.type === 'exp') {
                     leftIcon = `<div class="custom-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
@@ -1061,6 +1178,7 @@
         
         function toggleExec(id, event) {
             event.stopPropagation();
+            if(isMonthClosed()) return alert("Mes cerrado.");
             pushHistory();
             const tx = appData.txs.find(t => t.id === id);
             if(tx) tx.exec = !tx.exec;
@@ -1111,6 +1229,11 @@
 
         document.getElementById('txForm').onsubmit=e=>{
             e.preventDefault();
+            
+            // GUARD: Check if target date is in a closed month
+            const d = new Date(document.getElementById('fDate').value + 'T00:00:00');
+            if(isMonthClosed(d)) return alert("El mes de esa fecha está cerrado. No puedes agregar ni editar.");
+
             const type = document.getElementById('fType').value;
             let cat=document.getElementById('fCat').value;
             if(type !== 'transfer' && !cat) return alert('Selecciona categoría');
@@ -1125,12 +1248,11 @@
                 if(!appData.concepts[cat].includes(desc)) appData.concepts[cat].push(desc); 
             }
             
-            // FREEZE TRANSFER DESTINATION AMOUNT
             let destAmount = null;
             if (type === 'transfer') {
                 const toAccObj = appData.accounts.find(a => a.id === toAcc);
                 if (toAccObj) {
-                     let valInArs = calcConversion(); // Esto devuelve ARS
+                     let valInArs = calcConversion(); 
                      const rArs = parseFloat(document.getElementById('rate_ARS').value);
                      const rCop = parseFloat(document.getElementById('rate_COP').value);
                      
@@ -1158,6 +1280,7 @@
         }
 
         function editTx(id){
+            if(isMonthClosed()) return alert("Mes cerrado. No se puede editar.");
             const t=appData.txs.find(x=>x.id==id); if(!t)return; editId=id;
             document.getElementById('mTitle').innerText='Editar'; document.getElementById('btnDel').classList.remove('hidden');
             document.getElementById('fDate').value=t.date; document.getElementById('fDesc').value=t.desc; document.getElementById('fExec').checked=t.exec;
@@ -1178,7 +1301,10 @@
             document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex');
         }
 
-        function openModal(){ editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); }
+        function openModal(){ 
+            if(isMonthClosed()) return alert("Mes cerrado.");
+            editId=null; resetForm(); setType('exp'); document.getElementById('modalOverlay').classList.remove('hidden'); document.getElementById('modalOverlay').classList.add('flex'); 
+        }
         function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
         function resetForm(){ document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null; }
         
@@ -1236,10 +1362,10 @@
         function deleteRecurrente(i) { pushHistory(); appData.recurrentes.splice(i,1); saveData(); }
         function addRecurrenteRow() { pushHistory(); appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
         function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
-        function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; const defAcc = appData.accounts[0].id; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS', fromAccountId: r.type==='exp'?defAcc:null, toAccountId:r.type==='inc'?defAcc:null}); c++; }}); if(c>0){ pushHistory(); saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
-        function autoAssign() { if(!confirm("¿Asignar automáticamente?")) return; const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; const currentMonthTxs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m); let incomes = currentMonthTxs.filter(t => t.type === 'inc').map(i => { const assigned = currentMonthTxs.filter(e => e.type === 'exp' && e.linkId == i.id).reduce((a,b)=>a+b.amount,0); return { ...i, balance: i.amount - assigned }; }); const unassignedExps = currentMonthTxs.filter(t => t.type === 'exp' && !t.linkId); let count = 0; let changesMade = false; unassignedExps.forEach(exp => { const validIncome = incomes.find(inc => inc.date <= exp.date && inc.balance >= exp.amount); if(validIncome) { if(!changesMade) { pushHistory(); changesMade = true; } exp.linkId = validIncome.id; validIncome.balance -= exp.amount; count++; } }); if(count > 0) { alert(`Asignados: ${count} gastos.`); saveData(); } else { alert("No se encontraron coincidencias válidas."); } }
-        function unassignAll() { if(!confirm("¿Desvincular TODOS los gastos?")) return; pushHistory(); const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.txs.forEach(t => { if(!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m && t.type === 'exp') { t.linkId = null; }}); saveData(); }
-        function unassignGroup(incId) { if(!confirm("¿Desvincular gastos?")) return; pushHistory(); appData.txs.forEach(t => { if(t.type === 'exp' && t.linkId == incId) t.linkId = null; }); saveData(); }
+        function executeRecurrentes() { if(isMonthClosed()) return alert("Mes cerrado."); const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; const defAcc = appData.accounts[0].id; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS', fromAccountId: r.type==='exp'?defAcc:null, toAccountId:r.type==='inc'?defAcc:null}); c++; }}); if(c>0){ pushHistory(); saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
+        function autoAssign() { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Asignar automáticamente?")) return; const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; const currentMonthTxs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m); let incomes = currentMonthTxs.filter(t => t.type === 'inc').map(i => { const assigned = currentMonthTxs.filter(e => e.type === 'exp' && e.linkId == i.id).reduce((a,b)=>a+b.amount,0); return { ...i, balance: i.amount - assigned }; }); const unassignedExps = currentMonthTxs.filter(t => t.type === 'exp' && !t.linkId); let count = 0; let changesMade = false; unassignedExps.forEach(exp => { const validIncome = incomes.find(inc => inc.date <= exp.date && inc.balance >= exp.amount); if(validIncome) { if(!changesMade) { pushHistory(); changesMade = true; } exp.linkId = validIncome.id; validIncome.balance -= exp.amount; count++; } }); if(count > 0) { alert(`Asignados: ${count} gastos.`); saveData(); } else { alert("No se encontraron coincidencias válidas."); } }
+        function unassignAll() { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Desvincular TODOS los gastos?")) return; pushHistory(); const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.txs.forEach(t => { if(!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m && t.type === 'exp') { t.linkId = null; }}); saveData(); }
+        function unassignGroup(incId) { if(isMonthClosed()) return alert("Mes cerrado."); if(!confirm("¿Desvincular gastos?")) return; pushHistory(); appData.txs.forEach(t => { if(t.type === 'exp' && t.linkId == incId) t.linkId = null; }); saveData(); }
         function populateRecurringDefaults() { if(!confirm("¿Sugerir recurrentes?")) return; const limitDate = new Date(); limitDate.setDate(limitDate.getDate() - 90); const recent = appData.txs.filter(t => !t.deletedAt && t.type === 'exp' && new Date(t.date) >= limitDate); const analysis = {}; recent.forEach(t => { const d = t.desc.trim(); if(!analysis[d]) analysis[d] = { count: 0, lastAmt: 0, cat: t.cat, dates: new Set() }; analysis[d].count++; analysis[d].lastAmt = t.origAmt || t.amount; analysis[d].cat = t.cat; analysis[d].dates.add(t.date.substring(0, 7)); }); let added = 0; let changesMade = false; Object.entries(analysis).forEach(([desc, data]) => { if((data.dates.size >= 2 || data.count >= 2) && !appData.recurrentes.some(r => r.desc.toLowerCase() === desc.toLowerCase())) { if(!changesMade) { pushHistory(); changesMade = true; } appData.recurrentes.push({ desc: desc, amount: data.lastAmt, cat: data.cat, type: 'exp' }); added++; } }); if(added === 0) alert("Sin novedades."); else alert(`Agregadas ${added} sugerencias.`); renderRecurrentesAdmin(); saveData(); }
         function nav(v, el){ document.querySelectorAll('.view-container').forEach(e=>e.classList.add('hidden-view')); document.getElementById(`view-${v}`).classList.remove('hidden-view'); document.querySelectorAll('#main-nav button').forEach(e=>{ e.classList.remove('active-nav'); e.classList.add('text-slate-500'); }); if(el) { el.classList.add('active-nav'); el.classList.remove('text-slate-500'); } if(v==='networth') renderNetWorthView(); }
         function filterExpList(filterTerm) {
@@ -1257,10 +1383,10 @@
                 }
             });
         }
-        function toggleSelectionMode() { isSelectionMode = !isSelectionMode; if(!isSelectionMode) selectedTxIds.clear(); updateSelectionUI(); loadMonthData(); }
+        function toggleSelectionMode() { if(isMonthClosed()) return alert("Mes cerrado."); isSelectionMode = !isSelectionMode; if(!isSelectionMode) selectedTxIds.clear(); updateSelectionUI(); loadMonthData(); }
         function toggleTxSelected(id, event) { 
-            // Better Event handling
             event.stopPropagation();
+            if(isMonthClosed()) return alert("Mes cerrado.");
             if(selectedTxIds.has(id)) selectedTxIds.delete(id); 
             else selectedTxIds.add(id); 
             loadMonthData(); 
@@ -1305,13 +1431,6 @@
             };
             buildBranch("Gastos", "exp");
             buildBranch("Ingresos", "inc");
-        }
-
-        function closeMonthAndTransfer() {
-            const balText = document.getElementById('monthCloseBalance').innerText;
-            if(!confirm(`¿Cerrar el mes actual? Esto marcará un hito visual. Saldo: ${balText}`)) return;
-            // No creamos transacciones fantasma para no duplicar patrimonio
-            alert("Mes cerrado. Recuerda actualizar tus saldos reales de cuentas.");
         }
     </script>
 </body>
