@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | V14 Split Pro</title>
+    <title>Finanzas J&M | V14 Split Pro (Optimized)</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -42,6 +42,7 @@
             border-bottom: 1px solid #f1f5f9; 
             transition: all 0.1s; 
             min-height: 34px; 
+            content-visibility: auto; /* Mejora de rendimiento renderizado */
         }
         .compact-row:last-child { border-bottom: none; }
         .compact-row:hover { background-color: #f8fafc; }
@@ -86,10 +87,16 @@
         #bulkBar.show { transform: translate(-50%, 0); display: flex; }
         
         .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
+        
+        /* Status Indicator de Guardado */
+        #saveStatus { position: fixed; top: 10px; right: 10px; z-index: 100; font-size: 10px; font-weight: bold; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        #saveStatus.show { opacity: 1; }
     </style>
 </head>
 
 <body class="text-slate-900 h-screen flex overflow-hidden selection:bg-primary/20">
+
+    <div id="saveStatus">Guardando...</div>
 
     <aside class="glass-sidebar w-14 hover:w-56 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-3 shadow-lg">
         <div class="flex flex-col gap-4">
@@ -429,10 +436,10 @@
                 </div>
 
                 <div class="mb-2 hidden" id="divSplitToggle">
-                     <label class="flex items-center gap-2 cursor-pointer mb-1 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                      <label class="flex items-center gap-2 cursor-pointer mb-1 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
                         <input type="checkbox" id="fIsSplit" onchange="toggleSplitUI()" class="size-3 rounded text-primary focus:ring-primary border-slate-300">
                         <span class="text-[9px] font-bold text-slate-600 uppercase">Dividir en categorías</span>
-                     </label>
+                      </label>
                 </div>
 
                 <div id="normalTxFields">
@@ -490,8 +497,8 @@
                     <select id="accCurr" class="w-full bg-slate-50 border-none rounded text-[10px] py-1.5"><option value="ARS">ARS</option><option value="USD">USD</option><option value="COP">COP</option></select>
                 </div>
                 <div class="mb-3">
-                     <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Saldo Inicial</label>
-                     <input type="number" id="accInit" step="0.01" class="w-full px-2 py-1.5 bg-slate-50 border-none rounded text-xs font-bold focus:ring-1 focus:ring-primary" placeholder="0">
+                      <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Saldo Inicial</label>
+                      <input type="number" id="accInit" step="0.01" class="w-full px-2 py-1.5 bg-slate-50 border-none rounded text-xs font-bold focus:ring-1 focus:ring-primary" placeholder="0">
                 </div>
                 <div class="flex gap-2">
                     <button type="submit" class="flex-1 bg-slate-800 text-white py-1.5 rounded text-[10px] font-bold hover:bg-slate-700">Guardar</button>
@@ -571,6 +578,8 @@
         let historyStack = [];
         let netWorthChartInst = null;
         
+        let saveTimeout = null; // Debounce for saving
+
         const fmt = (n) => n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
         window.onload = async () => {
@@ -578,13 +587,13 @@
             sanitizeData();
             updateDateUI();
             renderAdminTree();
-            await forceSync();
-            loadMonthData();
+            loadMonthData(); // Render first, then sync
             renderNetWorthView();
+            forceSync(); // Sync in background
         };
 
         // =========================================================================
-        // GESTIÓN DE DATOS
+        // GESTIÓN DE DATOS (OPTIMIZADA)
         // =========================================================================
         function sanitizeData() {
             if (!appData.cats) appData = JSON.parse(JSON.stringify(defaultData));
@@ -623,6 +632,7 @@
                     appData = d;
                     saveLocal();
                     loadMonthData();
+                    renderNetWorthView();
                 }
             } catch(e) {
                 console.log("Offline or Sync Error");
@@ -630,18 +640,35 @@
             document.getElementById('syncIcon').classList.remove('animate-spin');
         }
 
+        // OPTIMIZACIÓN: Guardado asíncrono con Debounce
         async function saveData() {
-            saveLocal();
-            try {
-                await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) });
-            } catch(e) {
-                console.log("Save Cloud Error");
-            }
-            loadMonthData();
+            saveLocal(); // Guardado instantáneo local
+            loadMonthData(); // Refresco UI local
             renderNetWorthView();
+            
+            // Indicador UI
+            const statusEl = document.getElementById('saveStatus');
+            statusEl.classList.add('show');
+            statusEl.innerText = 'Guardando...';
+
+            clearTimeout(saveTimeout);
+            
+            saveTimeout = setTimeout(async () => {
+                try {
+                    await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) });
+                    statusEl.innerText = 'Guardado';
+                    setTimeout(() => statusEl.classList.remove('show'), 1500);
+                } catch(e) {
+                    statusEl.innerText = 'Error al guardar';
+                    statusEl.style.color = 'red';
+                    console.log("Save Cloud Error");
+                }
+            }, 2000); // Espera 2 segundos de inactividad antes de enviar a Google
         }
 
         function pushHistory() {
+            // OPTIMIZACIÓN: Limitar historial a 20 pasos
+            if (historyStack.length > 20) historyStack.shift();
             historyStack.push(JSON.stringify(appData));
             document.getElementById('btnUndo').classList.remove('btn-disabled');
         }
@@ -649,59 +676,70 @@
         function undo() {
             if(!historyStack.length) return;
             appData = JSON.parse(historyStack.pop());
+            saveLocal(); // Solo guarda local para ser rápido
+            loadMonthData();
+            renderNetWorthView();
+            // Disparar guardado en nube diferido
             saveData();
         }
 
         // =========================================================================
-        // LÓGICA DE RENDERIZADO PRINCIPAL
+        // LÓGICA DE RENDERIZADO PRINCIPAL (OPTIMIZADA)
         // =========================================================================
         function loadMonthData() {
-            const y = currentDate.getFullYear();
-            const m = currentDate.getMonth() + 1;
-            const closed = isMonthClosed();
-            
-            updateReadOnlyUI(closed);
-            
-            let rates = appData.monthlyRates[getMonthKey()] || { ARS: 1500, COP: 3700, USD: 1 };
-            document.getElementById('rate_ARS').value = rates.ARS;
-            document.getElementById('rate_COP').value = rates.COP;
-            
-            const txs = getFilteredTxs();
-            
-            txs.forEach(t => {
-                if(!t.exec && t.origCurr && t.origCurr !== 'ARS') {
-                    if(t.origCurr === 'USD') t.amount = t.origAmt * rates.ARS;
-                    else if(t.origCurr === 'COP') t.amount = (t.origAmt / rates.COP) * rates.ARS;
+            // Usamos requestAnimationFrame para no bloquear la UI si hay muchos datos
+            requestAnimationFrame(() => {
+                const y = currentDate.getFullYear();
+                const m = currentDate.getMonth() + 1;
+                const closed = isMonthClosed();
+                
+                updateReadOnlyUI(closed);
+                
+                let rates = appData.monthlyRates[getMonthKey()] || { ARS: 1500, COP: 3700, USD: 1 };
+                // Solo actualizar inputs si no tienen foco para no molestar al usuario
+                if(document.activeElement.id !== 'rate_ARS') document.getElementById('rate_ARS').value = rates.ARS;
+                if(document.activeElement.id !== 'rate_COP') document.getElementById('rate_COP').value = rates.COP;
+                
+                const txs = getFilteredTxs();
+                
+                txs.forEach(t => {
+                    if(!t.exec && t.origCurr && t.origCurr !== 'ARS') {
+                        if(t.origCurr === 'USD') t.amount = t.origAmt * rates.ARS;
+                        else if(t.origCurr === 'COP') t.amount = (t.origAmt / rates.COP) * rates.ARS;
+                    }
+                });
+
+                txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+                
+                updateKPIs(txs);
+                renderLists(txs);
+                renderCharts(txs); // Charts optimizados internamente
+                // admin tree no necesita re-render constante, solo si cambia config
+                // renderAdminTree(); 
+                // recurrentes igual
+                // renderRecurrentesAdmin();
+                
+                const dashTxs = txs.filter(t => t.type !== 'transfer');
+                const i = dashTxs.filter(t => t.type == 'inc').reduce((a,b) => a + b.amount, 0);
+                const e = dashTxs.filter(t => t.type == 'exp').reduce((a,b) => a + b.amount, 0);
+                
+                document.getElementById('monthCloseBalance').innerText = `$${fmt(i - e)}`;
+                const b = document.getElementById('monthStatusBadge');
+                const ac = document.getElementById('monthActionContainer');
+                
+                if(closed) {
+                    b.innerText = "CERRADO";
+                    b.className = "inline-flex mt-0.5 text-[10px] font-black px-2 py-0.5 rounded-md bg-red-100 text-red-600 border border-red-200 tracking-wide";
+                    ac.innerHTML = `<button onclick="reopenMonth()" class="w-full py-2 bg-white border border-slate-300 text-slate-600 text-[10px] font-bold rounded-lg shadow-sm hover:bg-slate-50 hover:text-slate-800 transition-all flex justify-center items-center gap-2"><span class="material-symbols-outlined text-sm">lock_open</span> REABRIR MES</button>`;
+                } else {
+                    b.innerText = "ABIERTO";
+                    b.className = "inline-flex mt-0.5 text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-600 border border-emerald-200 tracking-wide";
+                    ac.innerHTML = `<button onclick="closeMonth()" class="w-full py-2 bg-slate-900 text-white text-[10px] font-bold rounded-lg shadow hover:bg-slate-800 transition-all flex justify-center items-center gap-2"><span class="material-symbols-outlined text-sm">lock</span> CERRAR MES</button>`;
                 }
             });
-
-            txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
-            
-            updateKPIs(txs);
-            renderLists(txs);
-            renderCharts(txs);
-            renderAdminTree();
-            renderRecurrentesAdmin();
-            
-            const dashTxs = txs.filter(t => t.type !== 'transfer');
-            const i = dashTxs.filter(t => t.type == 'inc').reduce((a,b) => a + b.amount, 0);
-            const e = dashTxs.filter(t => t.type == 'exp').reduce((a,b) => a + b.amount, 0);
-            
-            document.getElementById('monthCloseBalance').innerText = `$${fmt(i - e)}`;
-            const b = document.getElementById('monthStatusBadge');
-            const ac = document.getElementById('monthActionContainer');
-            
-            if(closed) {
-                b.innerText = "CERRADO";
-                b.className = "inline-flex mt-0.5 text-[10px] font-black px-2 py-0.5 rounded-md bg-red-100 text-red-600 border border-red-200 tracking-wide";
-                ac.innerHTML = `<button onclick="reopenMonth()" class="w-full py-2 bg-white border border-slate-300 text-slate-600 text-[10px] font-bold rounded-lg shadow-sm hover:bg-slate-50 hover:text-slate-800 transition-all flex justify-center items-center gap-2"><span class="material-symbols-outlined text-sm">lock_open</span> REABRIR MES</button>`;
-            } else {
-                b.innerText = "ABIERTO";
-                b.className = "inline-flex mt-0.5 text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-600 border border-emerald-200 tracking-wide";
-                ac.innerHTML = `<button onclick="closeMonth()" class="w-full py-2 bg-slate-900 text-white text-[10px] font-bold rounded-lg shadow hover:bg-slate-800 transition-all flex justify-center items-center gap-2"><span class="material-symbols-outlined text-sm">lock</span> CERRAR MES</button>`;
-            }
         }
 
+        // OPTIMIZACIÓN: Uso de DocumentFragment para evitar Reflows masivos
         function renderLists(txs) {
             const lI = document.getElementById('list-inc');
             const lE = document.getElementById('list-exp');
@@ -710,6 +748,10 @@
             lI.innerHTML = ''; 
             lE.innerHTML = ''; 
             lA.innerHTML = '';
+            
+            const fragInc = document.createDocumentFragment();
+            const fragExp = document.createDocumentFragment();
+            const fragAlloc = document.createDocumentFragment();
             
             const search = document.getElementById('searchExpInput').value.toLowerCase();
             const dashTxs = txs.filter(t => t.type !== 'transfer');
@@ -770,21 +812,24 @@
                     el.innerHTML = content;
                 }
                 
-                (t.type === 'inc' ? lI : lE).appendChild(el);
+                (t.type === 'inc' ? fragInc : fragExp).appendChild(el);
             });
+
+            // Añadir fragmentos al DOM de golpe
+            lI.appendChild(fragInc);
+            lE.appendChild(fragExp);
 
             document.getElementById('c-inc').innerText = dashTxs.filter(t => t.type === 'inc').length;
             document.getElementById('c-exp').innerText = dashTxs.filter(t => t.type === 'exp').length;
 
             // ASIGNACIÓN - Lógica mejorada para incluir Splits
             dashTxs.filter(t => t.type == 'inc').forEach(inc => {
-                // Buscar Gastos directos O partes de Split vinculadas a este ingreso
                 const directSubs = dashTxs.filter(t => t.type == 'exp' && t.linkId == inc.id);
                 let splitSubs = [];
                 
                 dashTxs.filter(t => t.type == 'exp' && t.children && t.children.length > 0).forEach(parent => {
                     parent.children.filter(c => c.linkId == inc.id).forEach(c => {
-                        splitSubs.push({ ...c, parentId: parent.id, exec: parent.exec }); // Hereda ejecución del padre visualmente
+                        splitSubs.push({ ...c, parentId: parent.id, exec: parent.exec });
                     });
                 });
 
@@ -796,7 +841,6 @@
                 let rows = '';
                 if(allSubs.length > 0) {
                     allSubs.forEach(s => {
-                        // Si es split, editamos al padre
                         const editFn = s.parentId ? `editTx(${s.parentId})` : `editTx(${s.id})`;
                         const isSplitPart = !!s.parentId;
                         rows += `<div class="flex justify-between py-1 text-[9px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1.5 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="${editFn}"><span class="truncate pr-2">${isSplitPart ? '(Split) ' : ''}${s.desc}</span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`;
@@ -807,8 +851,9 @@
                 
                 const card = document.createElement('div');
                 card.innerHTML = `<div class="rounded-lg border border-slate-200 bg-white mb-1 shadow-sm overflow-hidden group"><div class="px-2 py-1.5 bg-slate-50/50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors"><div onclick="this.closest('.rounded-lg').querySelector('.alloc-details').classList.toggle('hidden')" class="flex-1"><p class="text-[10px] font-bold text-slate-700 leading-tight">${inc.desc}</p><p class="text-[9px] font-extrabold ${rem >= 0 ? 'text-success' : 'text-danger'}">$${fmt(rem)}</p></div><div class="flex items-center gap-2"><span class="text-[8px] font-bold text-slate-500">${Math.round(pct)}%</span><button onclick="unassignGroup(${inc.id})" class="text-slate-300 hover:text-red-500"><span class="material-symbols-outlined text-[10px]">link_off</span></button></div></div><div class="w-full h-0.5 bg-slate-100"><div class="h-full ${pct > 90 ? 'bg-danger' : 'bg-primary'}" style="width: ${pct}%;"></div></div><div class="alloc-details hidden bg-white py-0.5 border-t border-slate-100">${rows}</div></div>`;
-                lA.appendChild(card);
+                fragAlloc.appendChild(card);
             });
+            lA.appendChild(fragAlloc);
         }
 
         function updateKPIs(txs) {
@@ -939,7 +984,6 @@
         // FORMULARIOS, MODALES Y SPLIT
         // =========================================================================
         
-        // --- FIX 1: FECHA INTELIGENTE AL ABRIR ---
         function openModal() {
             if(isMonthClosed()) return alert("Mes cerrado.");
             editId = null;
@@ -947,19 +991,17 @@
             document.getElementById('mTitle').innerText = 'Nuevo';
             document.getElementById('btnDel').classList.add('hidden');
             
-            // Lógica: Si estoy viendo el mes actual, poner Hoy. Si estoy viendo otro mes, poner el 1ro de ese mes.
             const now = new Date();
             const viewingMonth = currentDate.getMonth();
             const viewingYear = currentDate.getFullYear();
             
             let dToSet;
             if(now.getMonth() === viewingMonth && now.getFullYear() === viewingYear) {
-                dToSet = now; // Es hoy
+                dToSet = now;
             } else {
-                dToSet = new Date(viewingYear, viewingMonth, 1); // 1ro del mes visualizado
+                dToSet = new Date(viewingYear, viewingMonth, 1);
             }
             
-            // Ajuste de zona horaria para que el input date no reste un día
             const offset = dToSet.getTimezoneOffset() * 60000;
             const localISOTime = (new Date(dToSet.getTime() - offset)).toISOString().split('T')[0];
             
@@ -1007,14 +1049,13 @@
             const s = document.getElementById('fIsSplit').checked;
             document.getElementById('splitContainer').classList.toggle('hidden', !s);
             document.getElementById('normalTxFields').classList.toggle('hidden', s);
-            document.getElementById('linkRow').classList.toggle('hidden', s); // Ocultar link global si es split
+            document.getElementById('linkRow').classList.toggle('hidden', s); 
             if(s && document.getElementById('splitRows').innerHTML === '') addSplitRow();
         }
 
-        // --- Helper para opciones de ingresos ---
         function getIncomeOptionsHtml(selectedId) {
             let html = '<option value="">Sin vincular</option>';
-            const k = getMonthKey(); // Solo ingresos del mes actual
+            const k = getMonthKey();
             const incomes = appData.txs.filter(t => !t.deletedAt && t.type === 'inc' && t.date.startsWith(k));
             incomes.forEach(inc => {
                 html += `<option value="${inc.id}" ${inc.id == selectedId ? 'selected' : ''}>${inc.desc}</option>`;
@@ -1022,7 +1063,6 @@
             return html;
         }
 
-        // --- FIX 2: SPLIT ROW CON FECHA Y LINK ---
         function addSplitRow(data = {}) {
             const c = document.getElementById('splitRows');
             const d = document.createElement('div');
@@ -1039,7 +1079,6 @@
             let datalistOptions = '';
             concepts.forEach(x => datalistOptions += `<option value="${x}">`);
 
-            // Fecha por defecto para el split: la del formulario principal o data existente
             const defaultDate = document.getElementById('fDate').value;
 
             d.innerHTML = `
@@ -1109,8 +1148,8 @@
                     if(a > 0) {
                         const c = r.querySelector('.split-cat').value;
                         const d = r.querySelector('.split-desc').value;
-                        const date = r.querySelector('.split-date').value;  // Capturar Fecha
-                        const linkId = r.querySelector('.split-link').value || null; // Capturar Link
+                        const date = r.querySelector('.split-date').value; 
+                        const linkId = r.querySelector('.split-link').value || null;
                         
                         children.push({id: Date.now() + Math.random(), cat: c, desc: d, amount: a, date: date, linkId: linkId});
                         
@@ -1158,7 +1197,7 @@
         };
 
         // =========================================================================
-        // PATRIMONIO NETO
+        // PATRIMONIO NETO (OPTIMIZADO)
         // =========================================================================
         function renderNetWorthView() {
             const list = document.getElementById('list-accounts');
@@ -1195,29 +1234,34 @@
             let totalAssets = 0;
             let totalLiabilities = 0;
 
+            const fragAcc = document.createDocumentFragment();
+
             appData.accounts.forEach(a => {
                 const bal = balances[a.id] || 0;
                 const balInARS = a.currency === 'ARS' ? bal : (a.currency === 'USD' ? bal * rates.ARS : (bal / rates.COP) * rates.ARS);
                 if(a.kind === 'asset') totalAssets += balInARS;
                 else totalLiabilities += balInARS;
 
-                list.innerHTML += `
-                    <div class="flex items-center justify-between p-2 border-b border-slate-100 last:border-0 hover:bg-slate-50 group cursor-pointer" onclick="editAccount('${a.id}')">
-                        <div class="flex items-center gap-2">
-                            <div class="size-6 rounded-full flex items-center justify-center ${a.kind === 'asset' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
-                                <span class="material-symbols-outlined text-sm">${a.kind === 'asset' ? 'account_balance' : 'credit_card'}</span>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-700">${a.name}</p>
-                                <p class="text-[9px] text-slate-400">${a.currency}</p>
-                            </div>
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-2 border-b border-slate-100 last:border-0 hover:bg-slate-50 group cursor-pointer';
+                div.onclick = () => editAccount(a.id);
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="size-6 rounded-full flex items-center justify-center ${a.kind === 'asset' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                            <span class="material-symbols-outlined text-sm">${a.kind === 'asset' ? 'account_balance' : 'credit_card'}</span>
                         </div>
-                        <div class="text-right">
-                            <p class="text-[10px] font-bold ${bal >= 0 ? 'text-slate-700' : 'text-red-500'}">${a.currency} ${fmt(bal)}</p>
-                            ${a.currency !== 'ARS' ? `<p class="text-[8px] text-slate-400">≈ $${fmt(balInARS)}</p>` : ''}
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-700">${a.name}</p>
+                            <p class="text-[9px] text-slate-400">${a.currency}</p>
                         </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold ${bal >= 0 ? 'text-slate-700' : 'text-red-500'}">${a.currency} ${fmt(bal)}</p>
+                        ${a.currency !== 'ARS' ? `<p class="text-[8px] text-slate-400">≈ $${fmt(balInARS)}</p>` : ''}
                     </div>`;
+                fragAcc.appendChild(div);
             });
+            list.appendChild(fragAcc);
 
             const netWorth = totalAssets + totalLiabilities;
             document.getElementById('nw-total').innerText = `$${fmt(netWorth)}`;
@@ -1229,9 +1273,9 @@
             renderComposition(balances, rates);
         }
 
+        // OPTIMIZACIÓN: Solo destruir gráfico si es necesario o actualizar datos
         function renderNetWorthChart() {
             const ctx = document.getElementById('chartNetWorth');
-            if(netWorthChartInst) netWorthChartInst.destroy();
             const labels = [];
             const dataAssets = [];
             const dataLiabilities = [];
@@ -1248,35 +1292,49 @@
                 d.setMonth(d.getMonth() + 1);
             }
 
-            netWorthChartInst = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Act', data: dataAssets, backgroundColor: '#10b981', stack: '0' },
-                        { label: 'Pas', data: dataLiabilities, backgroundColor: '#ef4444', stack: '0' }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-                    scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { ticks: { callback: v => '$' + (v/1000000).toFixed(1) + 'M', font: { size: 8 } } } }
-                }
-            });
+            if(netWorthChartInst) {
+                netWorthChartInst.data.labels = labels;
+                netWorthChartInst.data.datasets[0].data = dataAssets;
+                netWorthChartInst.data.datasets[1].data = dataLiabilities;
+                netWorthChartInst.update();
+            } else {
+                netWorthChartInst = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'Act', data: dataAssets, backgroundColor: '#10b981', stack: '0' },
+                            { label: 'Pas', data: dataLiabilities, backgroundColor: '#ef4444', stack: '0' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                        scales: { x: { grid: { display: false }, ticks: { font: { size: 8 } } }, y: { ticks: { callback: v => '$' + (v/1000000).toFixed(1) + 'M', font: { size: 8 } } } }
+                    }
+                });
+            }
         }
 
         function renderComposition(bal, rates) {
             const ctx = document.getElementById('chartNWComp');
-            if(cNWComp) cNWComp.destroy();
+            
             const data = []; const labels = [];
             appData.accounts.filter(a => a.kind === 'asset').forEach(a => {
                 const val = a.currency === 'ARS' ? bal[a.id] : (a.currency === 'USD' ? bal[a.id] * rates.ARS : (bal[a.id] / rates.COP) * rates.ARS);
                 if(val > 0) { labels.push(a.name); data.push(val); }
             });
-            cNWComp = new Chart(ctx, {
-                type: 'doughnut',
-                data: { labels: labels, datasets: [{ data: data, backgroundColor: PALETTE, borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
-            });
+
+            if(cNWComp) {
+                cNWComp.data.labels = labels;
+                cNWComp.data.datasets[0].data = data;
+                cNWComp.update();
+            } else {
+                cNWComp = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: labels, datasets: [{ data: data, backgroundColor: PALETTE, borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
+                });
+            }
         }
 
         // =========================================================================
@@ -1297,7 +1355,6 @@
         }
 
         function renderDoughnut(cvs, leg, data, key, drill, inst, setInst) {
-            if(inst) inst.destroy();
             let map = {};
             if(drill && drillCat) {
                 document.getElementById('resetBtn').classList.remove('hidden');
@@ -1309,29 +1366,46 @@
             const ent = Object.entries(map).sort((a,b) => b[1] - a[1]);
             const tot = ent.reduce((a,b) => a + b[1], 0);
             
-            setInst(new Chart(cvs, {
-                type: 'doughnut',
-                data: { labels: ent.map(e => e[0]), datasets: [{ data: ent.map(e => e[1]), backgroundColor: PALETTE, borderWidth: 0 }] },
-                options: {
-                    responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } },
-                    onClick: (e, el) => { if(drill && !drillCat && el.length) { drillCat = ent[el[0].index][0]; loadMonthData(); } }
-                }
-            }));
+            const labels = ent.map(e => e[0]);
+            const chartData = ent.map(e => e[1]);
+
+            if(inst) {
+                inst.data.labels = labels;
+                inst.data.datasets[0].data = chartData;
+                // Inst actualiza dinamicamente el onClick handler si cambia el estado drill
+                inst.options.onClick = (e, el) => { if(drill && !drillCat && el.length) { drillCat = ent[el[0].index][0]; loadMonthData(); } };
+                inst.update();
+            } else {
+                setInst(new Chart(cvs, {
+                    type: 'doughnut',
+                    data: { labels: labels, datasets: [{ data: chartData, backgroundColor: PALETTE, borderWidth: 0 }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } },
+                        onClick: (e, el) => { if(drill && !drillCat && el.length) { drillCat = ent[el[0].index][0]; loadMonthData(); } }
+                    }
+                }));
+            }
             
             leg.innerHTML = '';
+            const fragLeg = document.createDocumentFragment();
             ent.forEach((e, i) => {
-                leg.innerHTML += `
-                    <div class="flex items-center justify-between text-[9px] py-1 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded" onclick="${drill && !drillCat ? `drillCat='${e[0]}';loadMonthData()` : ''}">
-                        <div class="flex items-center gap-1 min-w-0">
-                            <span class="size-1.5 rounded-full shrink-0" style="background:${PALETTE[i % PALETTE.length]}"></span>
-                            <span class="text-slate-600 font-medium truncate">${e[0]}</span>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="text-slate-400">${Math.round((e[1] / tot) * 100)}%</span>
-                            <span class="font-bold text-slate-800">$${fmt(e[1])}</span>
-                        </div>
+                const d = document.createElement('div');
+                d.className = "flex items-center justify-between text-[9px] py-1 border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1 rounded";
+                if(drill && !drillCat) {
+                    d.onclick = () => { drillCat=e[0]; loadMonthData(); };
+                }
+                d.innerHTML = `
+                    <div class="flex items-center gap-1 min-w-0">
+                        <span class="size-1.5 rounded-full shrink-0" style="background:${PALETTE[i % PALETTE.length]}"></span>
+                        <span class="text-slate-600 font-medium truncate">${e[0]}</span>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <span class="text-slate-400">${Math.round((e[1] / tot) * 100)}%</span>
+                        <span class="font-bold text-slate-800">$${fmt(e[1])}</span>
                     </div>`;
+                fragLeg.appendChild(d);
             });
+            leg.appendChild(fragLeg);
         }
 
         function resetCharts() { drillCat = null; loadMonthData(); }
@@ -1513,6 +1587,8 @@
             let c = 0; Object.entries(an).forEach(([d, v]) => { if(v.c >= 2 && !appData.recurrentes.some(r => r.desc == d)) { appData.recurrentes.push({ desc: d, amount: v.a, cat: v.k, type: 'exp' }); c++; } });
             if(c > 0) { pushHistory(); saveData(); renderRecurrentesAdmin(); alert(`Sugeridos ${c}`); } else { alert('Nada nuevo'); }
         }
+
+        function saveRecurrentesConfig() { saveData(); alert('Configuración guardada'); }
 
         function closeMonth() { if(!confirm("¿Cerrar mes?")) return; pushHistory(); appData.closedMonths[getMonthKey()] = true; saveData(); }
         function reopenMonth() { if(!confirm("¿Reabrir?")) return; pushHistory(); delete appData.closedMonths[getMonthKey()]; saveData(); }
