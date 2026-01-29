@@ -676,8 +676,11 @@
         // --- ALERT SYSTEM LOGIC ---
         function computeAlerts(txs) {
             const alerts = [];
-            const y = currentDate.getFullYear(), m = currentDate.getMonth();
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth(); // 0-based
             const totalExp = txs.filter(t => t.type === 'exp').reduce((a, b) => a + b.amount, 0) || 1;
+
+            // A) Trend Analysis (Categoría > 20% vs Promedio 3 Meses)
             const catMap = {};
             txs.filter(t => t.type === 'exp').forEach(t => { catMap[t.cat] = (catMap[t.cat] || 0) + t.amount; });
             
@@ -686,16 +689,58 @@
                 if (avg > 0) {
                     const diff = (amount - avg) / avg;
                     if (diff >= 0.20) {
-                        alerts.push({
-                            id: `trend-${cat}`, type: 'trend', severity: diff > 0.5 ? 'danger' : 'warning', amount: amount,
-                            title: `Suba en ${cat}`, desc: `+${Math.round(diff * 100)}% vs prom. ($${fmt(avg)})`,
-                            ctaLabel: 'Ver', ctaAction: `filterExpList('${cat}')`
-                        });
+                        // FIX: Check for duplicates before pushing
+                        if (!alerts.some(a => a.id === `trend-${cat}`)) {
+                            alerts.push({
+                                id: `trend-${cat}`, type: 'trend', severity: diff > 0.5 ? 'danger' : 'warning', amount: amount,
+                                title: `Suba en ${cat}`,
+                                desc: `+${Math.round(diff * 100)}% vs prom. ($${fmt(avg)})`,
+                                ctaLabel: 'Ver', ctaAction: `filterExpList('${cat}')`
+                            });
+                        }
                     }
                 }
             });
-            // Additional alerts omitted for brevity but logic retained from original
-            return alerts.slice(0, 8);
+
+            // B) Unassigned Expenses (Gastos sin asignar)
+            const unassignedAmt = txs.filter(t => t.type === 'exp' && !t.linkId).reduce((a, b) => a + b.amount, 0);
+            if (unassignedAmt > 0) {
+                alerts.push({
+                    id: 'unassigned', type: 'orphan', severity: unassignedAmt > 100000 ? 'danger' : 'warning', amount: unassignedAmt,
+                    title: 'Gastos sin asignar',
+                    desc: `$${fmt(unassignedAmt)} pendientes de vincular`,
+                    ctaLabel: 'Asignar', ctaAction: "document.getElementById('searchExpInput').value='sin asignar';filterExpList()"
+                });
+            }
+
+            // C) Overspending on Income (Ingresos en negativo)
+            const incs = txs.filter(t => t.type === 'inc');
+            let overspendCount = 0;
+            let overspendAmt = 0;
+            incs.forEach(inc => {
+                const assigned = txs.filter(t => t.type === 'exp' && t.linkId == inc.id).reduce((a,b)=>a+b.amount,0);
+                if (assigned > inc.amount) {
+                    overspendCount++;
+                    overspendAmt += (assigned - inc.amount);
+                }
+            });
+
+            if (overspendCount > 0) {
+                alerts.push({
+                    id: 'overspend', type: 'over', severity: 'danger', amount: overspendAmt,
+                    title: 'Ingresos Excedidos',
+                    desc: `${overspendCount} ingresos con saldo negativo (-$${fmt(overspendAmt)})`,
+                    ctaLabel: 'Corregir', ctaAction: "nav('dashboard', null)"
+                });
+            }
+
+            // Ordenar por severidad y cantidad
+            return alerts.sort((a, b) => {
+                const severityScore = { 'danger': 3, 'warning': 2, 'info': 1 };
+                const scoreDiff = severityScore[b.severity] - severityScore[a.severity];
+                if (scoreDiff !== 0) return scoreDiff;
+                return b.amount - a.amount;
+            }).slice(0, 8);
         }
 
         function getPastAverage(cat, currentMonthIdx, currentYear) {
@@ -1161,7 +1206,14 @@
             });
         }
         function toggleSelectionMode() { isSelectionMode = !isSelectionMode; if(!isSelectionMode) selectedTxIds.clear(); updateSelectionUI(); loadMonthData(); }
-        function toggleTxSelected(id) { if(selectedTxIds.has(id)) selectedTxIds.delete(id); else selectedTxIds.add(id); const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer'); renderLists(txs); updateSelectionUI(); }
+        // --- FIX: loadMonthData to avoid ghost rows ---
+        function toggleTxSelected(id) { 
+            if(selectedTxIds.has(id)) selectedTxIds.delete(id); 
+            else selectedTxIds.add(id); 
+            loadMonthData(); 
+            updateSelectionUI(); 
+        }
+        
         function updateSelectionUI() { const btn = document.getElementById('btnSelectMode'); const bar = document.getElementById('bulkBar'); const countEl = document.getElementById('bulkCount'); if(isSelectionMode) { btn.classList.add('text-primary'); btn.classList.remove('text-slate-400'); if(selectedTxIds.size > 0) { bar.classList.remove('hidden'); countEl.innerText = `${selectedTxIds.size} seleccionados`; } else { bar.classList.add('hidden'); } } else { btn.classList.remove('text-primary'); btn.classList.add('text-slate-400'); bar.classList.add('hidden'); } }
         function openBulkModal() { document.getElementById('bulkModal').classList.remove('hidden'); resetBulkView(); }
         function closeBulkModal() { document.getElementById('bulkModal').classList.add('hidden'); }
