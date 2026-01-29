@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | V8 Completa</title>
+    <title>Finanzas J&M | V9 Final</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -738,7 +738,12 @@
                 const isSelected = selectedTxIds.has(t.id);
                 
                 const el = document.createElement(isSplit ? 'details' : 'div');
-                el.className = `compact-row group flex flex-col cursor-pointer ${isSelected ? 'selected' : (t.exec ? 'opacity-60' : '')}`;
+                
+                // VISUAL CORRECTION: STRIKETHROUGH FOR EXECUTED
+                let baseClass = t.exec ? "opacity-60 bg-slate-50/50 line-through decoration-slate-400" : "bg-white";
+                if(isSelectionMode && isSelected) baseClass = "bg-blue-50/50";
+                
+                el.className = `compact-row group flex flex-col cursor-pointer ${baseClass} ${isSelected ? 'selected' : ''}`;
                 
                 let iconHtml = '';
                 if(isSelectionMode && t.type === 'exp') {
