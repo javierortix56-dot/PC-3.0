@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | UX Limpia</title>
+    <title>Finanzas J&M | V5 Estable</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -38,8 +38,6 @@
         .compact-row:last-child { border-bottom: none; }
         .compact-row:hover { background-color: #f8fafc; }
         .compact-row.selected { background-color: #f0f9ff; border-left: 3px solid #0e757c; }
-        .compact-row.selected .custom-chk { border-color: #0e757c; background: #0e757c; }
-        .compact-row.selected .custom-chk i { display: block; }
         
         .chip { border: 1px solid #e2e8f0; background: white; color: #475569; font-size: 11px; font-weight: 600; transition: all 0.1s; border-radius: 20px; }
         .chip:hover { border-color: #0e757c; color: #0e757c; }
@@ -62,19 +60,19 @@
         details > summary::-webkit-details-marker { display: none; }
         .btn-disabled { opacity: 0.3; pointer-events: none; }
         
-        /* NEW CHECKBOX STYLE - ALWAYS VISIBLE AS SELECTION TOOL */
-        .custom-chk { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:0.2s; cursor: pointer; background: white; }
-        .custom-chk:hover { border-color: #0e757c; transform: scale(1.1); }
+        /* Checkbox Clásico */
+        .custom-chk { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:0.2s; cursor: pointer; }
+        .custom-chk:hover { border-color: #0e757c; }
+        .custom-chk.checked { background: #0e757c; border-color: #0e757c; }
         .custom-chk i { color:white; font-size:10px; display:none; }
+        .custom-chk.checked i { display:block; }
         
-        /* Executed state visual only on text, not the checkbox */
-        .row-exec .tx-desc { text-decoration: line-through; color: #94a3b8; }
-        .row-exec .tx-amt { opacity: 0.6; }
+        /* Estado Ejecutado */
+        .custom-chk.exec { border-color: #15803d; background: transparent; }
+        .custom-chk.exec i { display:block; color: #15803d; font-weight: 900; }
 
         .alert-card { transition: all 0.2s; }
         .alert-card:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
-        .locked-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.5); z-index: 10; cursor: not-allowed; }
     </style>
 </head>
 
@@ -200,6 +198,9 @@
                             <input type="text" id="searchExpInput" oninput="filterExpList()" placeholder="Buscar..." class="w-full max-w-[100px] bg-white border-none text-[10px] rounded-md px-2 py-0.5 focus:ring-1 focus:ring-primary shadow-sm placeholder:text-slate-300">
                         </div>
                         <div class="flex items-center gap-1">
+                             <button onclick="toggleSelectionMode()" id="btnSelectMode" class="text-slate-400 hover:text-primary transition-colors p-1" title="Seleccionar múltiple">
+                                <span class="material-symbols-outlined text-base">check_box</span>
+                             </button>
                              <span class="bg-danger/10 text-danger text-[9px] font-bold px-1.5 py-0.5 rounded-full" id="c-exp">0</span>
                         </div>
                     </div>
@@ -228,7 +229,7 @@
                 <button onclick="openBulkModal()" class="text-xs font-bold hover:text-primary-300 transition-colors flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">edit_square</span> Acciones
                 </button>
-                <button onclick="clearSelection()" class="text-xs text-slate-400 hover:text-white transition-colors">
+                <button onclick="toggleSelectionMode()" class="text-xs text-slate-400 hover:text-white transition-colors">
                     <span class="material-symbols-outlined text-sm">close</span>
                 </button>
             </div>
@@ -538,11 +539,13 @@
         let currentDate = new Date(); currentDate.setDate(1);
         let editId=null, editAccId=null, cExp=null, cInc=null, drillCat=null, cNWComp=null;
         
+        // --- HISTORY STATE ---
         let historyStack = [];
         let redoStack = [];
         const MAX_HISTORY = 50;
 
-        // --- BULK SELECTION STATE (SIMPLIFIED) ---
+        // --- BULK SELECTION STATE ---
+        let isSelectionMode = false;
         let selectedTxIds = new Set();
         let netWorthChartInst = null;
 
@@ -557,18 +560,18 @@
 
         async function initApp() {
             loadLocal();
-            if (!appData.accounts || appData.accounts.length === 0) appData.accounts = JSON.parse(JSON.stringify(defaultData.accounts));
-            if (!appData.closedMonths) appData.closedMonths = {}; 
-            if (!appData.monthlySummary) appData.monthlySummary = {};
+            sanitizeData(); // REPARACIÓN DE DATOS
             
             // Migration check
-            const defAcc = appData.accounts[0].id;
-            let migrated = false;
-            appData.txs.forEach(t => {
-                if(t.type === 'exp' && !t.fromAccountId) { t.fromAccountId = defAcc; migrated = true; }
-                if(t.type === 'inc' && !t.toAccountId) { t.toAccountId = defAcc; migrated = true; }
-            });
-            if(migrated) saveLocal();
+            if (appData.accounts && appData.accounts.length > 0) {
+                const defAcc = appData.accounts[0].id;
+                let migrated = false;
+                appData.txs.forEach(t => {
+                    if(t.type === 'exp' && !t.fromAccountId) { t.fromAccountId = defAcc; migrated = true; }
+                    if(t.type === 'inc' && !t.toAccountId) { t.toAccountId = defAcc; migrated = true; }
+                });
+                if(migrated) saveLocal();
+            }
 
             updateDateUI(); 
             renderAdminTree();
@@ -578,6 +581,19 @@
             await forceSync();
             syncIndicator(false);
             renderNetWorthView();
+        }
+
+        function sanitizeData() {
+            // Si las categorías están rotas, restaurar las por defecto sin borrar transacciones
+            if (!appData.cats || !appData.cats.exp) {
+                appData.cats = JSON.parse(JSON.stringify(defaultData.cats));
+            }
+            if (!appData.concepts) {
+                appData.concepts = JSON.parse(JSON.stringify(defaultData.concepts));
+            }
+            if (!appData.txs) appData.txs = [];
+            if (!appData.closedMonths) appData.closedMonths = {};
+            if (!appData.monthlySummary) appData.monthlySummary = {};
         }
 
         // --- CORE UTILS ---
@@ -600,9 +616,7 @@
             if(historyStack.length === 0) return;
             redoStack.push(JSON.stringify(appData));
             appData = JSON.parse(historyStack.pop());
-            
-            selectedTxIds.clear(); updateSelectionUI(); 
-
+            isSelectionMode = false; selectedTxIds.clear(); updateSelectionUI(); 
             saveData(); updateHistoryUI(); renderNetWorthView();
         }
 
@@ -610,7 +624,7 @@
             if(redoStack.length === 0) return;
             historyStack.push(JSON.stringify(appData));
             appData = JSON.parse(redoStack.pop());
-            selectedTxIds.clear(); updateSelectionUI();
+            isSelectionMode = false; selectedTxIds.clear(); updateSelectionUI();
             saveData(); updateHistoryUI(); renderNetWorthView();
         }
 
@@ -664,14 +678,17 @@
             const key = getMonthKey(currentDate);
             const closed = isMonthClosed();
             
+            // UI Updates for Closed Month
             updateReadOnlyUI(closed);
 
             let rates = appData.monthlyRates[key] || { ARS: 1500, COP: 3700, USD: 1 };
             document.getElementById('rate_ARS').value = rates.ARS; 
             document.getElementById('rate_COP').value = rates.COP;
             
+            // Filter txs
             const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
             
+            // Dynamic calc ONLY if not executed/closed
             txs.forEach(t => {
                 if (!t.exec && t.origCurr && t.origCurr !== 'ARS') {
                     if (t.origCurr === 'USD') t.amount = t.origAmt * rates.ARS;
@@ -710,19 +727,24 @@
             document.getElementById('lockIcon').classList.toggle('hidden', !closed);
             document.getElementById('monthTxt').classList.toggle('text-red-500', closed);
             
+            // Hide specific buttons
             const newBtn = document.getElementById('newBtnContainer');
             const fab = document.getElementById('fabNew');
             const alloc = document.getElementById('allocControls');
+            const bulk = document.getElementById('bulkBar');
+            const selectMode = document.getElementById('btnSelectMode');
             
             if (closed) {
                 newBtn.classList.add('opacity-0', 'pointer-events-none');
                 fab.classList.add('hidden');
                 alloc.classList.add('opacity-50', 'pointer-events-none');
-                clearSelection(); // force close bulk
+                selectMode.classList.add('hidden');
+                if(!bulk.classList.contains('hidden')) toggleSelectionMode(); // force close bulk
             } else {
                 newBtn.classList.remove('opacity-0', 'pointer-events-none');
                 fab.classList.remove('hidden');
                 alloc.classList.remove('opacity-50', 'pointer-events-none');
+                selectMode.classList.remove('hidden');
             }
         }
 
@@ -735,9 +757,11 @@
             const y = currentDate.getFullYear();
             const m = currentDate.getMonth() + 1;
             
+            // 1. Force Execute all Txs
             appData.txs.forEach(t => {
                 if (!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m) {
                     t.exec = true; 
+                    // Ensure amount is fixed to current rate
                     if(t.origCurr && t.origCurr !== 'ARS') {
                         let rate = 1;
                         const rArs = parseFloat(document.getElementById('rate_ARS').value);
@@ -749,8 +773,10 @@
                 }
             });
 
-            saveMonthlyRates(); 
+            // 2. Save Rates Snapshot
+            saveMonthlyRates(); // ensures appData.monthlyRates is current
 
+            // 3. Create Summary Snapshot
             const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
             const inc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
             const exp = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
@@ -763,6 +789,7 @@
                 closedAt: Date.now()
             };
 
+            // 4. Lock
             appData.closedMonths[key] = true;
             
             saveData();
@@ -809,6 +836,7 @@
                 }
             });
 
+            // B) Unassigned Expenses
             const unassignedAmt = txs.filter(t => t.type === 'exp' && !t.linkId).reduce((a, b) => a + b.amount, 0);
             if (unassignedAmt > 0) {
                 const alertId = 'unassigned';
@@ -823,6 +851,7 @@
                 }
             }
 
+            // C) Overspending on Income
             const incs = txs.filter(t => t.type === 'inc');
             let overspendCount = 0; let overspendAmt = 0;
             incs.forEach(inc => {
@@ -1095,31 +1124,30 @@
 
                 const el = document.createElement('div');
                 const isSelected = selectedTxIds.has(t.id);
+                let baseClass = t.exec ? "opacity-60 bg-slate-50/50 line-through decoration-slate-400" : "bg-white";
+                if(isSelectionMode && isSelected) baseClass = "bg-blue-50/50";
                 
-                // Class Logic for Strikethrough ONLY affects text visual, not logic
-                let execClass = t.exec ? "row-exec" : ""; 
-                let selectClass = isSelected ? "selected bg-blue-50/50" : "bg-white";
+                el.className = `compact-row group flex items-center justify-between cursor-pointer ${baseClass} ${isSelected ? 'selected' : ''}`;
                 
-                el.className = `compact-row group flex items-center justify-between cursor-pointer ${selectClass} ${execClass}`;
-                
-                // NEW INTERACTION LOGIC:
-                // Left Icon -> Selects
-                // Body -> Edits
                 let leftIcon = '';
-                if(t.type === 'exp') {
+                
+                if(isSelectionMode && t.type === 'exp') {
+                    // MODO SELECCION: Clic selecciona
                     leftIcon = `<div onclick="toggleTxSelected(${t.id}, event)" class="custom-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
+                    el.onclick = (e) => { e.preventDefault(); toggleTxSelected(t.id, e); };
                 } else {
-                    // For Income we keep simple edit click on icon too, or select if we want uniform behavior
-                    leftIcon = `<div onclick="toggleTxSelected(${t.id}, event)" class="custom-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
+                    // MODO NORMAL: Check marca ejecutado, Clic edita
+                    leftIcon = `<div onclick="toggleExec(${t.id}, event)" class="custom-chk ${t.exec?'exec':''}" title="Marcar como Ejecutado"><i class="material-symbols-outlined">check</i></div>`;
+                    el.onclick = (e) => editTx(t.id);
                 }
 
                 el.innerHTML = `
                     <div class="flex items-center gap-3 overflow-hidden w-full">
-                        <div class="shrink-0 flex items-center justify-center size-6">${leftIcon}</div>
-                        <div class="min-w-0 flex-1" onclick="editTx(${t.id})">
+                        <div class="shrink-0 flex items-center justify-center size-6 pointer-events-none">${leftIcon}</div>
+                        <div class="min-w-0 flex-1">
                             <div class="flex items-center justify-between">
-                                <p class="text-xs font-bold text-slate-800 truncate leading-tight tx-desc">${t.desc} ${currBadge} ${linkText}</p>
-                                <p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ml-2 tx-amt">$${fmt(t.amount)}</p>
+                                <p class="text-xs font-bold text-slate-800 truncate leading-tight">${t.desc} ${currBadge} ${linkText}</p>
+                                <p class="text-xs font-bold ${t.type=='inc'?'text-success':'text-danger'} ml-2">$${fmt(t.amount)}</p>
                             </div>
                             <div class="flex items-center justify-between mt-1">
                                 <div class="flex gap-2">
@@ -1159,7 +1187,12 @@
         }
         
         function toggleExec(id, event) {
-            // REMOVED FROM DIRECT CLICK - NOW ONLY VIA BULK ACTIONS OR EDIT MODAL
+            event.stopPropagation();
+            if(isMonthClosed()) return alert("Mes cerrado.");
+            pushHistory();
+            const tx = appData.txs.find(t => t.id === id);
+            if(tx) tx.exec = !tx.exec;
+            saveData();
         }
 
         function updateAccountSelects() {
@@ -1360,33 +1393,38 @@
                 }
             });
         }
-
-        // --- NEW BULK SELECTION LOGIC ---
-        function toggleTxSelected(id, event) {
-            if(event) event.stopPropagation();
+        function toggleSelectionMode() {
             if(isMonthClosed()) return alert("Mes cerrado.");
-            
-            if(selectedTxIds.has(id)) selectedTxIds.delete(id); 
-            else selectedTxIds.add(id); 
-            
+            isSelectionMode = !isSelectionMode;
+            if(!isSelectionMode) selectedTxIds.clear(); 
             updateSelectionUI();
             loadMonthData(); 
         }
 
-        function clearSelection() {
-            selectedTxIds.clear();
+        function toggleTxSelected(id, event) {
+            if(event) event.stopPropagation();
+            if(isMonthClosed()) return alert("Mes cerrado.");
+            if(selectedTxIds.has(id)) selectedTxIds.delete(id); 
+            else selectedTxIds.add(id); 
             updateSelectionUI();
-            loadMonthData();
+            loadMonthData(); 
         }
 
         function updateSelectionUI() {
+            const btn = document.getElementById('btnSelectMode');
             const bar = document.getElementById('bulkBar');
             const countEl = document.getElementById('bulkCount');
             
-            if(selectedTxIds.size > 0) {
-                bar.classList.remove('hidden');
-                countEl.innerText = `${selectedTxIds.size} seleccionados`;
+            if(isSelectionMode) {
+                btn.classList.add('text-primary'); btn.classList.remove('text-slate-400');
+                if(selectedTxIds.size > 0) {
+                    bar.classList.remove('hidden');
+                    countEl.innerText = `${selectedTxIds.size} seleccionados`;
+                } else {
+                    bar.classList.add('hidden');
+                }
             } else {
+                btn.classList.remove('text-primary'); btn.classList.add('text-slate-400');
                 bar.classList.add('hidden');
             }
         }
@@ -1395,11 +1433,11 @@
         function closeBulkModal() { document.getElementById('bulkModal').classList.add('hidden'); }
         function resetBulkView() { document.getElementById('bulkMainOptions').classList.remove('hidden'); document.getElementById('bulkSubCategory').classList.add('hidden'); document.getElementById('bulkSubLink').classList.add('hidden'); }
         function showBulkSubOption(type) { document.getElementById('bulkMainOptions').classList.add('hidden'); if(type === 'category') { document.getElementById('bulkSubCategory').classList.remove('hidden'); const list = document.getElementById('bulkCatList'); list.innerHTML = ''; (appData.cats.exp || []).forEach(cat => { const b = document.createElement('button'); b.className = "text-left text-xs p-2 hover:bg-slate-50 rounded border border-transparent hover:border-primary"; b.innerText = cat; b.onclick = () => bulkApplyCategory(cat); list.appendChild(b); }); } if(type === 'link') { document.getElementById('bulkSubLink').classList.remove('hidden'); const list = document.getElementById('bulkLinkList'); list.innerHTML = ''; const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; const incs = appData.txs.filter(t=>!t.deletedAt && t.type=='inc' && parseInt(t.date.split('-')[0])===y && parseInt(t.date.split('-')[1])===m); if(incs.length === 0) list.innerHTML = '<span class="text-xs text-slate-400">Sin ingresos este mes</span>'; incs.forEach(inc => { const b = document.createElement('button'); b.className = "text-left text-xs p-2 hover:bg-slate-50 rounded border border-transparent hover:border-primary"; b.innerHTML = `<b>${inc.desc}</b> <span class="text-slate-400">($${fmt(inc.amount)})</span>`; b.onclick = () => bulkAssignIncome(inc.id); list.appendChild(b); }); } }
-        function bulkApplyCategory(cat) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.cat = cat; }); saveData(); clearSelection(); closeBulkModal(); }
-        function bulkSetExec(val) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx) tx.exec = val; }); saveData(); clearSelection(); closeBulkModal(); }
-        function bulkAssignIncome(incomeId) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.linkId = incomeId; }); saveData(); clearSelection(); closeBulkModal(); }
-        function bulkUnassignIncome() { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.linkId = null; }); saveData(); clearSelection(); closeBulkModal(); }
-        function bulkDelete() { if(!confirm(`¿Eliminar ${selectedTxIds.size} elementos?`)) return; pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx) tx.deletedAt = Date.now(); }); saveData(); clearSelection(); closeBulkModal(); }
+        function bulkApplyCategory(cat) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.cat = cat; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
+        function bulkSetExec(val) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx) tx.exec = val; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
+        function bulkAssignIncome(incomeId) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.linkId = incomeId; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
+        function bulkUnassignIncome() { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.linkId = null; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
+        function bulkDelete() { if(!confirm(`¿Eliminar ${selectedTxIds.size} elementos?`)) return; pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx) tx.deletedAt = Date.now(); }); saveData(); toggleSelectionMode(); closeBulkModal(); }
         
         function updateKPIs(txs){ 
             const dashTxs = txs.filter(t => t.type !== 'transfer');
