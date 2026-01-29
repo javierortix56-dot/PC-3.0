@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | Control Mensual</title>
+    <title>Finanzas J&M | App V3</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -70,9 +70,6 @@
 
         .alert-card { transition: all 0.2s; }
         .alert-card:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
-        /* Locked State */
-        .locked-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.5); z-index: 10; cursor: not-allowed; }
     </style>
 </head>
 
@@ -603,7 +600,10 @@
             if(historyStack.length === 0) return;
             redoStack.push(JSON.stringify(appData));
             appData = JSON.parse(historyStack.pop());
+            
+            // Reset Bulk Selection to avoid phantom states
             isSelectionMode = false; selectedTxIds.clear(); updateSelectionUI(); 
+
             saveData(); updateHistoryUI(); renderNetWorthView();
         }
 
@@ -748,20 +748,14 @@
             appData.txs.forEach(t => {
                 if (!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m) {
                     t.exec = true; 
-                    // Ensure amount is fixed to current rate if it wasn't already
+                    // Ensure amount is fixed to current rate
                     if(t.origCurr && t.origCurr !== 'ARS') {
-                        // Recalculate one last time to freeze at CURRENT header rate
                         let rate = 1;
                         const rArs = parseFloat(document.getElementById('rate_ARS').value);
                         const rCop = parseFloat(document.getElementById('rate_COP').value);
                         
                         if(t.origCurr === 'USD') rate = rArs;
-                        else if(t.origCurr === 'COP') rate = rArs / rCop; // logic simplified for amount freeze
-                        
-                        // We rely on the view logic which already calculated t.amount correctly in loadMonthData
-                        // Since loadMonthData ran before this click, t.amount is up to date with header.
-                        // We just need to ensure next load doesn't change it.
-                        // Setting exec=true does that.
+                        else if(t.origCurr === 'COP') rate = rArs / rCop; 
                     }
                 }
             });
@@ -1124,8 +1118,8 @@
                 
                 let leftIcon = '';
                 if(isSelectionMode && t.type === 'exp') {
-                    leftIcon = `<div class="custom-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
-                    el.onclick = (e) => toggleTxSelected(t.id, e);
+                    leftIcon = `<div onclick="toggleTxSelected(${t.id}, event)" class="custom-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
+                    el.onclick = (e) => { e.preventDefault(); toggleTxSelected(t.id, e); };
                 } else {
                     leftIcon = `<div onclick="toggleExec(${t.id}, event)" class="custom-chk ${t.exec?'exec':''}" title="Marcar como Ejecutado"><i class="material-symbols-outlined">check</i></div>`;
                     el.onclick = (e) => editTx(t.id);
@@ -1383,16 +1377,44 @@
                 }
             });
         }
-        function toggleSelectionMode() { if(isMonthClosed()) return alert("Mes cerrado."); isSelectionMode = !isSelectionMode; if(!isSelectionMode) selectedTxIds.clear(); updateSelectionUI(); loadMonthData(); }
-        function toggleTxSelected(id, event) { 
-            event.stopPropagation();
+
+        // --- BULK ACTIONS LOGIC ---
+        function toggleSelectionMode() {
+            if(isMonthClosed()) return alert("Mes cerrado.");
+            isSelectionMode = !isSelectionMode;
+            if(!isSelectionMode) selectedTxIds.clear(); 
+            updateSelectionUI();
+            loadMonthData(); 
+        }
+
+        function toggleTxSelected(id, event) {
+            if(event) event.stopPropagation();
             if(isMonthClosed()) return alert("Mes cerrado.");
             if(selectedTxIds.has(id)) selectedTxIds.delete(id); 
             else selectedTxIds.add(id); 
+            updateSelectionUI();
             loadMonthData(); 
-            updateSelectionUI(); 
         }
-        function updateSelectionUI() { const btn = document.getElementById('btnSelectMode'); const bar = document.getElementById('bulkBar'); const countEl = document.getElementById('bulkCount'); if(isSelectionMode) { btn.classList.add('text-primary'); btn.classList.remove('text-slate-400'); if(selectedTxIds.size > 0) { bar.classList.remove('hidden'); countEl.innerText = `${selectedTxIds.size} seleccionados`; } else { bar.classList.add('hidden'); } } else { btn.classList.remove('text-primary'); btn.classList.add('text-slate-400'); bar.classList.add('hidden'); } }
+
+        function updateSelectionUI() {
+            const btn = document.getElementById('btnSelectMode');
+            const bar = document.getElementById('bulkBar');
+            const countEl = document.getElementById('bulkCount');
+            
+            if(isSelectionMode) {
+                btn.classList.add('text-primary'); btn.classList.remove('text-slate-400');
+                if(selectedTxIds.size > 0) {
+                    bar.classList.remove('hidden');
+                    countEl.innerText = `${selectedTxIds.size} seleccionados`;
+                } else {
+                    bar.classList.add('hidden');
+                }
+            } else {
+                btn.classList.remove('text-primary'); btn.classList.add('text-slate-400');
+                bar.classList.add('hidden');
+            }
+        }
+
         function openBulkModal() { document.getElementById('bulkModal').classList.remove('hidden'); resetBulkView(); }
         function closeBulkModal() { document.getElementById('bulkModal').classList.add('hidden'); }
         function resetBulkView() { document.getElementById('bulkMainOptions').classList.remove('hidden'); document.getElementById('bulkSubCategory').classList.add('hidden'); document.getElementById('bulkSubLink').classList.add('hidden'); }
@@ -1402,6 +1424,7 @@
         function bulkAssignIncome(incomeId) { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.linkId = incomeId; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
         function bulkUnassignIncome() { pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx && tx.type === 'exp') tx.linkId = null; }); saveData(); toggleSelectionMode(); closeBulkModal(); }
         function bulkDelete() { if(!confirm(`¿Eliminar ${selectedTxIds.size} elementos?`)) return; pushHistory(); selectedTxIds.forEach(id => { const tx = appData.txs.find(t => t.id === id); if(tx) tx.deletedAt = Date.now(); }); saveData(); toggleSelectionMode(); closeBulkModal(); }
+        
         function updateKPIs(txs){ 
             const dashTxs = txs.filter(t => t.type !== 'transfer');
             const tc=parseFloat(document.getElementById('rate_ARS').value)||1200; 
