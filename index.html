@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | V13 Robusta</title>
+    <title>Finanzas J&M | V13 Fix</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -48,7 +48,7 @@
         
         /* ESTADO SELECCIONADO (Mejorado) */
         .compact-row.selected { 
-            background-color: #f0f9ff !important; /* Azul muy claro */
+            background-color: #e0f2fe !important; /* Azul más visible */
             border-left: 3px solid #0e757c; 
             padding-left: 5px; 
         }
@@ -71,7 +71,8 @@
 
         /* Inputs Numéricos Limpios */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .tc-input { -moz-appearance: textfield; background: transparent; border: none; padding: 0; margin: 0; font-weight: 700; color: #334155; text-align: right; font-size: 11px; height: 100%; width: 50px;}
+        /* CORRECCIÓN VISUAL TC: Ancho aumentado y padding ajustado */
+        .tc-input { -moz-appearance: textfield; background: transparent; border: none; padding: 0 4px; margin: 0; font-weight: 700; color: #334155; text-align: right; font-size: 11px; height: 100%; width: 70px;}
         .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
 
         /* SPLIT */
@@ -693,7 +694,10 @@
                 }
 
                 const isSplit = t.children && t.children.length > 0;
-                const isSelected = selectedTxIds.has(t.id);
+                
+                // --- FIX SELECCIÓN: Convertimos ID a número para comparar con el Set ---
+                const isSelected = selectedTxIds.has(Number(t.id));
+                
                 const el = document.createElement(isSplit ? 'details' : 'div');
                 
                 // Estilo de Fila (Compacto pero claro)
@@ -821,8 +825,10 @@
 
         function toggleSelectTx(id, e) {
             if(e) e.stopPropagation();
-            if(selectedTxIds.has(id)) selectedTxIds.delete(id);
-            else selectedTxIds.add(id);
+            // --- FIX SELECCIÓN: Forzar conversión a Number ---
+            const nId = Number(id);
+            if(selectedTxIds.has(nId)) selectedTxIds.delete(nId);
+            else selectedTxIds.add(nId);
             updateSelectionUI();
             loadMonthData();
         }
@@ -840,9 +846,34 @@
         }
 
         function selectAllVisible() {
-            getFilteredTxs().filter(t => t.type === 'exp').forEach(t => selectedTxIds.add(t.id));
+            // Aseguramos que añadimos números
+            getFilteredTxs().filter(t => t.type === 'exp').forEach(t => selectedTxIds.add(Number(t.id)));
             updateSelectionUI();
             loadMonthData();
+        }
+
+        // --- FIX BULK EDIT: Función agregada que faltaba ---
+        function openBulkModal() {
+            // Llenar categorías
+            const cs = document.getElementById('bulkCatSelect');
+            cs.innerHTML = '<option value="">-- No cambiar --</option>';
+            (appData.cats.exp || []).forEach(c => {
+                cs.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+
+            // Llenar Ingresos del mes
+            const ls = document.getElementById('bulkLinkSelect');
+            ls.innerHTML = '<option value="">-- No cambiar --</option><option value="unassign">Desvincular</option>';
+            const k = getMonthKey();
+            appData.txs.filter(t => !t.deletedAt && t.type === 'inc' && t.date.startsWith(k)).forEach(i => {
+                ls.innerHTML += `<option value="${i.id}">${i.desc}</option>`;
+            });
+
+            document.getElementById('bulkModal').classList.remove('hidden');
+        }
+
+        function closeBulkModal() {
+             document.getElementById('bulkModal').classList.add('hidden');
         }
 
         function bulkApplyChanges() {
@@ -851,7 +882,7 @@
             const nl = document.getElementById('bulkLinkSelect').value;
             
             appData.txs.forEach(t => {
-                if(selectedTxIds.has(t.id)) {
+                if(selectedTxIds.has(Number(t.id))) {
                     if(nc) t.cat = nc;
                     if(nl === 'unassign') t.linkId = null;
                     else if(nl) t.linkId = nl;
@@ -865,7 +896,7 @@
         function bulkSetExec(v) {
             pushHistory();
             appData.txs.forEach(t => {
-                if(selectedTxIds.has(t.id)) t.exec = v;
+                if(selectedTxIds.has(Number(t.id))) t.exec = v;
             });
             saveData();
             toggleSelectionMode();
@@ -876,7 +907,7 @@
             if(!confirm('¿Borrar elementos seleccionados?')) return;
             pushHistory();
             appData.txs.forEach(t => {
-                if(selectedTxIds.has(t.id)) t.deletedAt = Date.now();
+                if(selectedTxIds.has(Number(t.id))) t.deletedAt = Date.now();
             });
             saveData();
             toggleSelectionMode();
