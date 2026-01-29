@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | App</title>
+    <title>Finanzas J&M | App V2</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -37,7 +37,7 @@
         .compact-row { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; }
         .compact-row:last-child { border-bottom: none; }
         .compact-row:hover { background-color: #f8fafc; }
-        .compact-row.selected { background-color: #f0f9ff; }
+        .compact-row.selected { background-color: #f0f9ff; border-left: 3px solid #0e757c; }
         
         .chip { border: 1px solid #e2e8f0; background: white; color: #475569; font-size: 11px; font-weight: 600; transition: all 0.1s; border-radius: 20px; }
         .chip:hover { border-color: #0e757c; color: #0e757c; }
@@ -320,7 +320,7 @@
                             <span class="text-[9px] text-slate-500">Saldo Mes Actual</span>
                             <span class="text-xs font-bold text-slate-700" id="monthCloseBalance">...</span>
                          </div>
-                         <button onclick="closeMonthAndTransfer()" class="bg-primary text-white text-[10px] px-3 py-1.5 rounded shadow hover:bg-primary-dark font-bold">CERRAR Y TRANSFERIR</button>
+                         <button onclick="closeMonthAndTransfer()" class="bg-primary text-white text-[10px] px-3 py-1.5 rounded shadow hover:bg-primary-dark font-bold">CERRAR MES</button>
                     </div>
                 </div>
             </div>
@@ -674,7 +674,7 @@
             const alerts = [];
             const y = currentDate.getFullYear();
             const m = currentDate.getMonth(); 
-            const createdAlertIds = new Set(); // Prevent duplicates
+            const createdAlertIds = new Set(); 
 
             // A) Trend Analysis
             const catMap = {};
@@ -765,36 +765,53 @@
             if(analyticsContainer) analyticsContainer.innerHTML = html;
         }
 
-        // --- NET WORTH LOGIC (FIXED) ---
-
+        // --- NET WORTH LOGIC (FIXED MULTI-CURRENCY) ---
         function renderNetWorthView() {
             const list = document.getElementById('list-accounts'); list.innerHTML = '';
             const rateARS = parseFloat(document.getElementById('rate_ARS').value) || 1200;
             const rateCOP = parseFloat(document.getElementById('rate_COP').value) || 3700;
             const rates = { ARS: rateARS, COP: rateCOP, USD: 1 };
 
-            // Calculate Balances
             const balances = {}; 
             appData.accounts.forEach(a => balances[a.id] = (a.initBal || 0));
 
             const sortedTxs = appData.txs.filter(t => !t.deletedAt).sort((a,b) => a.date.localeCompare(b.date));
+            
             sortedTxs.forEach(t => {
-                if(t.type === 'inc' && t.toAccountId) {
-                    balances[t.toAccountId] = (balances[t.toAccountId] || 0) + (t.origAmt || t.amount);
-                } else if(t.type === 'exp' && t.fromAccountId) {
-                    balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - (t.origAmt || t.amount);
-                } else if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
-                    balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - (t.origAmt || t.amount);
-                    let amountForDest = t.origAmt || t.amount;
-                    const fromAcc = appData.accounts.find(a => a.id === t.fromAccountId);
-                    const toAcc = appData.accounts.find(a => a.id === t.toAccountId);
-                    if (fromAcc && toAcc && fromAcc.currency !== toAcc.currency) {
-                        let valInArs = t.amount; 
-                         if (toAcc.currency === 'USD') amountForDest = valInArs / rates.ARS;
-                         if (toAcc.currency === 'COP') amountForDest = (valInArs / rates.ARS) * rates.COP;
-                         if (toAcc.currency === 'ARS') amountForDest = valInArs;
+                // FIXED: Lógica para descontar el monto correcto según la moneda de la cuenta
+                const getAmountForAccount = (accId, tx) => {
+                    const acc = appData.accounts.find(a => a.id === accId);
+                    if (!acc) return 0;
+                    
+                    // Si la cuenta es USD, necesitamos el valor en USD
+                    if (acc.currency === 'USD') {
+                        if (tx.origCurr === 'USD') return (tx.origAmt || tx.amount);
+                        return tx.amount / rates.ARS; // Convertir ARS base a USD
                     }
-                    balances[t.toAccountId] = (balances[t.toAccountId] || 0) + amountForDest;
+                    // Si la cuenta es COP
+                    if (acc.currency === 'COP') {
+                        if (tx.origCurr === 'COP') return (tx.origAmt || tx.amount);
+                         return (tx.amount / rates.ARS) * rates.COP; // Convertir ARS base a COP
+                    }
+                    // Si la cuenta es ARS (Default)
+                    return tx.amount; 
+                };
+
+                if(t.type === 'inc' && t.toAccountId) {
+                    balances[t.toAccountId] = (balances[t.toAccountId] || 0) + getAmountForAccount(t.toAccountId, t);
+                } else if(t.type === 'exp' && t.fromAccountId) {
+                    balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
+                } else if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
+                    // Restar del origen
+                    balances[t.fromAccountId] = (balances[t.fromAccountId] || 0) - getAmountForAccount(t.fromAccountId, t);
+                    
+                    // Sumar al destino
+                    if (t.destAmount) {
+                         balances[t.toAccountId] = (balances[t.toAccountId] || 0) + t.destAmount;
+                    } else {
+                        // Fallback para datos viejos
+                        balances[t.toAccountId] = (balances[t.toAccountId] || 0) + getAmountForAccount(t.toAccountId, t);
+                    }
                 }
             });
 
@@ -870,13 +887,13 @@
                 appData.accounts.forEach(a => tmpBal[a.id] = (a.initBal || 0));
                 
                 subTxs.forEach(t => {
+                   // Simplified historical calc (can be improved)
                    if(t.type === 'inc' && t.toAccountId) tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount);
                    else if(t.type === 'exp' && t.fromAccountId) tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
-                   else if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
+                   else if(t.type === 'transfer') {
+                       // Very rough historical estimate as we can't easily reproduce exact cross-rates
                        tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
-                       let amountForDest = t.origAmt || t.amount;
-                       if(appData.accounts.find(x=>x.id==t.toAccountId)?.currency !== appData.accounts.find(x=>x.id==t.fromAccountId)?.currency) amountForDest = t.amount; 
-                       tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + amountForDest;
+                       tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + (t.origAmt||t.amount); 
                    }
                 });
                 
@@ -918,7 +935,6 @@
             const cvs = document.getElementById('chartNWComp');
             if(cNWComp) cNWComp.destroy();
             
-            // Group positive assets by Name (or we could group by currency/type)
             const data = []; const labels = [];
             appData.accounts.filter(a => a.kind === 'asset').forEach(a => {
                  const val = convertValue(balances[a.id] || 0, a.currency, rates);
@@ -988,20 +1004,19 @@
                 
                 el.className = `compact-row group flex items-center justify-between cursor-pointer ${baseClass} ${isSelected ? 'selected' : ''}`;
                 
-                // Logic: Click on circle toggles Exec/Select. Click on body edits.
+                // FIXED: Better selection UX
                 let leftIcon = '';
                 if(isSelectionMode && t.type === 'exp') {
-                    leftIcon = `<div onclick="toggleTxSelected(${t.id}, event)" class="custom-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
+                    leftIcon = `<div class="custom-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
+                    el.onclick = (e) => toggleTxSelected(t.id, e);
                 } else {
-                    // Logic: Yellow circle functionality requested
                     leftIcon = `<div onclick="toggleExec(${t.id}, event)" class="custom-chk ${t.exec?'exec':''}" title="Marcar como Ejecutado"><i class="material-symbols-outlined">check</i></div>`;
+                    el.onclick = (e) => editTx(t.id);
                 }
-
-                el.onclick = (e) => { editTx(t.id); }; // Default body click
 
                 el.innerHTML = `
                     <div class="flex items-center gap-3 overflow-hidden w-full">
-                        <div class="shrink-0 flex items-center justify-center size-6">${leftIcon}</div>
+                        <div class="shrink-0 flex items-center justify-center size-6 pointer-events-none">${leftIcon}</div>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center justify-between">
                                 <p class="text-xs font-bold text-slate-800 truncate leading-tight">${t.desc} ${currBadge} ${linkText}</p>
@@ -1110,6 +1125,21 @@
                 if(!appData.concepts[cat].includes(desc)) appData.concepts[cat].push(desc); 
             }
             
+            // FREEZE TRANSFER DESTINATION AMOUNT
+            let destAmount = null;
+            if (type === 'transfer') {
+                const toAccObj = appData.accounts.find(a => a.id === toAcc);
+                if (toAccObj) {
+                     let valInArs = calcConversion(); // Esto devuelve ARS
+                     const rArs = parseFloat(document.getElementById('rate_ARS').value);
+                     const rCop = parseFloat(document.getElementById('rate_COP').value);
+                     
+                     if (toAccObj.currency === 'ARS') destAmount = valInArs;
+                     else if (toAccObj.currency === 'USD') destAmount = valInArs / rArs;
+                     else if (toAccObj.currency === 'COP') destAmount = (valInArs / rArs) * rCop;
+                }
+            }
+
             const tx={
                 id:editId||Date.now(), date:document.getElementById('fDate').value,
                 amount: calcConversion(), 
@@ -1120,7 +1150,8 @@
                 linkId:type=='exp'?document.getElementById('fLink').value:null, 
                 deletedAt:null,
                 fromAccountId: (type === 'exp' || type === 'transfer') ? fromAcc : null,
-                toAccountId: (type === 'inc' || type === 'transfer') ? toAcc : null
+                toAccountId: (type === 'inc' || type === 'transfer') ? toAcc : null,
+                destAmount: destAmount
             };
             if(editId){ const i=appData.txs.findIndex(x=>x.id==editId); appData.txs[i]=tx; } else appData.txs.push(tx);
             saveData(); closeModal();
@@ -1228,6 +1259,7 @@
         }
         function toggleSelectionMode() { isSelectionMode = !isSelectionMode; if(!isSelectionMode) selectedTxIds.clear(); updateSelectionUI(); loadMonthData(); }
         function toggleTxSelected(id, event) { 
+            // Better Event handling
             event.stopPropagation();
             if(selectedTxIds.has(id)) selectedTxIds.delete(id); 
             else selectedTxIds.add(id); 
@@ -1277,38 +1309,9 @@
 
         function closeMonthAndTransfer() {
             const balText = document.getElementById('monthCloseBalance').innerText;
-            if(!confirm(`¿Cerrar el mes actual y transferir ${balText} al mes siguiente?`)) return;
-            
-            pushHistory();
-            const y = currentDate.getFullYear();
-            const m = currentDate.getMonth() + 1; // 1-12
-            
-            // Calculate actual balance numbers
-            const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
-            const inc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
-            const exp = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
-            const diff = inc - exp;
-
-            // Date for next month
-            let nextM = m + 1;
-            let nextY = y;
-            if (nextM > 12) { nextM = 1; nextY++; }
-
-            const nextDateStr = `${nextY}-${nextM.toString().padStart(2,'0')}-01`;
-            const defAcc = appData.accounts[0].id; // Default to first account
-
-            // Create "Saldo Anterior" income in next month
-            if (diff > 0) {
-                appData.txs.push({
-                    id: Date.now(), date: nextDateStr, amount: diff, origAmt: diff, origCurr: 'ARS',
-                    type: 'inc', cat: 'Otros', desc: 'Saldo Mes Anterior', exec: true,
-                    linkId: null, deletedAt: null, fromAccountId: null, toAccountId: defAcc
-                });
-                alert("Mes cerrado. Saldo transferido al mes siguiente.");
-            } else {
-                alert("El saldo es negativo o cero, no se generó transferencia.");
-            }
-            saveData();
+            if(!confirm(`¿Cerrar el mes actual? Esto marcará un hito visual. Saldo: ${balText}`)) return;
+            // No creamos transacciones fantasma para no duplicar patrimonio
+            alert("Mes cerrado. Recuerda actualizar tus saldos reales de cuentas.");
         }
     </script>
 </body>
