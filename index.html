@@ -3,13 +3,12 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Finanzas J&M | Desktop</title>
+    <title>Finanzas J&M | App</title>
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     
     <script>
@@ -18,7 +17,7 @@
             theme: {
                 extend: {
                     colors: { "primary": "#0e757c", "primary-dark": "#085055", "surface": "#ffffff", "success": "#15803d", "danger": "#b91c1c", "warning": "#b45309" },
-                    fontFamily: { "display": ["Manrope", "sans-serif"], "body": ["Inter", "sans-serif"] }
+                    fontFamily: { "display": ["Manrope", "sans-serif"], "body": ["Manrope", "sans-serif"] }
                 }
             }
         }
@@ -35,7 +34,7 @@
         .active-nav { background-color: rgba(14, 117, 124, 0.08); color: #0e757c; border-right: 3px solid #0e757c; }
         .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
         
-        .compact-row { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; }
+        .compact-row { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; }
         .compact-row:last-child { border-bottom: none; }
         .compact-row:hover { background-color: #f8fafc; }
         .compact-row.selected { background-color: #f0f9ff; }
@@ -49,37 +48,26 @@
 
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        .tc-input { 
-            -moz-appearance: textfield; 
-            background: transparent; 
-            border: none; 
-            padding: 0 4px; 
-            margin: 0; 
-            font-weight: 700; 
-            color: #334155; 
-            text-align: right; 
-            width: 90px; 
-            font-size: 12px;
-            height: 100%;
-        }
+        .tc-input { -moz-appearance: textfield; background: transparent; border: none; padding: 0 4px; margin: 0; font-weight: 700; color: #334155; text-align: right; width: 90px; font-size: 12px; height: 100%; }
         .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
         
         .h-header-el { height: 32px; }
-
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
-        
         .btn-disabled { opacity: 0.3; pointer-events: none; }
         
-        .bulk-chk { width: 16px; height: 16px; border-radius: 4px; border: 2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:0.2s; }
-        .bulk-chk.checked { background: #0e757c; border-color: #0e757c; }
-        .bulk-chk i { color:white; font-size:12px; display:none; }
-        .bulk-chk.checked i { display:block; }
+        /* Checkbox Custom Style */
+        .custom-chk { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:0.2s; cursor: pointer; }
+        .custom-chk:hover { border-color: #0e757c; }
+        .custom-chk.checked { background: #0e757c; border-color: #0e757c; }
+        .custom-chk i { color:white; font-size:10px; display:none; }
+        .custom-chk.checked i { display:block; }
+        .custom-chk.exec { border-color: #15803d; background: transparent; }
+        .custom-chk.exec i { display:block; color: #15803d; font-weight: 900; }
 
-        /* Alert Styles */
         .alert-card { transition: all 0.2s; }
         .alert-card:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
@@ -93,7 +81,7 @@
                 <div class="bg-primary size-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md">
                     <span class="material-symbols-outlined text-lg">account_balance_wallet</span>
                 </div>
-                <h1 class="font-bold text-sm text-primary ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden delay-75 tracking-tight">Finanzas Personales J&M</h1>
+                <h1 class="font-bold text-sm text-primary ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap overflow-hidden delay-75 tracking-tight">Finanzas J&M</h1>
             </div>
 
             <nav class="flex flex-col gap-1 px-2" id="main-nav">
@@ -166,9 +154,8 @@
             </div>
         </header>
 
-        <div id="dashboardAlerts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-3 shrink-0 empty:hidden"></div>
-
         <div id="view-dashboard" class="view-container animate-fade-in flex flex-col flex-1 min-h-0 gap-3 relative">
+             <div id="dashboardAlerts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 shrink-0 empty:hidden"></div>
             
             <section class="grid grid-cols-4 gap-3 shrink-0">
                 <div class="glass-panel p-3 rounded-xl flex flex-col justify-center">
@@ -220,11 +207,11 @@
                     <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 shrink-0">
                         <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-sm">pie_chart</span> Asignación</h4>
                     </div>
-                    <div class="px-2 py-2 flex gap-2 border-b border-slate-100 bg-white">
-                        <button onclick="autoAssign()" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:to-blue-700 text-white text-[10px] font-bold py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1">
+                    <div class="px-3 py-2 flex justify-between gap-4 border-b border-slate-100 bg-white items-center">
+                        <button onclick="autoAssign()" class="text-[10px] font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">auto_fix_high</span> Auto-Asignar
                         </button>
-                        <button onclick="unassignAll()" class="flex-1 bg-white border border-slate-200 text-slate-500 text-[10px] font-bold py-1.5 rounded-lg hover:text-red-500 hover:border-red-200 transition-all flex items-center justify-center gap-1">
+                        <button onclick="unassignAll()" class="text-[10px] font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">link_off</span> Desasignar Todo
                         </button>
                     </div>
@@ -242,7 +229,6 @@
                     <span class="material-symbols-outlined text-sm">close</span>
                 </button>
             </div>
-
         </div>
 
         <div id="view-networth" class="view-container animate-fade-in hidden-view flex flex-col flex-1 min-h-0 gap-3 relative">
@@ -267,17 +253,23 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-0">
                 <div class="lg:col-span-2 glass-panel rounded-xl p-4 flex flex-col">
-                    <h3 class="text-xs font-bold text-slate-700 mb-4">Evolución del Patrimonio (12 Meses)</h3>
+                    <h3 class="text-xs font-bold text-slate-700 mb-4">Evolución: Activos vs Pasivos</h3>
                     <div class="flex-1 min-h-0 relative">
                         <canvas id="chartNetWorth"></canvas>
                     </div>
                 </div>
-                <div class="glass-panel rounded-xl flex flex-col overflow-hidden">
-                    <div class="flex items-center justify-between px-3 py-3 border-b border-slate-100 bg-slate-50/50">
-                        <h4 class="text-xs font-bold text-slate-700">Cuentas</h4>
-                        <button onclick="openAccountModal()" class="text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded transition-colors">+ CUENTA</button>
+                <div class="flex flex-col gap-3 h-full overflow-hidden">
+                    <div class="glass-panel rounded-xl p-4 flex flex-col h-1/3 min-h-[180px]">
+                         <h3 class="text-xs font-bold text-slate-700 mb-2">Composición</h3>
+                         <div class="flex-1 min-h-0 relative"><canvas id="chartNWComp"></canvas></div>
                     </div>
-                    <div class="flex-1 overflow-y-auto custom-scrollbar p-0" id="list-accounts"></div>
+                    <div class="glass-panel rounded-xl flex flex-col overflow-hidden flex-1">
+                        <div class="flex items-center justify-between px-3 py-3 border-b border-slate-100 bg-slate-50/50">
+                            <h4 class="text-xs font-bold text-slate-700">Cuentas</h4>
+                            <button onclick="openAccountModal()" class="text-[10px] font-bold text-primary hover:bg-primary/10 px-2 py-1 rounded transition-colors">+ CUENTA</button>
+                        </div>
+                        <div class="flex-1 overflow-y-auto custom-scrollbar p-0" id="list-accounts"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -311,23 +303,25 @@
                 <div class="flex justify-between items-center mb-2 px-1">
                     <h3 class="text-xs font-bold text-slate-800">Recurrentes</h3>
                     <div class="flex gap-2">
-                        <button onclick="populateRecurringDefaults()" class="text-slate-400 text-[10px] font-bold hover:text-primary transition-colors">SUGERIR (3M)</button>
+                        <button onclick="populateRecurringDefaults()" class="text-slate-400 text-[10px] font-bold hover:text-primary transition-colors">SUGERIR</button>
                         <button onclick="addRecurrenteRow()" class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold hover:bg-primary hover:text-white transition-colors">+ AGREGAR</button>
                     </div>
                 </div>
                 <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-lg border border-slate-100 p-1 mb-2" id="recurrente-table-body"></div>
                 <div class="grid grid-cols-2 gap-2 mt-auto">
-                    <button onclick="saveRecurrentesConfig()" class="py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 shadow-sm">Guardar</button>
-                    <button onclick="executeRecurrentes()" class="py-1.5 rounded-lg bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700 shadow-sm">Ejecutar</button>
+                    <button onclick="saveRecurrentesConfig()" class="py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 shadow-sm">Guardar Recurrentes</button>
+                    <button onclick="executeRecurrentes()" class="py-1.5 rounded-lg bg-slate-800 text-white text-[10px] font-bold hover:bg-slate-700 shadow-sm">Ejecutar Mes</button>
+                    
                     <div class="col-span-2 border-t border-slate-100 my-0.5"></div>
-                    <div class="col-span-2 bg-slate-100 p-1.5 rounded-lg flex items-center justify-between">
-                         <label class="block text-[9px] font-bold text-slate-400 uppercase">Clonar Mes</label>
-                         <div class="flex gap-1">
-                            <input type="month" id="cloneSrc" class="bg-white border-none rounded-md px-1 py-0.5 text-[10px] shadow-sm w-24">
-                            <button onclick="cloneMonth()" class="text-primary font-bold text-[10px] hover:underline">Copiar</button>
-                        </div>
+                    <div class="col-span-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Cierre de Mes</div>
+                    
+                    <div class="col-span-2 bg-slate-100 p-2 rounded-lg flex items-center justify-between">
+                         <div class="flex flex-col">
+                            <span class="text-[9px] text-slate-500">Saldo Mes Actual</span>
+                            <span class="text-xs font-bold text-slate-700" id="monthCloseBalance">...</span>
+                         </div>
+                         <button onclick="closeMonthAndTransfer()" class="bg-primary text-white text-[10px] px-3 py-1.5 rounded shadow hover:bg-primary-dark font-bold">CERRAR Y TRANSFERIR</button>
                     </div>
-                    <button onclick="clearMonth()" class="col-span-2 border border-red-100 text-red-400 py-1 rounded-lg text-[10px] font-bold uppercase hover:bg-red-50 hover:text-red-500 transition-colors">Borrar Mes Actual</button>
                 </div>
             </div>
         </div>
@@ -465,7 +459,6 @@
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeBulkModal()"></div>
         <div class="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl p-4 animate-fade-in mx-4">
             <h3 class="text-sm font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2">Acciones Masivas</h3>
-            
             <div id="bulkMainOptions" class="grid grid-cols-1 gap-2">
                 <button onclick="showBulkSubOption('category')" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group">
                     <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Cambiar Categoría</span>
@@ -480,7 +473,7 @@
                     <span class="material-symbols-outlined text-base text-slate-400">link</span>
                 </button>
                 <button onclick="bulkUnassignIncome()" class="p-3 text-left rounded-lg border border-slate-200 hover:border-primary hover:bg-slate-50 flex items-center justify-between group">
-                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Desvincular (Link = Null)</span>
+                    <span class="text-xs font-bold text-slate-600 group-hover:text-slate-800">Desvincular</span>
                     <span class="material-symbols-outlined text-base text-slate-400">link_off</span>
                 </button>
                 <button onclick="bulkDelete()" class="p-3 text-left rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 flex items-center justify-between group">
@@ -488,18 +481,15 @@
                     <span class="material-symbols-outlined text-base text-red-400">delete</span>
                 </button>
             </div>
-
             <div id="bulkSubCategory" class="hidden">
                 <button onclick="resetBulkView()" class="mb-2 text-[10px] text-slate-400 hover:text-primary font-bold flex items-center"><span class="material-symbols-outlined text-sm">arrow_back</span> Volver</button>
                 <div class="mb-2"><input type="text" id="bulkCatSearch" placeholder="Buscar categoría..." class="w-full text-xs border border-slate-200 rounded p-2"></div>
                 <div id="bulkCatList" class="max-h-[200px] overflow-y-auto custom-scrollbar flex flex-col gap-1"></div>
             </div>
-
             <div id="bulkSubLink" class="hidden">
                 <button onclick="resetBulkView()" class="mb-2 text-[10px] text-slate-400 hover:text-primary font-bold flex items-center"><span class="material-symbols-outlined text-sm">arrow_back</span> Volver</button>
                  <div id="bulkLinkList" class="max-h-[200px] overflow-y-auto custom-scrollbar flex flex-col gap-1"></div>
             </div>
-
         </div>
     </div>
 
@@ -534,7 +524,7 @@
 
         let appData = JSON.parse(JSON.stringify(defaultData)); 
         let currentDate = new Date(); currentDate.setDate(1);
-        let editId=null, editAccId=null, cExp=null, cInc=null, drillCat=null;
+        let editId=null, editAccId=null, cExp=null, cInc=null, drillCat=null, cNWComp=null;
         
         // --- HISTORY STATE ---
         let historyStack = [];
@@ -557,13 +547,11 @@
 
         async function initApp() {
             loadLocal();
-            // Data Migration for Accounts
-            if (!appData.accounts || appData.accounts.length === 0) {
-                appData.accounts = JSON.parse(JSON.stringify(defaultData.accounts));
-            }
-            // Migrate old txs to default account if missing
-            let migrated = false;
+            if (!appData.accounts || appData.accounts.length === 0) appData.accounts = JSON.parse(JSON.stringify(defaultData.accounts));
+            
+            // Migration check
             const defAcc = appData.accounts[0].id;
+            let migrated = false;
             appData.txs.forEach(t => {
                 if(t.type === 'exp' && !t.fromAccountId) { t.fromAccountId = defAcc; migrated = true; }
                 if(t.type === 'inc' && !t.toAccountId) { t.toAccountId = defAcc; migrated = true; }
@@ -577,7 +565,7 @@
             syncIndicator(true); 
             await forceSync();
             syncIndicator(false);
-            renderNetWorthView(); // Initial Render
+            renderNetWorthView();
         }
 
         // --- HISTORY LOGIC ---
@@ -655,7 +643,7 @@
             document.getElementById('rate_ARS').value = rates.ARS; 
             document.getElementById('rate_COP').value = rates.COP;
             
-            // Filter txs: exclude deleted AND exclude transfers from Flow View
+            // Filter txs
             const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
             
             txs.forEach(t => {
@@ -667,20 +655,28 @@
 
             txs.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
             
+            // Update Dashboard KPIs
+            updateKPIs(txs);
+
             const alerts = computeAlerts(txs);
             renderAlerts(alerts);
+            renderLists(txs); renderCharts(txs); renderRecurrentesAdmin(); renderAdminTree();
 
-            renderLists(txs); renderCharts(txs); updateKPIs(txs); renderRecurrentesAdmin(); renderAdminTree();
+            // Update Admin Month Close Preview
+            const dashTxs = txs;
+            const i = dashTxs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
+            const e = dashTxs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
+            document.getElementById('monthCloseBalance').innerText = `$${fmt(i-e)}`;
         }
 
         // --- ALERT SYSTEM LOGIC ---
         function computeAlerts(txs) {
             const alerts = [];
             const y = currentDate.getFullYear();
-            const m = currentDate.getMonth(); // 0-based
-            const totalExp = txs.filter(t => t.type === 'exp').reduce((a, b) => a + b.amount, 0) || 1;
+            const m = currentDate.getMonth(); 
+            const createdAlertIds = new Set(); // Prevent duplicates
 
-            // A) Trend Analysis (Categoría > 20% vs Promedio 3 Meses)
+            // A) Trend Analysis
             const catMap = {};
             txs.filter(t => t.type === 'exp').forEach(t => { catMap[t.cat] = (catMap[t.cat] || 0) + t.amount; });
             
@@ -689,52 +685,56 @@
                 if (avg > 0) {
                     const diff = (amount - avg) / avg;
                     if (diff >= 0.20) {
-                        // FIX: Check for duplicates before pushing
-                        if (!alerts.some(a => a.id === `trend-${cat}`)) {
+                        const alertId = `trend-${cat}`;
+                        if (!createdAlertIds.has(alertId)) {
                             alerts.push({
-                                id: `trend-${cat}`, type: 'trend', severity: diff > 0.5 ? 'danger' : 'warning', amount: amount,
+                                id: alertId, type: 'trend', severity: diff > 0.5 ? 'danger' : 'warning', amount: amount,
                                 title: `Suba en ${cat}`,
                                 desc: `+${Math.round(diff * 100)}% vs prom. ($${fmt(avg)})`,
                                 ctaLabel: 'Ver', ctaAction: `filterExpList('${cat}')`
                             });
+                            createdAlertIds.add(alertId);
                         }
                     }
                 }
             });
 
-            // B) Unassigned Expenses (Gastos sin asignar)
+            // B) Unassigned Expenses
             const unassignedAmt = txs.filter(t => t.type === 'exp' && !t.linkId).reduce((a, b) => a + b.amount, 0);
             if (unassignedAmt > 0) {
-                alerts.push({
-                    id: 'unassigned', type: 'orphan', severity: unassignedAmt > 100000 ? 'danger' : 'warning', amount: unassignedAmt,
-                    title: 'Gastos sin asignar',
-                    desc: `$${fmt(unassignedAmt)} pendientes de vincular`,
-                    ctaLabel: 'Asignar', ctaAction: "document.getElementById('searchExpInput').value='sin asignar';filterExpList()"
-                });
+                const alertId = 'unassigned';
+                if(!createdAlertIds.has(alertId)) {
+                    alerts.push({
+                        id: alertId, type: 'orphan', severity: unassignedAmt > 100000 ? 'danger' : 'warning', amount: unassignedAmt,
+                        title: 'Gastos sin asignar',
+                        desc: `$${fmt(unassignedAmt)} pendientes de vincular`,
+                        ctaLabel: 'Asignar', ctaAction: "document.getElementById('searchExpInput').value='sin asignar';filterExpList()"
+                    });
+                    createdAlertIds.add(alertId);
+                }
             }
 
-            // C) Overspending on Income (Ingresos en negativo)
+            // C) Overspending on Income
             const incs = txs.filter(t => t.type === 'inc');
-            let overspendCount = 0;
-            let overspendAmt = 0;
+            let overspendCount = 0; let overspendAmt = 0;
             incs.forEach(inc => {
                 const assigned = txs.filter(t => t.type === 'exp' && t.linkId == inc.id).reduce((a,b)=>a+b.amount,0);
-                if (assigned > inc.amount) {
-                    overspendCount++;
-                    overspendAmt += (assigned - inc.amount);
-                }
+                if (assigned > inc.amount) { overspendCount++; overspendAmt += (assigned - inc.amount); }
             });
 
             if (overspendCount > 0) {
-                alerts.push({
-                    id: 'overspend', type: 'over', severity: 'danger', amount: overspendAmt,
-                    title: 'Ingresos Excedidos',
-                    desc: `${overspendCount} ingresos con saldo negativo (-$${fmt(overspendAmt)})`,
-                    ctaLabel: 'Corregir', ctaAction: "nav('dashboard', null)"
-                });
+                const alertId = 'overspend';
+                if(!createdAlertIds.has(alertId)){
+                    alerts.push({
+                        id: alertId, type: 'over', severity: 'danger', amount: overspendAmt,
+                        title: 'Ingresos Excedidos',
+                        desc: `${overspendCount} ingresos con saldo negativo (-$${fmt(overspendAmt)})`,
+                        ctaLabel: 'Corregir', ctaAction: "nav('dashboard', null)"
+                    });
+                    createdAlertIds.add(alertId);
+                }
             }
 
-            // Ordenar por severidad y cantidad
             return alerts.sort((a, b) => {
                 const severityScore = { 'danger': 3, 'warning': 2, 'info': 1 };
                 const scoreDiff = severityScore[b.severity] - severityScore[a.severity];
@@ -765,7 +765,7 @@
             if(analyticsContainer) analyticsContainer.innerHTML = html;
         }
 
-        // --- NET WORTH & ACCOUNTS LOGIC ---
+        // --- NET WORTH LOGIC (FIXED) ---
 
         function renderNetWorthView() {
             const list = document.getElementById('list-accounts'); list.innerHTML = '';
@@ -773,7 +773,7 @@
             const rateCOP = parseFloat(document.getElementById('rate_COP').value) || 3700;
             const rates = { ARS: rateARS, COP: rateCOP, USD: 1 };
 
-            // 1. Calculate Current Balances
+            // Calculate Balances
             const balances = {}; 
             appData.accounts.forEach(a => balances[a.id] = (a.initBal || 0));
 
@@ -835,6 +835,7 @@
             document.getElementById('nw-liabs').innerText = `$${fmt(totalLiabs)}`; 
 
             renderNetWorthChart();
+            renderNetWorthComposition(balances, rates);
         }
 
         function convertValue(amt, curr, rates) {
@@ -849,7 +850,9 @@
             if(netWorthChartInst) netWorthChartInst.destroy();
             
             const labels = [];
-            const data = [];
+            const dataAssets = [];
+            const dataLiabs = [];
+            const dataNet = [];
             
             let d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 11); 
             
@@ -859,10 +862,10 @@
                 labels.push(MONTHS[d.getMonth()]);
                 
                 const monthRates = appData.monthlyRates[key] || { ARS: 1500, COP: 3700, USD: 1 };
-                
                 const endOfMonth = new Date(y, m, 0); 
-                const subTxs = appData.txs.filter(t => !t.deletedAt && new Date(t.date) <= endOfMonth);
                 
+                // Calc balance at THAT moment in time
+                const subTxs = appData.txs.filter(t => !t.deletedAt && new Date(t.date) <= endOfMonth);
                 const tmpBal = {};
                 appData.accounts.forEach(a => tmpBal[a.id] = (a.initBal || 0));
                 
@@ -872,42 +875,60 @@
                    else if(t.type === 'transfer' && t.fromAccountId && t.toAccountId) {
                        tmpBal[t.fromAccountId] = (tmpBal[t.fromAccountId]||0) - (t.origAmt||t.amount);
                        let amountForDest = t.origAmt || t.amount;
-                       if(appData.accounts.find(x=>x.id==t.toAccountId)?.currency !== appData.accounts.find(x=>x.id==t.fromAccountId)?.currency) {
-                           amountForDest = t.amount; 
-                       }
+                       if(appData.accounts.find(x=>x.id==t.toAccountId)?.currency !== appData.accounts.find(x=>x.id==t.fromAccountId)?.currency) amountForDest = t.amount; 
                        tmpBal[t.toAccountId] = (tmpBal[t.toAccountId]||0) + amountForDest;
                    }
                 });
                 
-                let monthNW = 0;
+                let mAssets = 0, mLiabs = 0;
                 appData.accounts.forEach(a => {
-                    monthNW += convertValue(tmpBal[a.id], a.currency, monthRates);
+                    const val = convertValue(tmpBal[a.id], a.currency, monthRates);
+                    if(a.kind === 'asset') mAssets += val; else mLiabs += val;
                 });
-                data.push(monthNW);
                 
+                dataAssets.push(mAssets);
+                dataLiabs.push(mLiabs);
+                dataNet.push(mAssets + mLiabs);
                 d.setMonth(d.getMonth() + 1);
             }
 
             netWorthChartInst = new Chart(ctx, {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Patrimonio Neto',
-                        data: data,
-                        borderColor: '#0e757c',
-                        backgroundColor: 'rgba(14, 117, 124, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 3
-                    }]
+                    datasets: [
+                        { label: 'Activos', data: dataAssets, backgroundColor: '#10b981', stack: 'Stack 0' },
+                        { label: 'Pasivos', data: dataLiabs, backgroundColor: '#ef4444', stack: 'Stack 0' },
+                        { type: 'line', label: 'Neto', data: dataNet, borderColor: '#0f172a', borderWidth: 2, tension: 0.3, pointRadius: 0 }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { ticks: { callback: (v) => '$' + (v/1000000).toFixed(1) + 'M' } } }
+                    plugins: { legend: { display: true, position: 'bottom', labels: {boxWidth: 8, font:{size:9}} } },
+                    scales: { 
+                        x: { grid: {display: false} },
+                        y: { ticks: { callback: (v) => '$' + (v/1000000).toFixed(1) + 'M', font:{size:9} } } 
+                    }
                 }
+            });
+        }
+        
+        function renderNetWorthComposition(balances, rates) {
+            const cvs = document.getElementById('chartNWComp');
+            if(cNWComp) cNWComp.destroy();
+            
+            // Group positive assets by Name (or we could group by currency/type)
+            const data = []; const labels = [];
+            appData.accounts.filter(a => a.kind === 'asset').forEach(a => {
+                 const val = convertValue(balances[a.id] || 0, a.currency, rates);
+                 if(val > 0) { labels.push(a.name); data.push(val); }
+            });
+            
+            cNWComp = new Chart(cvs, { 
+                type:'doughnut', 
+                data:{ labels:labels, datasets:[{data:data, backgroundColor:PALETTE, borderWidth:0}] }, 
+                options:{ responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{display:false}} } 
             });
         }
 
@@ -937,19 +958,17 @@
             saveData(); closeAccountModal();
         }
         function deleteAccount() {
-            if(!confirm('¿Eliminar cuenta? Las transacciones asociadas quedarán huérfanas o rotas.')) return;
+            if(!confirm('¿Eliminar cuenta?')) return;
             pushHistory();
             appData.accounts = appData.accounts.filter(x => x.id !== editAccId);
             saveData(); closeAccountModal();
         }
 
-        // --- EXISTING RENDERERS & HELPERS (Kept Intact) ---
+        // --- MAIN RENDERERS ---
 
         function renderLists(txs) {
             const lI=document.getElementById('list-inc'), lE=document.getElementById('list-exp'), lA=document.getElementById('list-alloc');
             lI.innerHTML=''; lE.innerHTML=''; lA.innerHTML=''; let rb=0;
-            
-            // Only render Inc/Exp in dashboard (Transfers are hidden from here per requirement)
             const dashboardTxs = txs.filter(t => t.type !== 'transfer');
 
             dashboardTxs.forEach(t => {
@@ -968,19 +987,17 @@
                 if(isSelectionMode && isSelected) baseClass = "bg-blue-50/50";
                 
                 el.className = `compact-row group flex items-center justify-between cursor-pointer ${baseClass} ${isSelected ? 'selected' : ''}`;
-                el.onclick = () => {
-                    if(isSelectionMode && t.type === 'exp') toggleTxSelected(t.id);
-                    else if(!isSelectionMode) editTx(t.id);
-                };
                 
+                // Logic: Click on circle toggles Exec/Select. Click on body edits.
                 let leftIcon = '';
                 if(isSelectionMode && t.type === 'exp') {
-                    leftIcon = `<div class="bulk-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
+                    leftIcon = `<div onclick="toggleTxSelected(${t.id}, event)" class="custom-chk ${isSelected?'checked':''}"><i class="fas fa-check material-symbols-outlined">check</i></div>`;
                 } else {
-                    leftIcon = t.exec 
-                    ? `<span class="material-symbols-outlined text-base text-primary">check_circle</span>`
-                    : `<div class="size-4 rounded-full border-2 border-slate-200 group-hover:border-primary transition-colors"></div>`;
+                    // Logic: Yellow circle functionality requested
+                    leftIcon = `<div onclick="toggleExec(${t.id}, event)" class="custom-chk ${t.exec?'exec':''}" title="Marcar como Ejecutado"><i class="material-symbols-outlined">check</i></div>`;
                 }
+
+                el.onclick = (e) => { editTx(t.id); }; // Default body click
 
                 el.innerHTML = `
                     <div class="flex items-center gap-3 overflow-hidden w-full">
@@ -1004,7 +1021,8 @@
             document.getElementById('c-inc').innerText = dashboardTxs.filter(t=>t.type=='inc').length;
             document.getElementById('c-exp').innerText = dashboardTxs.filter(t=>t.type=='exp').length;
             
-             const incs = dashboardTxs.filter(t=>t.type=='inc');
+            // Allocations Logic
+            const incs = dashboardTxs.filter(t=>t.type=='inc');
             incs.forEach(inc => {
                 const subs = dashboardTxs.filter(t=>t.type=='exp' && t.linkId==inc.id);
                 const spent = subs.reduce((a,b)=>a+b.amount,0);
@@ -1021,12 +1039,18 @@
              const orphans = dashboardTxs.filter(t => t.type === 'exp' && !t.linkId);
             if (orphans.length > 0) {
                  const totalOrphans = orphans.reduce((a,b) => a+b.amount, 0);
-                 let orphanRows = ''; orphans.forEach(s => { const day = s.date.split('-')[2]; orphanRows += `<div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc} <span class="text-slate-300 text-[9px] ml-1">d-${day}</span></span><span class="font-bold shrink-0">$${fmt(s.amount)}</span></div>`; });
+                 let orphanRows = ''; orphans.forEach(s => { const day = s.date.split('-')[2]; orphanRows += `<div class="flex justify-between py-1.5 text-[10px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-2 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="editTx(${s.id})"><span class="truncate pr-2">${s.desc} <span class="text-slate-300 text-[9px] ml-1">d-${day}</span></span><span class="font-bold shrink-0">$${fmt(totalOrphans)}</span></div>`; });
                  const orphanCard = document.createElement('div'); orphanCard.innerHTML = `<div class="rounded-xl border border-l-4 border-l-danger border-slate-200 bg-white mb-2 shadow-sm overflow-hidden"><div class="p-3 cursor-pointer hover:bg-slate-50 transition-colors flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')"><p class="text-[11px] font-bold text-slate-700">Sin Asignar (${orphans.length})</p><p class="text-[10px] font-extrabold text-danger">$${fmt(totalOrphans)}</p></div><div class="hidden bg-white py-1 border-t border-slate-100">${orphanRows}</div></div>`; lA.appendChild(orphanCard);
             }
         }
         
-        // --- MODAL & FORM UPDATES ---
+        function toggleExec(id, event) {
+            event.stopPropagation();
+            pushHistory();
+            const tx = appData.txs.find(t => t.id === id);
+            if(tx) tx.exec = !tx.exec;
+            saveData();
+        }
 
         function updateAccountSelects() {
             const fAcc = document.getElementById('fFromAcc');
@@ -1127,7 +1151,6 @@
         function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); document.getElementById('modalOverlay').classList.remove('flex'); }
         function resetForm(){ document.getElementById('txForm').reset(); document.getElementById('mTitle').innerText='Nuevo'; document.getElementById('btnDel').classList.add('hidden'); document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('convPreview').classList.add('hidden'); editId=null; }
         
-        // --- PREVIOUSLY EXISTING FUNCTIONS ---
         function renderChips(type) {
             const container = document.getElementById('chipBox'); container.innerHTML = '';
             const cats = type === 'inc' ? (appData.cats.inc || []) : (appData.cats.exp || []);
@@ -1183,8 +1206,6 @@
         function addRecurrenteRow() { pushHistory(); appData.recurrentes.push({desc:'Nuevo', amount:0, cat:'Esenciales', type:'exp'}); renderRecurrentesAdmin(); }
         function saveRecurrentesConfig() { saveData(); alert('Guardado'); }
         function executeRecurrentes() { const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; let c=0; const defAcc = appData.accounts[0].id; appData.recurrentes.forEach(r=>{ if(!appData.txs.some(t=>!t.deletedAt && t.desc==r.desc && parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m)){ appData.txs.push({...r, id:Date.now()+Math.random(), date:`${y}-${m.toString().padStart(2,'0')}-01`, exec:false, linkId:null, deletedAt:null, origAmt:r.amount, origCurr:'ARS', fromAccountId: r.type==='exp'?defAcc:null, toAccountId:r.type==='inc'?defAcc:null}); c++; }}); if(c>0){ pushHistory(); saveData(); alert('Generados: '+c);} else alert('Ya estaban cargados'); }
-        function clearMonth(){ if(confirm('Borrar MES actual?')){ pushHistory(); const y=currentDate.getFullYear(), m=currentDate.getMonth()+1; appData.txs.forEach(t=>{if(parseInt(t.date.split('-')[0])==y && parseInt(t.date.split('-')[1])==m) t.deletedAt=Date.now();}); saveData(); }}
-        function cloneMonth() { const s=document.getElementById('cloneSrc').value; if(!s)return alert('Mes origen?'); if(!confirm('Copiar?')){return;} const [sy,sm]=s.split('-').map(Number); const src=appData.txs.filter(t=>!t.deletedAt && parseInt(t.date.split('-')[0])==sy && parseInt(t.date.split('-')[1])==sm && t.type !== 'transfer'); const tgt=document.getElementById('datePicker').value+'-01'; let map={}, n=[]; src.filter(t=>t.type=='inc').forEach(t=>{const id=Date.now()+Math.random(); map[t.id]=id; n.push({...t,id,date:tgt,exec:false});}); src.filter(t=>t.type=='exp').forEach(t=>{const id=Date.now()+Math.random(); n.push({...t,id,date:tgt,exec:false,linkId:t.linkId?map[t.linkId]:null});}); pushHistory(); appData.txs.push(...n); saveData(); }
         function autoAssign() { if(!confirm("¿Asignar automáticamente?")) return; const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; const currentMonthTxs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m); let incomes = currentMonthTxs.filter(t => t.type === 'inc').map(i => { const assigned = currentMonthTxs.filter(e => e.type === 'exp' && e.linkId == i.id).reduce((a,b)=>a+b.amount,0); return { ...i, balance: i.amount - assigned }; }); const unassignedExps = currentMonthTxs.filter(t => t.type === 'exp' && !t.linkId); let count = 0; let changesMade = false; unassignedExps.forEach(exp => { const validIncome = incomes.find(inc => inc.date <= exp.date && inc.balance >= exp.amount); if(validIncome) { if(!changesMade) { pushHistory(); changesMade = true; } exp.linkId = validIncome.id; validIncome.balance -= exp.amount; count++; } }); if(count > 0) { alert(`Asignados: ${count} gastos.`); saveData(); } else { alert("No se encontraron coincidencias válidas."); } }
         function unassignAll() { if(!confirm("¿Desvincular TODOS los gastos?")) return; pushHistory(); const y = currentDate.getFullYear(), m = currentDate.getMonth() + 1; appData.txs.forEach(t => { if(!t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m && t.type === 'exp') { t.linkId = null; }}); saveData(); }
         function unassignGroup(incId) { if(!confirm("¿Desvincular gastos?")) return; pushHistory(); appData.txs.forEach(t => { if(t.type === 'exp' && t.linkId == incId) t.linkId = null; }); saveData(); }
@@ -1206,14 +1227,13 @@
             });
         }
         function toggleSelectionMode() { isSelectionMode = !isSelectionMode; if(!isSelectionMode) selectedTxIds.clear(); updateSelectionUI(); loadMonthData(); }
-        // --- FIX: loadMonthData to avoid ghost rows ---
-        function toggleTxSelected(id) { 
+        function toggleTxSelected(id, event) { 
+            event.stopPropagation();
             if(selectedTxIds.has(id)) selectedTxIds.delete(id); 
             else selectedTxIds.add(id); 
             loadMonthData(); 
             updateSelectionUI(); 
         }
-        
         function updateSelectionUI() { const btn = document.getElementById('btnSelectMode'); const bar = document.getElementById('bulkBar'); const countEl = document.getElementById('bulkCount'); if(isSelectionMode) { btn.classList.add('text-primary'); btn.classList.remove('text-slate-400'); if(selectedTxIds.size > 0) { bar.classList.remove('hidden'); countEl.innerText = `${selectedTxIds.size} seleccionados`; } else { bar.classList.add('hidden'); } } else { btn.classList.remove('text-primary'); btn.classList.add('text-slate-400'); bar.classList.add('hidden'); } }
         function openBulkModal() { document.getElementById('bulkModal').classList.remove('hidden'); resetBulkView(); }
         function closeBulkModal() { document.getElementById('bulkModal').classList.add('hidden'); }
@@ -1253,6 +1273,42 @@
             };
             buildBranch("Gastos", "exp");
             buildBranch("Ingresos", "inc");
+        }
+
+        function closeMonthAndTransfer() {
+            const balText = document.getElementById('monthCloseBalance').innerText;
+            if(!confirm(`¿Cerrar el mes actual y transferir ${balText} al mes siguiente?`)) return;
+            
+            pushHistory();
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth() + 1; // 1-12
+            
+            // Calculate actual balance numbers
+            const txs = appData.txs.filter(t => !t.deletedAt && t.type !== 'transfer' && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
+            const inc = txs.filter(t=>t.type=='inc').reduce((a,b)=>a+b.amount,0);
+            const exp = txs.filter(t=>t.type=='exp').reduce((a,b)=>a+b.amount,0);
+            const diff = inc - exp;
+
+            // Date for next month
+            let nextM = m + 1;
+            let nextY = y;
+            if (nextM > 12) { nextM = 1; nextY++; }
+
+            const nextDateStr = `${nextY}-${nextM.toString().padStart(2,'0')}-01`;
+            const defAcc = appData.accounts[0].id; // Default to first account
+
+            // Create "Saldo Anterior" income in next month
+            if (diff > 0) {
+                appData.txs.push({
+                    id: Date.now(), date: nextDateStr, amount: diff, origAmt: diff, origCurr: 'ARS',
+                    type: 'inc', cat: 'Otros', desc: 'Saldo Mes Anterior', exec: true,
+                    linkId: null, deletedAt: null, fromAccountId: null, toAccountId: defAcc
+                });
+                alert("Mes cerrado. Saldo transferido al mes siguiente.");
+            } else {
+                alert("El saldo es negativo o cero, no se generó transferencia.");
+            }
+            saveData();
         }
     </script>
 </body>
