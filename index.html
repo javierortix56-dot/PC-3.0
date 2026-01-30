@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Finanzas J&M | V15 (Performance + NetWorth Evolution + Split Name)</title>
+  <title>Finanzas J&M | V15 (Unified Sync)</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -142,7 +142,6 @@
       </div>
     </header>
 
-    <!-- DASHBOARD -->
     <div id="view-dashboard" class="view-container flex flex-col flex-1 min-h-0 gap-2 relative">
       <div id="dashboardAlerts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 shrink-0 empty:hidden"></div>
 
@@ -226,7 +225,6 @@
       </div>
     </div>
 
-    <!-- NETWORTH -->
     <div id="view-networth" class="view-container hidden-view flex flex-col flex-1 min-h-0 gap-2 relative">
       <section class="grid grid-cols-4 gap-2 shrink-0">
         <div class="glass-panel px-3 py-2 rounded-lg flex flex-col justify-center border-l-2 border-l-primary">
@@ -273,7 +271,6 @@
       </div>
     </div>
 
-    <!-- ANALYTICS -->
     <div id="view-analytics" class="view-container hidden-view grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
       <div id="analyticsAlerts" class="col-span-1 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-2 empty:hidden"></div>
       <div class="glass-panel rounded-lg p-3 flex flex-col h-[320px]">
@@ -296,7 +293,6 @@
       </div>
     </div>
 
-    <!-- ADMIN -->
     <div id="view-admin" class="view-container hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 pt-1">
       <div class="glass-panel rounded-xl flex flex-col h-full overflow-hidden shadow-sm border border-slate-200">
         <div class="p-4 border-b border-slate-100 bg-white/50 backdrop-blur-sm z-10">
@@ -380,7 +376,6 @@
     <span class="material-symbols-outlined text-xl">add</span>
   </button>
 
-  <!-- TX MODAL -->
   <div id="modalOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-[360px] max-h-[90vh] overflow-hidden flex flex-col mx-4">
       <div class="p-3 flex justify-between items-center border-b pb-2 bg-slate-50">
@@ -435,7 +430,6 @@
           </label>
         </div>
 
-        <!-- Nombre split (obligatorio si split) -->
         <div class="mb-2 hidden" id="divSplitName">
           <label class="block text-[9px] font-bold text-slate-400 uppercase mb-0.5 ml-1">Nombre del split</label>
           <input type="text" id="fSplitName" class="w-full px-2 py-1.5 bg-slate-50 border-none rounded-lg text-[10px] focus:ring-1 focus:ring-primary placeholder:text-slate-300" placeholder="Ej: Colegio, Servicios, Viaje, etc.">
@@ -482,7 +476,6 @@
     </div>
   </div>
 
-  <!-- ACC MODAL -->
   <div id="accModal" class="fixed inset-0 z-[65] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
     <div class="relative z-10 w-full max-w-[320px] bg-white rounded-xl shadow-2xl p-4 mx-4">
       <h3 class="text-sm font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2">Cuenta / Activo</h3>
@@ -545,7 +538,6 @@
     </div>
   </div>
 
-  <!-- BULK MODAL -->
   <div id="bulkModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
     <div class="bg-white rounded-xl p-4 w-full max-w-[280px] shadow-2xl mx-4">
       <h3 class="text-xs font-bold text-slate-800 mb-3 border-b pb-2">Acciones Masivas</h3>
@@ -609,6 +601,9 @@
       closedMonths: {}
     };
 
+    // *** UNIFIED STORAGE KEY (CRITICAL FOR SYNC) ***
+    const STORAGE_KEY = 'finance_unified_javi';
+
     let appData = JSON.parse(JSON.stringify(defaultData));
     let currentDate = new Date(); currentDate.setDate(1);
 
@@ -644,14 +639,19 @@
       return `USD ${fmt0(v)}`;
     };
 
+    // *** VISIBILITY LISTENER (AUTO-WAKE) ***
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') forceSync();
+    });
+
     window.onload = async () => {
       loadLocal();
       sanitizeData();
       updateDateUI();
       updateReadOnlyUI(isMonthClosed());
       updateAccountSelects();
-      renderAdminTree(); // liviano en primer load (data pequeña)
-      await forceSync(); // primera sync
+      renderAdminTree();
+      await forceSync(); // initial fetch
       refreshAll('init');
     };
 
@@ -665,7 +665,6 @@
       if(!appData.accounts || !Array.isArray(appData.accounts)) appData.accounts = JSON.parse(JSON.stringify(defaultData.accounts));
       if(!appData.closedMonths) appData.closedMonths = {};
 
-      // Normalizar accounts (nuevos campos)
       appData.accounts.forEach(a=>{
         if(!a.kind) a.kind='asset';
         if(!a.currency) a.currency='ARS';
@@ -674,7 +673,6 @@
         if(a.startDate === undefined) a.startDate = '';
       });
 
-      // Normalizar txs
       if(!Array.isArray(appData.txs)) appData.txs = [];
       appData.txs.forEach(t=>{
         if(!t.children) t.children = [];
@@ -682,12 +680,13 @@
       });
     }
 
+    // *** UNIFIED LOAD/SAVE ***
     function saveLocal(){
-      localStorage.setItem('financeFlowData_Javi', JSON.stringify(appData));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
     }
 
     function loadLocal(){
-      const stored = localStorage.getItem('financeFlowData_Javi');
+      const stored = localStorage.getItem(STORAGE_KEY);
       if(stored) appData = JSON.parse(stored);
     }
 
@@ -723,7 +722,6 @@
 
       const txs = appData.txs.filter(t => !t.deletedAt && t.date && parseInt(t.date.split('-')[0])===y && parseInt(t.date.split('-')[1])===m);
 
-      // Recalcular amounts ARS en base a rates si no exec y moneda != ARS (igual que tu lógica)
       const rates = getMonthRates();
       txs.forEach(t=>{
         if(!t.exec && t.origCurr && t.origCurr!=='ARS'){
@@ -738,32 +736,33 @@
       return txs;
     }
 
+    // *** UNIFIED SYNC ENGINE (PC VERSION) ***
     async function forceSync(){
-      document.getElementById('syncIcon').classList.add('animate-spin');
+      const icon = document.getElementById('syncIcon');
+      if(icon) icon.classList.add('animate-spin');
       try{
-        const r = await fetch(API_URL, { cache:'no-store' });
+        const r = await fetch(API_URL + '?t=' + Date.now(), { cache:'no-store' });
         const d = await r.json();
-        if(d && typeof d === 'object'){
+        if(d && d.txs){
           appData = d;
           sanitizeData();
           saveLocal();
           invalidateMonthCache();
         }
-      }catch(e){
-        // offline: no rompas nada
-      }
-      document.getElementById('syncIcon').classList.remove('animate-spin');
+      }catch(e){ console.error(e); }
+      if(icon) icon.classList.remove('animate-spin');
       refreshAll('sync');
     }
 
     function scheduleSaveCloud(){
-      // Evita “lag” esperando red: mandamos async y sin bloquear UI.
       if(state.saveCloudTimer) clearTimeout(state.saveCloudTimer);
-      state.saveCloudTimer = setTimeout(()=>{
-        try{
-          fetch(API_URL, { method:'POST', body: JSON.stringify(appData) }).catch(()=>{});
-        }catch(e){}
-      }, 120);
+      state.saveCloudTimer = setTimeout(() => {
+        fetch(API_URL, { 
+          method:'POST', 
+          mode:'no-cors', 
+          body: JSON.stringify(appData) 
+        }).catch(()=>{});
+      }, 500);
     }
 
     function saveData(reason='save'){
