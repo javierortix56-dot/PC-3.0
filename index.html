@@ -225,7 +225,6 @@
       </div>
     </header>
 
-    <!-- DASHBOARD -->
     <div id="view-dashboard" class="view-container animate-fade-in flex flex-col flex-1 min-h-0 gap-2 relative">
       <div id="dashboardAlerts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 shrink-0 empty:hidden"></div>
 
@@ -309,7 +308,6 @@
       </div>
     </div>
 
-    <!-- NETWORTH -->
     <div id="view-networth" class="view-container animate-fade-in hidden-view flex flex-col flex-1 min-h-0 gap-2 relative">
       <section class="grid grid-cols-4 gap-2 shrink-0">
         <div class="glass-panel px-3 py-2 rounded-lg flex flex-col justify-center border-l-2 border-l-primary">
@@ -351,7 +349,6 @@
       </div>
     </div>
 
-    <!-- ANALYTICS -->
     <div id="view-analytics" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
       <div id="analyticsAlerts" class="col-span-1 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-2 empty:hidden"></div>
       <div class="glass-panel rounded-lg p-3 flex flex-col h-[320px]">
@@ -373,7 +370,6 @@
       </div>
     </div>
 
-    <!-- ADMIN -->
     <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 pt-1">
       <div class="glass-panel rounded-xl flex flex-col h-full overflow-hidden shadow-sm border border-slate-200">
         <div class="p-4 border-b border-slate-100 bg-white/50 backdrop-blur-sm z-10">
@@ -458,7 +454,6 @@
     <span class="material-symbols-outlined text-xl">add</span>
   </button>
 
-  <!-- MODAL TX -->
   <div id="modalOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-[340px] max-h-[90vh] overflow-hidden flex flex-col mx-4 animate-fade-in">
       <div class="p-3 flex justify-between items-center border-b pb-2 bg-slate-50">
@@ -552,7 +547,6 @@
     </div>
   </div>
 
-  <!-- MODAL CUENTAS -->
   <div id="accModal" class="fixed inset-0 z-[65] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
     <div class="relative z-10 w-full max-w-[280px] bg-white rounded-xl shadow-2xl p-4 animate-fade-in mx-4">
       <h3 class="text-sm font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2">Cuenta</h3>
@@ -583,7 +577,6 @@
     </div>
   </div>
 
-  <!-- MODAL BULK -->
   <div id="bulkModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
     <div class="bg-white rounded-xl p-4 w-full max-w-[280px] shadow-2xl mx-4">
       <h3 class="text-xs font-bold text-slate-800 mb-3 border-b pb-2">Acciones Masivas</h3>
@@ -608,9 +601,9 @@
 
   <script>
     // =========================================================================
-    // CLOUD SYNC (robusto) — compatible con tu code.gs actual (doGet/doPost)
+    // CLOUD SYNC (robusto) — ACTUALIZADO CON TU NUEVA URL Y FIX CORS
     // =========================================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbybreG4oxLOVCdVA9-H4B70kYdtdcRcrjbjNxlq3j_V1Y5_JuLOkYhSTiAYU9shW2g/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwl6GlKX-QUzxMvQkEKOoT4l3NqZqr_S4BP2k47JXuWh1oyz5y8zYVLIZHQvYL73M4/exec";
 
     const DEVICE_ID = (() => {
       const k = "ff_device_id";
@@ -654,20 +647,27 @@
     }
 
     async function fetchJsonStrict_(url, options) {
-      const r = await fetch(url, options);
-      const txt = await r.text();
-
-      let j;
+      const opts = { ...options, redirect: "follow" };
       try {
-        j = JSON.parse(txt);
-      } catch (e) {
-        throw new Error(`No es JSON (HTTP ${r.status}). ${txt.slice(0, 160)}`);
-      }
+        const r = await fetch(url, opts);
+        const txt = await r.text();
 
-      if (!r.ok) {
-        throw new Error(`HTTP ${r.status}. ${JSON.stringify(j).slice(0, 160)}`);
+        let j;
+        try {
+          j = JSON.parse(txt);
+        } catch (e) {
+          // Si GAS devuelve HTML (error) en lugar de JSON
+          console.error("Respuesta no es JSON:", txt);
+          throw new Error("Error del servidor (GAS devolvió HTML).");
+        }
+
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status}. ${JSON.stringify(j).slice(0, 160)}`);
+        }
+        return j;
+      } catch (err) {
+        throw err;
       }
-      return j;
     }
 
     async function cloudGet_() {
@@ -675,6 +675,10 @@
     }
 
     async function cloudPost_(obj) {
+      // CORRECCIÓN CRÍTICA:
+      // No enviamos 'Content-Type': 'application/json' en los headers.
+      // Esto hace que el navegador lo trate como una "Simple Request" (text/plain),
+      // evitando el preflight (OPTIONS) de CORS que Google Apps Script rechaza.
       return fetchJsonStrict_(`${API_URL}?ts=${Date.now()}`, {
         method: "POST",
         body: JSON.stringify(obj)
