@@ -99,34 +99,55 @@
     .btn-disabled { opacity: 0.35; pointer-events: none; }
 
     /* Toast / Estado Sync */
-    #toast {
-      position: fixed; bottom: 14px; left: 14px;
-      background: rgba(15, 23, 42, 0.95);
-      color: white; padding: 10px 12px; border-radius: 10px;
-      font-size: 11px; box-shadow: 0 12px 30px rgba(0,0,0,.20);
-      display: none; z-index: 9999; max-width: 320px;
+    #toast{
+      position:fixed; bottom:14px; left:14px;
+      background:rgba(15,23,42,.95);
+      color:#fff; padding:10px 12px; border-radius:10px;
+      font-size:11px; box-shadow:0 12px 30px rgba(0,0,0,.20);
+      display:none; z-index:9999; max-width:320px;
     }
-    #toast.show { display: block; }
-    #syncBadge {
-      position: fixed; top: 10px; right: 12px;
-      font-size: 10px; font-weight: 800; letter-spacing: .04em;
-      padding: 6px 8px; border-radius: 999px; z-index: 9998;
-      border: 1px solid #e2e8f0; background: rgba(255,255,255,.9);
-      color: #334155; display: flex; align-items: center; gap: 6px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    #toast.show{ display:block; }
+
+    /* =======================
+       SYNC BADGE (no tapa TC)
+       ======================= */
+    #syncBadge{
+      position:fixed;
+      right:12px;
+      bottom:74px; /* deja espacio al botón + */
+      z-index:9999;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.92);
+      border:1px solid #e2e8f0;
+      box-shadow:0 10px 25px rgba(0,0,0,.08);
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.04em;
+      color:#334155;
     }
-    #syncDot { width: 8px; height: 8px; border-radius: 999px; background: #94a3b8; }
-    #syncBadge.ok #syncDot { background: #16a34a; }
-    #syncBadge.saving #syncDot { background: #f59e0b; }
-    #syncBadge.offline #syncDot { background: #ef4444; }
+
+    #syncDot{
+      width:8px; height:8px;
+      border-radius:999px;
+      background:#ef4444; /* default pendiente */
+      display:inline-block;
+    }
+
+    #syncBadge.ok #syncDot{ background:#22c55e; }
+    #syncBadge.saving #syncDot{ background:#f59e0b; }
+    #syncBadge.pending #syncDot{ background:#ef4444; }
   </style>
 </head>
 
 <body class="text-slate-900 h-screen flex overflow-hidden selection:bg-primary/20">
 
-  <div id="syncBadge" class="ok" title="Estado de sincronización">
+  <div id="syncBadge" class="pending" title="">
     <span id="syncDot"></span>
-    <span id="syncTxt">SYNC OK</span>
+    <span id="syncTxt">PENDIENTE</span>
   </div>
   <div id="toast"></div>
 
@@ -587,11 +608,10 @@
 
   <script>
     // =========================================================================
-    // CLOUD SAFE SYNC (PC + MÓVIL) — URL ÚNICA
+    // CLOUD SYNC (robusto) — compatible con tu code.gs actual (doGet/doPost)
     // =========================================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbybreG4oxLOVCdVA9-H4B70kYdtdcRcrjbjNxlq3j_V1Y5_JuLOkYhSTiAYU9shW2g/exec";
 
-    // Identidad de dispositivo para debug / conflictos
     const DEVICE_ID = (() => {
       const k = "ff_device_id";
       let v = localStorage.getItem(k);
@@ -602,93 +622,154 @@
       return v;
     })();
 
-    let serverRev = 0;               // revisión confirmada del servidor
-    let saveQueue = Promise.resolve(); // serializa POST para evitar pisadas por orden de red
-    let unsyncedChanges = false;      // si falló guardado en nube (offline/error), no auto-pisar con forceSync silencioso
+    const SYNC_POLL_MS = 15000;
+    let __syncQueue = Promise.resolve();
+    let __dirtyLocal = false;
+    let __pollTimer = null;
+    let __serverUpdatedAt = Number(localStorage.getItem("ff_serverUpdatedAt") || 0);
 
     function setSyncState(state, msg) {
       const b = document.getElementById("syncBadge");
       const t = document.getElementById("syncTxt");
-      b.classList.remove("ok", "saving", "offline");
+      if (!b || !t) return;
+
+      b.classList.remove("ok", "saving", "pending");
       b.classList.add(state);
+
       if (msg) t.innerText = msg;
       else {
         if (state === "ok") t.innerText = "SYNC OK";
         if (state === "saving") t.innerText = "GUARDANDO…";
-        if (state === "offline") t.innerText = "PENDIENTE";
+        if (state === "pending") t.innerText = "PENDIENTE";
       }
+      b.title = msg || "";
     }
 
     function toast(msg) {
       const el = document.getElementById("toast");
+      if (!el) return;
       el.innerText = msg;
       el.classList.add("show");
       setTimeout(() => el.classList.remove("show"), 3200);
     }
 
-    async function apiGet_() {
-      const r = await fetch(`${API_URL}?action=get&ts=${Date.now()}`, { cache: "no-store" });
-      const j = await r.json();
-      if (!j) throw new Error("Respuesta vacía");
-      // Compat: si el backend devolviera data directo
-      if (j.ok === true && j.data) return j;
-      // fallback
-      return { ok: true, rev: Number(j._rev || 0), data: j };
+    async function fetchJsonStrict_(url, options) {
+      const r = await fetch(url, options);
+      const txt = await r.text();
+
+      let j;
+      try {
+        j = JSON.parse(txt);
+      } catch (e) {
+        throw new Error(`No es JSON (HTTP ${r.status}). ${txt.slice(0, 160)}`);
+      }
+
+      if (!r.ok) {
+        throw new Error(`HTTP ${r.status}. ${JSON.stringify(j).slice(0, 160)}`);
+      }
+      return j;
     }
 
-    function apiSave_(dataObj) {
-      saveQueue = saveQueue.then(async () => {
+    async function cloudGet_() {
+      return fetchJsonStrict_(`${API_URL}?ts=${Date.now()}`, { cache: "no-store" });
+    }
+
+    async function cloudPost_(obj) {
+      return fetchJsonStrict_(`${API_URL}?ts=${Date.now()}`, {
+        method: "POST",
+        body: JSON.stringify(obj)
+      });
+    }
+
+    function startCloudPolling_() {
+      if (__pollTimer) clearInterval(__pollTimer);
+      __pollTimer = setInterval(() => {
+        if (document.visibilityState === "visible") forceSync(false);
+      }, SYNC_POLL_MS);
+    }
+
+    async function forceSync(isManual = false) {
+      if (!navigator.onLine) {
+        setSyncState("pending", "Sin conexión");
+        if (isManual) toast("Sin conexión.");
+        return;
+      }
+
+      // Si hay cambios locales todavía no subidos, no pisar automáticamente
+      if (!isManual && __dirtyLocal) return;
+
+      const ico = document.getElementById("syncIcon");
+      if (ico) ico.classList.add("animate-spin");
+
+      try {
+        await __syncQueue;
+
+        const data = await cloudGet_();
+
+        // data viene directo (tu doGet responde el objeto)
+        appData = data;
+        sanitizeData();
+
+        // track server updatedAt si existe
+        const srvUpdatedAt = Number(appData.updatedAt || 0);
+        if (srvUpdatedAt) {
+          __serverUpdatedAt = srvUpdatedAt;
+          localStorage.setItem("ff_serverUpdatedAt", String(__serverUpdatedAt));
+        }
+
+        saveLocal();
+        loadMonthData();
+        renderNetWorthView();
+
+        setSyncState("ok");
+        if (isManual) toast("Sincronizado.");
+      } catch (e) {
+        setSyncState("pending", "Error al sincronizar");
+        if (isManual) toast(e.message);
+      } finally {
+        if (ico) ico.classList.remove("animate-spin");
+      }
+    }
+
+    function saveData() {
+      sanitizeData();
+      saveLocal();
+
+      // Marca pendiente hasta confirmar POST
+      __dirtyLocal = true;
+      if (!navigator.onLine) {
+        setSyncState("pending", "Pendiente (offline)");
+        loadMonthData();
+        renderNetWorthView();
+        return;
+      }
+
+      __syncQueue = __syncQueue.then(async () => {
         setSyncState("saving");
 
-        const payload = JSON.parse(JSON.stringify(dataObj || {}));
-        // rev: usa la del servidor si existe; si no, la del objeto
-        payload._rev = Number(serverRev || payload._rev || 0);
-        payload._writer = DEVICE_ID;
-        payload._updatedAtClient = Date.now();
+        // Firma leve (no rompe tu normalize)
+        appData._writer = DEVICE_ID;
+        appData._updatedAtClient = Date.now();
 
-        const r = await fetch(`${API_URL}?action=save&ts=${Date.now()}`, {
-          method: "POST",
-          body: JSON.stringify(payload) // sin headers => evita preflight CORS
-        });
+        const res = await cloudPost_(appData);
 
-        const j = await r.json().catch(() => null);
-        if (!j) throw new Error("No JSON en respuesta");
-
-        if (j.ok === true) {
-          serverRev = Number(j.rev || serverRev || payload._rev || 0);
-          unsyncedChanges = false;
-          setSyncState("ok");
-          return;
+        // Tu doPost devuelve {ok:true} o {ok:false,...}
+        if (!res || res.ok !== true) {
+          throw new Error((res && res.error) ? res.error : "Save failed");
         }
 
-        if (j.conflict) {
-          // Guarda copia local antes de pisar
-          localStorage.setItem("ff_conflict_backup", JSON.stringify(appData));
-          toast("Conflicto: hay datos más nuevos en la nube. Se sincronizó y guardé una copia local (ff_conflict_backup).");
-          // Trae el estado del servidor y aplica
-          if (j.data) {
-            appData = j.data;
-            serverRev = Number(j.rev || 0);
-            appData._rev = serverRev;
-            sanitizeData();
-            saveLocal();
-            loadMonthData();
-            renderNetWorthView();
-          }
-          unsyncedChanges = false;
-          setSyncState("ok");
-          return;
-        }
-
-        throw new Error(j.error || "Save failed");
+        __dirtyLocal = false;
+        setSyncState("ok");
       }).catch(err => {
+        __dirtyLocal = true;
+        setSyncState("pending", "Pendiente (error)");
+        // Muy importante: mostrar por qué (si es HTML o permisos)
         console.log("Cloud save error:", err.message);
-        unsyncedChanges = true;
-        setSyncState("offline");
-        // No spamear toasts si es intermitente
+      }).finally(() => {
+        // refresca UI
+        loadMonthData();
+        renderNetWorthView();
       });
-
-      return saveQueue;
     }
 
     // =========================================================================
@@ -699,7 +780,6 @@
     const LS_KEY = 'financeFlowData_Javi';
 
     const defaultData = {
-      _rev: 0,
       txs: [],
       cats: {
         exp:['Esenciales','Deudas','Fitness','Viaje Italia','Inversiones','Proyectos'],
@@ -809,7 +889,6 @@
     // =========================================================================
     function sanitizeData() {
       if (!appData || typeof appData !== 'object') appData = JSON.parse(JSON.stringify(defaultData));
-      if (typeof appData._rev !== 'number') appData._rev = Number(appData._rev || 0);
       if (!appData.txs) appData.txs = [];
       if (!appData.cats) appData.cats = JSON.parse(JSON.stringify(defaultData.cats));
       if (!appData.concepts) appData.concepts = JSON.parse(JSON.stringify(defaultData.concepts));
@@ -818,6 +897,11 @@
       if (!appData.accounts) appData.accounts = JSON.parse(JSON.stringify(defaultData.accounts));
       if (!appData.closedMonths) appData.closedMonths = {};
       if (!appData.updatedAt) appData.updatedAt = Date.now();
+
+      // normaliza cuentas mínimas
+      if (!Array.isArray(appData.accounts) || appData.accounts.length === 0) {
+        appData.accounts = [{ id:'acc_cash', name:'Efectivo ARS', kind:'asset', currency:'ARS', initBal:0 }];
+      }
     }
 
     function getMonthKey(d = currentDate) {
@@ -841,70 +925,6 @@
     function loadLocal() {
       const stored = localStorage.getItem(LS_KEY);
       if(stored) appData = JSON.parse(stored);
-    }
-
-    async function forceSync(isManual = false) {
-      if (!navigator.onLine) {
-        setSyncState("offline");
-        if (isManual) toast("Sin conexión. Hay cambios pendientes o no se puede sincronizar.");
-        return;
-      }
-
-      // Si hay cambios locales no subidos, no pisar silencioso
-      if (!isManual && unsyncedChanges) return;
-
-      document.getElementById('syncIcon').classList.add('animate-spin');
-      try {
-        // espera a que termine la cola de guardado para evitar “tironeos”
-        await saveQueue;
-
-        const res = await apiGet_();
-        if (res && res.data) {
-          appData = res.data;
-          serverRev = Number(res.rev || 0);
-          appData._rev = serverRev;
-
-          sanitizeData();
-          saveLocal();
-          loadMonthData();
-          renderNetWorthView();
-
-          setSyncState("ok");
-          if (isManual) toast("Sincronizado.");
-        }
-      } catch(e) {
-        console.log("Sync Error:", e.message);
-        setSyncState("offline");
-        if (isManual) toast("Error de sincronización.");
-      }
-      document.getElementById('syncIcon').classList.remove('animate-spin');
-    }
-
-    async function saveData() {
-      sanitizeData();
-      saveLocal();
-
-      if (!navigator.onLine) {
-        unsyncedChanges = true;
-        setSyncState("offline");
-        loadMonthData();
-        renderNetWorthView();
-        return;
-      }
-
-      try {
-        await apiSave_(appData);
-        // Alinea rev local con la del servidor
-        appData._rev = Number(serverRev || appData._rev || 0);
-        saveLocal();
-      } catch(e) {
-        console.log("Save error:", e.message);
-        unsyncedChanges = true;
-        setSyncState("offline");
-      }
-
-      loadMonthData();
-      renderNetWorthView();
     }
 
     function pushHistory() {
@@ -943,23 +963,18 @@
       renderAdminTree();
       updateAccountSelects();
 
-      // Primer sync (no pisa si offline)
+      // Primer sync
       await forceSync(false);
+      startCloudPolling_();
 
       loadMonthData();
       renderNetWorthView();
 
-      // Mejoras “móvil”: sync al volver a la app / recuperar conexión
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") forceSync(false);
       });
       window.addEventListener("online", () => forceSync(false));
-      window.addEventListener("offline", () => setSyncState("offline"));
-
-      // Sync suave cada 30s (solo si no hay cambios pendientes)
-      setInterval(() => {
-        if (document.visibilityState === "visible") forceSync(false);
-      }, 30000);
+      window.addEventListener("offline", () => setSyncState("pending", "Pendiente (offline)"));
     };
 
     // =========================================================================
@@ -981,7 +996,6 @@
       renderAdminTree();
       renderRecurrentesAdmin();
 
-      // Balance cierre (usa valores “vivos”)
       const dashTxs = txs.filter(t => t.type !== 'transfer');
       const inc = dashTxs.filter(t => t.type === 'inc').reduce((a,t) => a + txValueARS(t), 0);
       const exp = dashTxs.filter(t => t.type === 'exp').reduce((a,t) => {
