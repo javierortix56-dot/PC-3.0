@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Finanzas J&M | V15 Split Pro (Connected)</title>
+  <title>Finanzas J&M | V15 Turbo (Optimized)</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -34,8 +34,8 @@
   </script>
 
   <style>
-    /* ESTILO COMPACTO GLOBAL */
-    body { font-family: 'Manrope', sans-serif; background-color: #f8fafc; font-size: 12px; }
+    /* ESTILO GLOBAL OPTIMIZADO */
+    body { font-family: 'Manrope', sans-serif; background-color: #f8fafc; font-size: 12px; overscroll-behavior-y: none; }
 
     .glass-sidebar { background: rgba(255, 255, 255, 0.98); border-right: 1px solid #e2e8f0; }
     .glass-panel { background: white; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
@@ -50,13 +50,11 @@
     .compact-row {
       padding: 4px 8px;
       border-bottom: 1px solid #f1f5f9;
-      transition: all 0.1s;
+      transition: background-color 0.1s;
       min-height: 34px;
     }
     .compact-row:last-child { border-bottom: none; }
     .compact-row:hover { background-color: #f8fafc; }
-
-    /* ESTADO SELECCIONADO */
     .compact-row.selected {
       background-color: #e0f2fe !important;
       border-left: 3px solid #0e757c;
@@ -79,67 +77,42 @@
     .cat-tag { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; border: 1px solid transparent; }
     .cat-tag:hover { border-color: #cbd5e1; color: #334155; background: white; }
 
-    /* Inputs Numéricos Limpios */
     input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-
     .tc-input { -moz-appearance: textfield; background: transparent; border: none; padding: 0 4px; margin: 0; font-weight: 700; color: #334155; text-align: right; font-size: 11px; height: 100%; width: 70px;}
     .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
 
-    /* SPLIT */
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
     .split-input-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; background: #fff; padding: 6px; border: 1px solid #e2e8f0; border-radius: 8px; }
 
-    /* BARRA MASIVA */
     #bulkBar { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translate(-50%, 150px); }
     #bulkBar.show { transform: translate(-50%, 0); display: flex; }
 
     .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
-
     .btn-disabled { opacity: 0.35; pointer-events: none; }
 
-    /* Toast / Estado Sync */
+    /* Toast / Badge */
     #toast{
       position:fixed; bottom:14px; left:14px;
-      background:rgba(15,23,42,.95);
-      color:#fff; padding:10px 12px; border-radius:10px;
+      background:rgba(15,23,42,.95); color:#fff; padding:10px 12px; border-radius:10px;
       font-size:11px; box-shadow:0 12px 30px rgba(0,0,0,.20);
       display:none; z-index:9999; max-width:320px;
     }
     #toast.show{ display:block; }
 
-    /* =======================
-       SYNC BADGE (no tapa TC)
-       ======================= */
     #syncBadge{
-      position:fixed;
-      right:12px;
-      bottom:74px; /* deja espacio al botón + */
-      z-index:9999;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      background:rgba(255,255,255,.92);
-      border:1px solid #e2e8f0;
-      box-shadow:0 10px 25px rgba(0,0,0,.08);
-      font-size:10px;
-      font-weight:800;
-      letter-spacing:.04em;
-      color:#334155;
+      position:fixed; right:12px; bottom:74px; z-index:9999;
+      display:flex; align-items:center; gap:8px; padding:6px 10px;
+      border-radius:999px; background:rgba(255,255,255,.92);
+      border:1px solid #e2e8f0; box-shadow:0 10px 25px rgba(0,0,0,.08);
+      font-size:10px; font-weight:800; letter-spacing:.04em; color:#334155;
+      transition: all 0.3s ease;
     }
-
-    #syncDot{
-      width:8px; height:8px;
-      border-radius:999px;
-      background:#ef4444; /* default pendiente */
-      display:inline-block;
-    }
-
+    #syncDot{ width:8px; height:8px; border-radius:999px; background:#ef4444; display:inline-block; transition: background 0.3s ease; }
+    
     #syncBadge.ok #syncDot{ background:#22c55e; }
     #syncBadge.saving #syncDot{ background:#f59e0b; }
-    #syncBadge.pending #syncDot{ background:#ef4444; }
+    #syncBadge.pending #syncDot{ background:#3b82f6; } /* Azul para pendiente local */
   </style>
 </head>
 
@@ -147,7 +120,7 @@
 
   <div id="syncBadge" class="pending" title="">
     <span id="syncDot"></span>
-    <span id="syncTxt">PENDIENTE</span>
+    <span id="syncTxt">LISTO</span>
   </div>
   <div id="toast"></div>
 
@@ -207,8 +180,8 @@
           </div>
           <button onclick="changeMonth(1)" class="text-slate-400 hover:text-primary flex items-center px-0.5"><span class="material-symbols-outlined text-base">chevron_right</span></button>
           <div class="w-px h-3 bg-slate-200 mx-1"></div>
-          <button onclick="undo()" id="btnUndo" class="text-slate-400 hover:text-primary flex items-center px-0.5 btn-disabled" title="Deshacer (Ctrl+Z)"><span class="material-symbols-outlined text-base">undo</span></button>
-          <button onclick="redo()" id="btnRedo" class="text-slate-400 hover:text-primary flex items-center px-0.5 btn-disabled" title="Rehacer (Ctrl+Y)"><span class="material-symbols-outlined text-base">redo</span></button>
+          <button onclick="undo()" id="btnUndo" class="text-slate-400 hover:text-primary flex items-center px-0.5 btn-disabled" title="Deshacer"><span class="material-symbols-outlined text-base">undo</span></button>
+          <button onclick="redo()" id="btnRedo" class="text-slate-400 hover:text-primary flex items-center px-0.5 btn-disabled" title="Rehacer"><span class="material-symbols-outlined text-base">redo</span></button>
         </div>
       </div>
 
@@ -616,13 +589,12 @@
     })();
 
     // =========================================================================
-    // LÓGICA DE SINCRONIZACIÓN (FIX PARA CORS - IMPORTANTE)
+    // OPTIMIZACIÓN DE SINCRONIZACIÓN (DEBOUNCE + LOCAL FIRST)
     // =========================================================================
-    const SYNC_POLL_MS = 15000;
-    let __syncQueue = Promise.resolve();
-    let __dirtyLocal = false;
-    let __pollTimer = null;
-    let __serverUpdatedAt = Number(localStorage.getItem("ff_serverUpdatedAt") || 0);
+    let __syncTimer = null;
+    let __isSyncing = false;
+    let __localDirty = false;
+    const SYNC_DELAY_MS = 3000; // Espera 3s después de la última acción
 
     function setSyncState(state, msg) {
       const b = document.getElementById("syncBadge");
@@ -635,133 +607,104 @@
       if (msg) t.innerText = msg;
       else {
         if (state === "ok") t.innerText = "ONLINE";
-        if (state === "saving") t.innerText = "GUARDANDO…";
-        if (state === "pending") t.innerText = "PENDIENTE";
-      }
-      b.title = msg || "";
-    }
-
-    function toast(msg) {
-      const el = document.getElementById("toast");
-      if (!el) return;
-      el.innerText = msg;
-      el.classList.add("show");
-      setTimeout(() => el.classList.remove("show"), 3200);
-    }
-
-    // Función segura para leer JSON (GET)
-    async function fetchJsonStrict_(url, options) {
-      const opts = { ...options, redirect: "follow" };
-      try {
-        const r = await fetch(url, opts);
-        const txt = await r.text();
-        let j;
-        try { j = JSON.parse(txt); } 
-        catch (e) { console.error("Respuesta no es JSON:", txt); throw new Error("Error del servidor (HTML en vez de JSON)."); }
-
-        if (!r.ok) throw new Error(`HTTP ${r.status}.`);
-        return j;
-      } catch (err) { throw err; }
-    }
-
-    async function cloudGet_() {
-      return fetchJsonStrict_(`${API_URL}?ts=${Date.now()}`, { cache: "no-store" });
-    }
-
-    // CORRECCIÓN CLAVE: Enviar como string sin headers JSON para evitar CORS OPTIONS
-    async function cloudPost_(obj) {
-      return fetch(`${API_URL}?ts=${Date.now()}`, {
-        method: "POST",
-        body: JSON.stringify(obj) 
-      }).then(r => r.json());
-    }
-
-    function startCloudPolling_() {
-      if (__pollTimer) clearInterval(__pollTimer);
-      __pollTimer = setInterval(() => {
-        if (document.visibilityState === "visible") forceSync(false);
-      }, SYNC_POLL_MS);
-    }
-
-    async function forceSync(isManual = false) {
-      if (!navigator.onLine) {
-        setSyncState("pending", "Sin conexión");
-        if (isManual) toast("Sin conexión.");
-        return;
-      }
-      // Si hay cambios locales, no descargar todavía
-      if (!isManual && __dirtyLocal) return;
-
-      const ico = document.getElementById("syncIcon");
-      if (ico) ico.classList.add("animate-spin");
-
-      try {
-        await __syncQueue;
-        const data = await cloudGet_();
-
-        appData = data;
-        sanitizeData();
-
-        const srvUpdatedAt = Number(appData.updatedAt || 0);
-        if (srvUpdatedAt) {
-          __serverUpdatedAt = srvUpdatedAt;
-          localStorage.setItem("ff_serverUpdatedAt", String(__serverUpdatedAt));
-        }
-
-        saveLocal();
-        loadMonthData();
-        renderNetWorthView();
-
-        setSyncState("ok");
-        if (isManual) toast("Sincronizado.");
-      } catch (e) {
-        setSyncState("pending", "Error al sincronizar");
-        if (isManual) toast(e.message);
-      } finally {
-        if (ico) ico.classList.remove("animate-spin");
+        if (state === "saving") t.innerText = "SUBIENDO...";
+        if (state === "pending") t.innerText = "GUARDADO";
       }
     }
 
+    // Guarda localmente y programa la subida
     function saveData() {
+      // 1. Guardado Local Inmediato
       sanitizeData();
-      saveLocal();
+      localStorage.setItem(LS_KEY, JSON.stringify(appData));
+      
+      // 2. Feedback Visual Inmediato
+      __localDirty = true;
+      setSyncState("pending", "GUARDADO (S)");
 
-      __dirtyLocal = true;
+      // 3. Programar subida (Debounce)
+      // Si el usuario sigue tocando cosas, reiniciamos el reloj
+      if (__syncTimer) clearTimeout(__syncTimer);
+      
+      __syncTimer = setTimeout(() => {
+        scheduleCloudSync();
+      }, SYNC_DELAY_MS);
+      
+      // Actualizar UI
+      loadMonthData();
+      renderNetWorthView();
+    }
+
+    // Función real que habla con la nube
+    async function scheduleCloudSync() {
+      if (__isSyncing) return; // Ya está subiendo, esperamos a la próxima
       if (!navigator.onLine) {
-        setSyncState("pending", "Pendiente (offline)");
-        loadMonthData();
-        renderNetWorthView();
+        setSyncState("pending", "OFFLINE");
         return;
       }
 
-      __syncQueue = __syncQueue.then(async () => {
+      try {
+        __isSyncing = true;
         setSyncState("saving");
 
+        // Preparamos datos
         appData._writer = DEVICE_ID;
         appData._updatedAtClient = Date.now();
 
-        const res = await cloudPost_(appData);
+        // Enviamos (POST text/plain para evitar CORS)
+        const response = await fetch(`${API_URL}?ts=${Date.now()}`, {
+          method: "POST",
+          body: JSON.stringify(appData)
+        });
+        
+        const res = await response.json();
+        
+        if (res && res.ok) {
+          __localDirty = false;
+          setSyncState("ok");
+        } else {
+          throw new Error("Error del servidor");
+        }
 
-        if (!res || res.ok !== true) throw new Error((res && res.error) ? res.error : "Save failed");
-
-        __dirtyLocal = false;
-        setSyncState("ok");
-      }).catch(err => {
-        __dirtyLocal = true;
-        setSyncState("pending", "Pendiente (error)");
-        console.log("Cloud save error:", err.message);
-      }).finally(() => {
-        loadMonthData();
-        renderNetWorthView();
-      });
+      } catch (e) {
+        console.error("Error Sync:", e);
+        setSyncState("pending", "REINTENTANDO...");
+        // Reintentar en 10s si falló
+        setTimeout(() => scheduleCloudSync(), 10000);
+      } finally {
+        __isSyncing = false;
+      }
     }
+
+    // Descarga inicial (solo al abrir)
+    async function initialLoad() {
+      if (!navigator.onLine) return;
+      try {
+        setSyncState("saving", "CARGANDO...");
+        const r = await fetch(`${API_URL}?ts=${Date.now()}`, { redirect: "follow" });
+        const cloudData = await r.json();
+        
+        if (cloudData && cloudData.txs) {
+          appData = cloudData;
+          sanitizeData();
+          localStorage.setItem(LS_KEY, JSON.stringify(appData));
+          loadMonthData();
+          renderNetWorthView();
+          setSyncState("ok");
+        }
+      } catch (e) {
+        console.error("Error carga inicial", e);
+        setSyncState("pending", "OFFLINE");
+      }
+    }
+
 
     // =========================================================================
     // CONFIGURACIÓN Y ESTADO GLOBAL
     // =========================================================================
     const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
     const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
-    const LS_KEY = 'financeFlowData_Javi_Pro';
+    const LS_KEY = 'financeFlowData_Javi_Turbo';
 
     const defaultData = {
       txs: [],
@@ -901,10 +844,6 @@
       return appData.txs.filter(t => !t.deletedAt && parseInt(t.date.split('-')[0]) === y && parseInt(t.date.split('-')[1]) === m);
     }
 
-    function saveLocal() {
-      localStorage.setItem(LS_KEY, JSON.stringify(appData));
-    }
-
     function loadLocal() {
       const stored = localStorage.getItem(LS_KEY);
       if(stored) appData = JSON.parse(stored);
@@ -945,18 +884,16 @@
       updateDateUI();
       renderAdminTree();
       updateAccountSelects();
-
-      await forceSync(false);
-      startCloudPolling_();
-
       loadMonthData();
       renderNetWorthView();
+      
+      // Descarga inicial (sin bloquear UI)
+      setTimeout(initialLoad, 100);
 
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") forceSync(false);
+        if (document.visibilityState === "visible") scheduleCloudSync();
       });
-      window.addEventListener("online", () => forceSync(false));
-      window.addEventListener("offline", () => setSyncState("pending", "Pendiente (offline)"));
+      window.addEventListener("online", () => scheduleCloudSync());
     };
 
     // =========================================================================
