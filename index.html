@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Finanzas J&M | V15 Turbo (Optimized)</title>
+  <title>Finanzas J&M | V16 Final</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -34,7 +34,7 @@
   </script>
 
   <style>
-    /* ESTILO GLOBAL OPTIMIZADO */
+    /* ESTILO GLOBAL */
     body { font-family: 'Manrope', sans-serif; background-color: #f8fafc; font-size: 12px; overscroll-behavior-y: none; }
 
     .glass-sidebar { background: rgba(255, 255, 255, 0.98); border-right: 1px solid #e2e8f0; }
@@ -100,28 +100,23 @@
     }
     #toast.show{ display:block; }
 
-    #syncBadge{
-      position:fixed; right:12px; bottom:74px; z-index:9999;
-      display:flex; align-items:center; gap:8px; padding:6px 10px;
-      border-radius:999px; background:rgba(255,255,255,.92);
-      border:1px solid #e2e8f0; box-shadow:0 10px 25px rgba(0,0,0,.08);
-      font-size:10px; font-weight:800; letter-spacing:.04em; color:#334155;
-      transition: all 0.3s ease;
+    /* Sync Badge Modificado - Estilo para Header */
+    #syncBadge {
+      display: flex; align-items: center; gap: 6px; padding: 2px 8px;
+      border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0;
+      font-size: 9px; font-weight: 800; letter-spacing: .04em; color: #64748b;
+      transition: all 0.3s ease; height: 24px;
     }
-    #syncDot{ width:8px; height:8px; border-radius:999px; background:#ef4444; display:inline-block; transition: background 0.3s ease; }
+    #syncDot { width: 6px; height: 6px; border-radius: 999px; background: #ef4444; display: inline-block; transition: background 0.3s ease; }
     
-    #syncBadge.ok #syncDot{ background:#22c55e; }
-    #syncBadge.saving #syncDot{ background:#f59e0b; }
-    #syncBadge.pending #syncDot{ background:#3b82f6; } /* Azul para pendiente local */
+    #syncBadge.ok #syncDot { background: #22c55e; }
+    #syncBadge.saving #syncDot { background: #f59e0b; }
+    #syncBadge.pending #syncDot { background: #3b82f6; }
   </style>
 </head>
 
 <body class="text-slate-900 h-screen flex overflow-hidden selection:bg-primary/20">
 
-  <div id="syncBadge" class="pending" title="">
-    <span id="syncDot"></span>
-    <span id="syncTxt">LISTO</span>
-  </div>
   <div id="toast"></div>
 
   <aside class="glass-sidebar w-14 hover:w-56 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-3 shadow-lg">
@@ -150,9 +145,9 @@
           <span class="material-symbols-outlined text-lg shrink-0">settings</span>
           <span class="ml-3 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ajustes</span>
         </button>
-        <button onclick="forceSync(true)" class="flex items-center h-9 rounded-md px-2 text-primary hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2" title="Forzar Sincronización">
-          <span class="material-symbols-outlined text-lg shrink-0" id="syncIcon">cloud_sync</span>
-          <span class="ml-3 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Sincronizar</span>
+        <button onclick="forceSync()" class="flex items-center h-9 rounded-md px-2 text-primary hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2" title="Guardar en Nube">
+          <span class="material-symbols-outlined text-lg shrink-0" id="syncIcon">cloud_upload</span>
+          <span class="ml-3 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Guardar Nube</span>
         </button>
       </nav>
     </div>
@@ -179,7 +174,16 @@
             <input type="month" id="datePicker" class="d-picker" onchange="manualDate()">
           </div>
           <button onclick="changeMonth(1)" class="text-slate-400 hover:text-primary flex items-center px-0.5"><span class="material-symbols-outlined text-base">chevron_right</span></button>
+          
           <div class="w-px h-3 bg-slate-200 mx-1"></div>
+          
+          <div id="syncBadge" class="pending" title="Estado de Sincronización">
+            <span id="syncDot"></span>
+            <span id="syncTxt">LISTO</span>
+          </div>
+
+          <div class="w-px h-3 bg-slate-200 mx-1"></div>
+
           <button onclick="undo()" id="btnUndo" class="text-slate-400 hover:text-primary flex items-center px-0.5 btn-disabled" title="Deshacer"><span class="material-symbols-outlined text-base">undo</span></button>
           <button onclick="redo()" id="btnRedo" class="text-slate-400 hover:text-primary flex items-center px-0.5 btn-disabled" title="Rehacer"><span class="material-symbols-outlined text-base">redo</span></button>
         </div>
@@ -204,7 +208,7 @@
       <section class="grid grid-cols-4 gap-2 shrink-0">
         <div class="glass-panel px-3 py-2 rounded-lg flex flex-col justify-center">
           <p class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Balance Neto</p>
-          <h3 class="text-base font-black text-slate-800 tracking-tight leading-tight" id="k-bal">$0</h3>
+          <h3 class="text-base font-black tracking-tight leading-tight" id="k-bal">$0</h3>
         </div>
         <div class="glass-panel px-3 py-2 rounded-lg flex flex-col justify-center">
           <p class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Estimado USD</p>
@@ -307,6 +311,12 @@
           <div class="flex-1 min-h-0 relative"><canvas id="chartNetWorth"></canvas></div>
         </div>
         <div class="flex flex-col gap-2 h-full overflow-hidden">
+          
+          <div onclick="openAccountModal()" class="glass-panel rounded-lg p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors group shrink-0 h-20 border-dashed border-2 border-slate-200 hover:border-primary/40">
+            <span class="material-symbols-outlined text-primary text-2xl group-hover:scale-110 transition-transform">add_circle</span>
+            <span class="text-[10px] font-bold text-slate-600 mt-1">NUEVA CUENTA / ACTIVO</span>
+          </div>
+
           <div class="glass-panel rounded-lg p-3 flex flex-col h-1/3 min-h-[140px]">
             <h3 class="text-[10px] font-bold text-slate-700 mb-2">Composición</h3>
             <div class="flex-1 min-h-0 relative"><canvas id="chartNWComp"></canvas></div>
@@ -314,7 +324,6 @@
           <div class="glass-panel rounded-lg flex flex-col overflow-hidden flex-1">
             <div class="flex items-center justify-between px-2 py-2 border-b border-slate-100 bg-slate-50/50">
               <h4 class="text-[10px] font-bold text-slate-700">Cuentas</h4>
-              <button onclick="openAccountModal()" class="text-[9px] font-bold text-primary hover:bg-primary/10 px-2 py-0.5 rounded transition-colors">+ CUENTA</button>
             </div>
             <div class="flex-1 overflow-y-auto custom-scrollbar p-0" id="list-accounts"></div>
           </div>
@@ -436,10 +445,10 @@
         </button>
       </div>
       <form id="txForm" class="p-4 overflow-y-auto custom-scrollbar">
-        <div class="grid grid-cols-3 p-1 bg-slate-100 rounded-lg mb-3 gap-1">
+        <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-lg mb-3 gap-1">
           <button type="button" id="btnExp" onclick="setType('exp')" class="py-1.5 rounded-md text-[10px] font-bold transition-all shadow-sm bg-white text-danger border border-slate-100">Gasto</button>
           <button type="button" id="btnInc" onclick="setType('inc')" class="py-1.5 rounded-md text-[10px] font-bold transition-all text-slate-400 hover:text-slate-600">Ingreso</button>
-          <button type="button" id="btnTrf" onclick="setType('transfer')" class="py-1.5 rounded-md text-[10px] font-bold transition-all text-slate-400 hover:text-slate-600">Transf.</button>
+          <button type="button" id="btnTrf" onclick="setType('transfer')" class="hidden">Transf.</button>
         </div>
         <input type="hidden" id="fType" value="exp">
 
@@ -464,11 +473,9 @@
         </div>
 
         <div class="mb-2 hidden" id="divFromAcc">
-          <label class="block text-[9px] font-bold text-slate-400 uppercase mb-0.5 ml-1">Origen</label>
           <select id="fFromAcc" class="w-full px-2 py-1.5 bg-slate-50 border-none rounded-lg text-[10px] focus:ring-1 focus:ring-primary text-slate-700 font-medium"></select>
         </div>
         <div class="mb-2 hidden" id="divToAcc">
-          <label class="block text-[9px] font-bold text-slate-400 uppercase mb-0.5 ml-1">Destino</label>
           <select id="fToAcc" class="w-full px-2 py-1.5 bg-slate-50 border-none rounded-lg text-[10px] focus:ring-1 focus:ring-primary text-slate-700 font-medium"></select>
         </div>
 
@@ -608,7 +615,7 @@
       else {
         if (state === "ok") t.innerText = "ONLINE";
         if (state === "saving") t.innerText = "SUBIENDO...";
-        if (state === "pending") t.innerText = "GUARDADO";
+        if (state === "pending") t.innerText = "PENDIENTE";
       }
     }
 
@@ -620,10 +627,9 @@
       
       // 2. Feedback Visual Inmediato
       __localDirty = true;
-      setSyncState("pending", "GUARDADO (S)");
+      setSyncState("pending", "GUARDANDO...");
 
       // 3. Programar subida (Debounce)
-      // Si el usuario sigue tocando cosas, reiniciamos el reloj
       if (__syncTimer) clearTimeout(__syncTimer);
       
       __syncTimer = setTimeout(() => {
@@ -635,9 +641,15 @@
       renderNetWorthView();
     }
 
+    // Fuerza la sincronización (Botón del menú)
+    function forceSync() {
+        if(__isSyncing) return alert("Ya se está sincronizando");
+        scheduleCloudSync();
+    }
+
     // Función real que habla con la nube
     async function scheduleCloudSync() {
-      if (__isSyncing) return; // Ya está subiendo, esperamos a la próxima
+      if (__isSyncing) return; // Ya está subiendo
       if (!navigator.onLine) {
         setSyncState("pending", "OFFLINE");
         return;
@@ -948,11 +960,17 @@
       }, 0);
 
       const rate = Number(document.getElementById('rate_ARS').value) || 1200;
+      const bal = inc - exp;
 
       document.getElementById('k-inc').innerText = '$' + fmt(inc);
       document.getElementById('k-exp').innerText = '$' + fmt(exp);
-      document.getElementById('k-bal').innerText = '$' + fmt(inc - exp);
-      document.getElementById('k-usd').innerText = 'USD ' + fmt((inc - exp) / rate);
+      
+      const elBal = document.getElementById('k-bal');
+      elBal.innerText = '$' + fmt(bal);
+      // CAMBIO DE COLOR BALANCE
+      elBal.className = `text-base font-black tracking-tight leading-tight ${bal >= 0 ? 'text-success' : 'text-danger'}`;
+
+      document.getElementById('k-usd').innerText = 'USD ' + fmt(bal / rate);
     }
 
     function renderLists(txs) {
@@ -997,6 +1015,13 @@
         } else {
           iconHtml = `<div onclick="toggleExec(${t.id}, event)" class="custom-chk ${t.exec ? 'exec' : ''}"><i class="material-symbols-outlined">check</i></div>`;
         }
+        
+        // Buscar el nombre del ingreso vinculado
+        let linkedName = '';
+        if(t.type === 'exp' && t.linkId){
+           const found = appData.txs.find(x => x.id == t.linkId);
+           if(found) linkedName = found.desc;
+        }
 
         const content = `
           <div class="flex items-center gap-2 w-full" onclick="${clickAction}">
@@ -1006,9 +1031,12 @@
                 <p class="text-[11px] font-bold text-slate-800 truncate">${t.desc || ''}</p>
                 <p class="text-[11px] font-bold ${t.type === 'inc' ? 'text-success' : 'text-danger'}">$${fmt(amountARS)}</p>
               </div>
-              <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-[9px] text-slate-400 font-medium">${(t.date || '').split('-')[2] || ''}</span>
-                <span class="text-[8px] px-1 bg-slate-100 rounded text-slate-500 tracking-wide">${isSplit ? 'SPLIT' : (t.cat || 'Gral')}</span>
+              <div class="flex items-center justify-between mt-0.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[9px] text-slate-400 font-medium">${(t.date || '').split('-')[2] || ''}</span>
+                  <span class="text-[8px] px-1 bg-slate-100 rounded text-slate-500 tracking-wide">${isSplit ? 'SPLIT' : (t.cat || 'Gral')}</span>
+                </div>
+                ${linkedName ? `<span class="text-[8px] text-slate-400 italic">Vinculado a: ${linkedName.substring(0,10)}...</span>` : ''}
               </div>
             </div>
           </div>
@@ -1033,17 +1061,31 @@
       document.getElementById('c-inc').innerText = dashTxs.filter(t => t.type === 'inc').length;
       document.getElementById('c-exp').innerText = dashTxs.filter(t => t.type === 'exp').length;
 
-      // ASIGNACIÓN (incluye splits)
+      // ASIGNACIÓN (incluye splits y no asignados)
+      const allocatedExpenseIds = new Set();
+      
       dashTxs.filter(t => t.type === 'inc').forEach(inc => {
         const incAmt = txValueARS(inc);
 
         const directSubs = dashTxs
-          .filter(t => t.type === 'exp' && t.linkId == inc.id && !(t.children && t.children.length))
+          .filter(t => {
+            if(t.type === 'exp' && t.linkId == inc.id && !(t.children && t.children.length)) {
+               allocatedExpenseIds.add(t.id);
+               return true;
+            }
+            return false;
+          })
           .map(t => ({ id: t.id, desc: t.desc, amount: txValueARS(t), exec: t.exec, parentId: null }));
 
         let splitSubs = [];
         dashTxs.filter(t => t.type === 'exp' && t.children && t.children.length).forEach(parent => {
-          parent.children.filter(c => c.linkId == inc.id).forEach(c => {
+          parent.children.filter(c => {
+             if(c.linkId == inc.id) {
+                allocatedExpenseIds.add(c.id); // Marcamos el hijo
+                return true;
+             }
+             return false;
+          }).forEach(c => {
             splitSubs.push({
               id: c.id,
               parentId: parent.id,
@@ -1094,6 +1136,46 @@
         `;
         lA.appendChild(card);
       });
+
+      // TARJETA DE NO ASIGNADOS
+      let unassignedSum = 0;
+      let unassignedRows = '';
+      
+      dashTxs.filter(t => t.type === 'exp').forEach(t => {
+         // Si es un split, miramos sus hijos
+         if(t.children && t.children.length) {
+            t.children.forEach(c => {
+               if(!allocatedExpenseIds.has(c.id) && !c.linkId) {
+                  const amt = childValueARS(c, t.exec);
+                  unassignedSum += amt;
+                  unassignedRows += `<div class="flex justify-between py-1 text-[9px] border-b border-dashed border-slate-100 text-slate-500 px-1.5"><span class="truncate pr-2">(Split) ${c.desc}</span><span class="font-bold shrink-0">$${fmt(amt)}</span></div>`;
+               }
+            });
+         } else {
+            // Gasto normal
+            if(!allocatedExpenseIds.has(t.id) && !t.linkId) {
+                const amt = txValueARS(t);
+                unassignedSum += amt;
+                unassignedRows += `<div class="flex justify-between py-1 text-[9px] border-b border-dashed border-slate-100 text-slate-500 px-1.5"><span class="truncate pr-2">${t.desc}</span><span class="font-bold shrink-0">$${fmt(amt)}</span></div>`;
+            }
+         }
+      });
+
+      if(unassignedSum > 0) {
+         const uaCard = document.createElement('div');
+         uaCard.innerHTML = `
+          <div class="rounded-lg border border-slate-200 bg-red-50/50 mb-1 shadow-sm overflow-hidden group">
+            <div class="px-2 py-1.5 flex justify-between items-center cursor-pointer" onclick="this.closest('.rounded-lg').querySelector('.alloc-details').classList.toggle('hidden')">
+              <div>
+                <p class="text-[10px] font-bold text-red-700 leading-tight">SIN ASIGNAR</p>
+                <p class="text-[9px] font-extrabold text-red-600">$${fmt(unassignedSum)}</p>
+              </div>
+              <span class="material-symbols-outlined text-red-300 text-sm">warning</span>
+            </div>
+            <div class="alloc-details hidden bg-white py-0.5 border-t border-red-100">${unassignedRows}</div>
+          </div>`;
+         lA.appendChild(uaCard);
+      }
     }
 
     function updateReadOnlyUI(closed) {
@@ -1256,11 +1338,13 @@
       document.getElementById('normalTxFields').classList.remove('hidden');
 
       if(t === 'exp') {
-        ['from','cat','split','link'].forEach(k => document.getElementById(els[k]).classList.remove('hidden'));
+        // En exp, "fromAcc" técnicamente existe pero lo ocultamos para simplificar como pidió el usuario
+        // Solo mostramos cat, split y link
+        ['cat','split','link'].forEach(k => document.getElementById(els[k]).classList.remove('hidden'));
         renderChips('exp');
         renderLinkChips();
       } else if(t === 'inc') {
-        ['to','cat'].forEach(k => document.getElementById(els[k]).classList.remove('hidden'));
+        ['cat'].forEach(k => document.getElementById(els[k]).classList.remove('hidden'));
         renderChips('inc');
       } else {
         ['from','to'].forEach(k => document.getElementById(els[k]).classList.remove('hidden'));
@@ -1438,8 +1522,9 @@
         exec: document.getElementById('fExec').checked,
         linkId: document.getElementById('fLink').value || null,
         deletedAt: null,
-        fromAccountId: document.getElementById('fFromAcc').value,
-        toAccountId: document.getElementById('fToAcc').value,
+        // Usamos cuenta por defecto si está oculto (Efectivo ARS suele ser el id 'acc_cash')
+        fromAccountId: document.getElementById('fFromAcc').value || 'acc_cash',
+        toAccountId: document.getElementById('fToAcc').value || 'acc_cash',
         children
       };
 
