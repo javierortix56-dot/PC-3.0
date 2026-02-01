@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Finanzas J&M | V15 Split Pro (Full)</title>
+  <title>Finanzas J&M | V15 Split Pro (Cloud Safe)</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -97,10 +97,38 @@
     .d-picker { position: absolute; inset:0; opacity:0; cursor: pointer; width: 100%; }
 
     .btn-disabled { opacity: 0.35; pointer-events: none; }
+
+    /* Toast / Estado Sync */
+    #toast {
+      position: fixed; bottom: 14px; left: 14px;
+      background: rgba(15, 23, 42, 0.95);
+      color: white; padding: 10px 12px; border-radius: 10px;
+      font-size: 11px; box-shadow: 0 12px 30px rgba(0,0,0,.20);
+      display: none; z-index: 9999; max-width: 320px;
+    }
+    #toast.show { display: block; }
+    #syncBadge {
+      position: fixed; top: 10px; right: 12px;
+      font-size: 10px; font-weight: 800; letter-spacing: .04em;
+      padding: 6px 8px; border-radius: 999px; z-index: 9998;
+      border: 1px solid #e2e8f0; background: rgba(255,255,255,.9);
+      color: #334155; display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    }
+    #syncDot { width: 8px; height: 8px; border-radius: 999px; background: #94a3b8; }
+    #syncBadge.ok #syncDot { background: #16a34a; }
+    #syncBadge.saving #syncDot { background: #f59e0b; }
+    #syncBadge.offline #syncDot { background: #ef4444; }
   </style>
 </head>
 
 <body class="text-slate-900 h-screen flex overflow-hidden selection:bg-primary/20">
+
+  <div id="syncBadge" class="ok" title="Estado de sincronización">
+    <span id="syncDot"></span>
+    <span id="syncTxt">SYNC OK</span>
+  </div>
+  <div id="toast"></div>
 
   <aside class="glass-sidebar w-14 hover:w-56 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-3 shadow-lg">
     <div class="flex flex-col gap-4">
@@ -128,7 +156,7 @@
           <span class="material-symbols-outlined text-lg shrink-0">settings</span>
           <span class="ml-3 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Ajustes</span>
         </button>
-        <button onclick="forceSync()" class="flex items-center h-9 rounded-md px-2 text-primary hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2" title="Forzar Sincronización">
+        <button onclick="forceSync(true)" class="flex items-center h-9 rounded-md px-2 text-primary hover:bg-slate-100 transition-colors w-full overflow-hidden mt-2 border-t border-slate-100 pt-2" title="Forzar Sincronización">
           <span class="material-symbols-outlined text-lg shrink-0" id="syncIcon">cloud_sync</span>
           <span class="ml-3 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Sincronizar</span>
         </button>
@@ -559,14 +587,119 @@
 
   <script>
     // =========================================================================
+    // CLOUD SAFE SYNC (PC + MÓVIL) — URL ÚNICA
+    // =========================================================================
+    const API_URL = "https://script.google.com/macros/s/AKfycbybreG4oxLOVCdVA9-H4B70kYdtdcRcrjbjNxlq3j_V1Y5_JuLOkYhSTiAYU9shW2g/exec";
+
+    // Identidad de dispositivo para debug / conflictos
+    const DEVICE_ID = (() => {
+      const k = "ff_device_id";
+      let v = localStorage.getItem(k);
+      if (!v) {
+        v = (crypto.randomUUID ? crypto.randomUUID() : (String(Date.now()) + "_" + Math.random()));
+        localStorage.setItem(k, v);
+      }
+      return v;
+    })();
+
+    let serverRev = 0;               // revisión confirmada del servidor
+    let saveQueue = Promise.resolve(); // serializa POST para evitar pisadas por orden de red
+    let unsyncedChanges = false;      // si falló guardado en nube (offline/error), no auto-pisar con forceSync silencioso
+
+    function setSyncState(state, msg) {
+      const b = document.getElementById("syncBadge");
+      const t = document.getElementById("syncTxt");
+      b.classList.remove("ok", "saving", "offline");
+      b.classList.add(state);
+      if (msg) t.innerText = msg;
+      else {
+        if (state === "ok") t.innerText = "SYNC OK";
+        if (state === "saving") t.innerText = "GUARDANDO…";
+        if (state === "offline") t.innerText = "PENDIENTE";
+      }
+    }
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.innerText = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 3200);
+    }
+
+    async function apiGet_() {
+      const r = await fetch(`${API_URL}?action=get&ts=${Date.now()}`, { cache: "no-store" });
+      const j = await r.json();
+      if (!j) throw new Error("Respuesta vacía");
+      // Compat: si el backend devolviera data directo
+      if (j.ok === true && j.data) return j;
+      // fallback
+      return { ok: true, rev: Number(j._rev || 0), data: j };
+    }
+
+    function apiSave_(dataObj) {
+      saveQueue = saveQueue.then(async () => {
+        setSyncState("saving");
+
+        const payload = JSON.parse(JSON.stringify(dataObj || {}));
+        // rev: usa la del servidor si existe; si no, la del objeto
+        payload._rev = Number(serverRev || payload._rev || 0);
+        payload._writer = DEVICE_ID;
+        payload._updatedAtClient = Date.now();
+
+        const r = await fetch(`${API_URL}?action=save&ts=${Date.now()}`, {
+          method: "POST",
+          body: JSON.stringify(payload) // sin headers => evita preflight CORS
+        });
+
+        const j = await r.json().catch(() => null);
+        if (!j) throw new Error("No JSON en respuesta");
+
+        if (j.ok === true) {
+          serverRev = Number(j.rev || serverRev || payload._rev || 0);
+          unsyncedChanges = false;
+          setSyncState("ok");
+          return;
+        }
+
+        if (j.conflict) {
+          // Guarda copia local antes de pisar
+          localStorage.setItem("ff_conflict_backup", JSON.stringify(appData));
+          toast("Conflicto: hay datos más nuevos en la nube. Se sincronizó y guardé una copia local (ff_conflict_backup).");
+          // Trae el estado del servidor y aplica
+          if (j.data) {
+            appData = j.data;
+            serverRev = Number(j.rev || 0);
+            appData._rev = serverRev;
+            sanitizeData();
+            saveLocal();
+            loadMonthData();
+            renderNetWorthView();
+          }
+          unsyncedChanges = false;
+          setSyncState("ok");
+          return;
+        }
+
+        throw new Error(j.error || "Save failed");
+      }).catch(err => {
+        console.log("Cloud save error:", err.message);
+        unsyncedChanges = true;
+        setSyncState("offline");
+        // No spamear toasts si es intermitente
+      });
+
+      return saveQueue;
+    }
+
+    // =========================================================================
     // CONFIGURACIÓN Y ESTADO GLOBAL
     // =========================================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbxEni9GJ4gxmbhmNsbzoYxS_SfhcorqsXj4zh93-qWIy5i2R4jwvgJ8L25GcU3h3Bkh/exec";
     const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
     const PALETTE = ['#0e757c','#558055','#D4A373','#996A5C','#334155','#64748b','#94a3b8','#cbd5e1'];
     const LS_KEY = 'financeFlowData_Javi';
 
     const defaultData = {
+      _rev: 0,
       txs: [],
       cats: {
         exp:['Esenciales','Deudas','Fitness','Viaje Italia','Inversiones','Proyectos'],
@@ -587,7 +720,8 @@
       accounts: [
         { id: 'acc_cash', name: 'Efectivo ARS', kind: 'asset', currency: 'ARS', initBal: 0 }
       ],
-      closedMonths: {}
+      closedMonths: {},
+      updatedAt: Date.now()
     };
 
     let appData = JSON.parse(JSON.stringify(defaultData));
@@ -609,7 +743,7 @@
     const fmt = (n) => (Number(n) || 0).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
     // =========================================================================
-    // HELPERS FECHA / FX (fix multi-moneda + no mutar tx)
+    // HELPERS FECHA / FX
     // =========================================================================
     function parseDateInput(dateStr) {
       if (!dateStr) return new Date();
@@ -624,8 +758,8 @@
     function getRatesForMonthKey(k) {
       const r = (appData.monthlyRates && appData.monthlyRates[k]) ? appData.monthlyRates[k] : null;
       return {
-        ARS: (r && Number(r.ARS)) ? Number(r.ARS) : 1500, // ARS por USD
-        COP: (r && Number(r.COP)) ? Number(r.COP) : 3700, // COP por USD
+        ARS: (r && Number(r.ARS)) ? Number(r.ARS) : 1500,
+        COP: (r && Number(r.COP)) ? Number(r.COP) : 3700,
         USD: 1
       };
     }
@@ -652,12 +786,11 @@
       return fromUSD(u, to, rates);
     }
 
-    // ARS “vivo”: si no ejecutado y moneda != ARS, recalcula con tipo de cambio del mes del tx
     function txValueARS(tx) {
       if (!tx) return 0;
       const origAmt = (tx.origAmt != null) ? Number(tx.origAmt) : Number(tx.amount);
       const origCurr = tx.origCurr || 'ARS';
-      if (tx.exec) return Number(tx.amount) || 0; // congelado si ejecutado
+      if (tx.exec) return Number(tx.amount) || 0;
       const rates = getRatesForMonthKey(monthKeyFromDateStr(tx.date));
       return convert(origAmt, origCurr, 'ARS', rates);
     }
@@ -676,6 +809,7 @@
     // =========================================================================
     function sanitizeData() {
       if (!appData || typeof appData !== 'object') appData = JSON.parse(JSON.stringify(defaultData));
+      if (typeof appData._rev !== 'number') appData._rev = Number(appData._rev || 0);
       if (!appData.txs) appData.txs = [];
       if (!appData.cats) appData.cats = JSON.parse(JSON.stringify(defaultData.cats));
       if (!appData.concepts) appData.concepts = JSON.parse(JSON.stringify(defaultData.concepts));
@@ -683,6 +817,7 @@
       if (!appData.monthlyRates) appData.monthlyRates = {};
       if (!appData.accounts) appData.accounts = JSON.parse(JSON.stringify(defaultData.accounts));
       if (!appData.closedMonths) appData.closedMonths = {};
+      if (!appData.updatedAt) appData.updatedAt = Date.now();
     }
 
     function getMonthKey(d = currentDate) {
@@ -708,20 +843,39 @@
       if(stored) appData = JSON.parse(stored);
     }
 
-    async function forceSync() {
+    async function forceSync(isManual = false) {
+      if (!navigator.onLine) {
+        setSyncState("offline");
+        if (isManual) toast("Sin conexión. Hay cambios pendientes o no se puede sincronizar.");
+        return;
+      }
+
+      // Si hay cambios locales no subidos, no pisar silencioso
+      if (!isManual && unsyncedChanges) return;
+
       document.getElementById('syncIcon').classList.add('animate-spin');
       try {
-        const r = await fetch(API_URL);
-        const d = await r.json();
-        if(d) {
-          appData = d;
+        // espera a que termine la cola de guardado para evitar “tironeos”
+        await saveQueue;
+
+        const res = await apiGet_();
+        if (res && res.data) {
+          appData = res.data;
+          serverRev = Number(res.rev || 0);
+          appData._rev = serverRev;
+
           sanitizeData();
           saveLocal();
           loadMonthData();
           renderNetWorthView();
+
+          setSyncState("ok");
+          if (isManual) toast("Sincronizado.");
         }
       } catch(e) {
-        console.log("Offline or Sync Error");
+        console.log("Sync Error:", e.message);
+        setSyncState("offline");
+        if (isManual) toast("Error de sincronización.");
       }
       document.getElementById('syncIcon').classList.remove('animate-spin');
     }
@@ -729,11 +883,26 @@
     async function saveData() {
       sanitizeData();
       saveLocal();
-      try {
-        await fetch(API_URL, { method: 'POST', body: JSON.stringify(appData) });
-      } catch(e) {
-        console.log("Save Cloud Error");
+
+      if (!navigator.onLine) {
+        unsyncedChanges = true;
+        setSyncState("offline");
+        loadMonthData();
+        renderNetWorthView();
+        return;
       }
+
+      try {
+        await apiSave_(appData);
+        // Alinea rev local con la del servidor
+        appData._rev = Number(serverRev || appData._rev || 0);
+        saveLocal();
+      } catch(e) {
+        console.log("Save error:", e.message);
+        unsyncedChanges = true;
+        setSyncState("offline");
+      }
+
       loadMonthData();
       renderNetWorthView();
     }
@@ -772,9 +941,25 @@
       sanitizeData();
       updateDateUI();
       renderAdminTree();
-      await forceSync();
+      updateAccountSelects();
+
+      // Primer sync (no pisa si offline)
+      await forceSync(false);
+
       loadMonthData();
       renderNetWorthView();
+
+      // Mejoras “móvil”: sync al volver a la app / recuperar conexión
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") forceSync(false);
+      });
+      window.addEventListener("online", () => forceSync(false));
+      window.addEventListener("offline", () => setSyncState("offline"));
+
+      // Sync suave cada 30s (solo si no hay cambios pendientes)
+      setInterval(() => {
+        if (document.visibilityState === "visible") forceSync(false);
+      }, 30000);
     };
 
     // =========================================================================
@@ -919,12 +1104,10 @@
       dashTxs.filter(t => t.type === 'inc').forEach(inc => {
         const incAmt = txValueARS(inc);
 
-        // gastos directos vinculados
         const directSubs = dashTxs
           .filter(t => t.type === 'exp' && t.linkId == inc.id && !(t.children && t.children.length))
           .map(t => ({ id: t.id, desc: t.desc, amount: txValueARS(t), exec: t.exec, parentId: null }));
 
-        // partes de splits vinculadas
         let splitSubs = [];
         dashTxs.filter(t => t.type === 'exp' && t.children && t.children.length).forEach(parent => {
           parent.children.filter(c => c.linkId == inc.id).forEach(c => {
@@ -1233,7 +1416,6 @@
       cs.forEach(c => dl.innerHTML += `<option value="${c}">`);
     }
 
-    // Diferencia del split en moneda ORIGINAL (la del formulario)
     function calcSplitDiff() {
       const total = parseFloat(document.getElementById('fAmt').value) || 0;
       let sum = 0;
@@ -1262,7 +1444,6 @@
       if(isSplit) {
         if(Math.abs(calcSplitDiff()) > 0.01) return alert('La suma del split no coincide con el total.');
 
-        // construir hijos en moneda original + amount ARS convertido
         try {
           document.querySelectorAll('.split-input-row').forEach(r => {
             const origAmt = parseFloat(r.querySelector('.split-amt').value) || 0;
@@ -1355,8 +1536,6 @@
       const balances = {};
       appData.accounts.forEach(a => balances[a.id] = Number(a.initBal) || 0);
 
-      // Mantengo el comportamiento original: aplica todas las tx (exec o no).
-      // Si querés net worth "real", filtrá por t.exec === true.
       const sortedTxs = appData.txs.filter(t => !t.deletedAt).sort((a,b) => a.date.localeCompare(b.date));
 
       sortedTxs.forEach(t => {
@@ -1765,7 +1944,6 @@
           const mk = monthKeyFromDateStr(date);
           const rates = getRatesForMonthKey(mk);
 
-          // recurrentes en ARS (origCurr ARS)
           const amountARS = convert(Number(r.amount)||0, 'ARS', 'ARS', rates);
 
           appData.txs.push({
@@ -1873,7 +2051,6 @@
         c.appendChild(d);
       });
 
-      // set default
       if(!document.getElementById('fCat').value && list.length) {
         document.getElementById('fCat').value = list[0];
         renderConcepts(list[0]);
@@ -1923,9 +2100,7 @@
       return ars;
     }
 
-    function filterExpList() {
-      loadMonthData();
-    }
+    function filterExpList() { loadMonthData(); }
 
     function editTx(id) {
       if(isMonthClosed()) return alert("Cerrado");
@@ -2057,11 +2232,9 @@
       const txs = getFilteredTxs();
       let c = 0;
 
-      // asigna SOLO gastos no-split (para no romper split). El split se asigna item por item.
       txs.filter(t => t.type == 'exp' && !t.linkId && !(t.children && t.children.length)).forEach(exp => {
         const expAmt = txValueARS(exp);
 
-        // buscar ingreso que tenga remanente >= exp
         const inc = txs
           .filter(inc => inc.type == 'inc' && inc.date <= exp.date)
           .find(inc => {
@@ -2114,18 +2287,6 @@
       });
       saveData();
     }
-
-    // =========================================================================
-    // NAV / DATE
-    // =========================================================================
-    function manualDateInit() {
-      document.getElementById('datePicker').value = getMonthKey();
-    }
-
-    // =========================================================================
-    // MISC
-    // =========================================================================
-    function calcSplitDiffInit() { calcSplitDiff(); }
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
