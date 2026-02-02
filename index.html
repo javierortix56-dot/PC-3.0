@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Finanzas J&M | V18 Cloud Safe</title>
+  <title>Finanzas J&M | V19 Admin Pro</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -351,8 +351,66 @@
     </div>
 
     <div id="view-admin" class="view-container animate-fade-in hidden-view grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 pt-1">
+      
+      <div class="flex flex-col gap-4 h-full overflow-hidden">
+        
+        <div class="glass-panel rounded-xl p-4 shadow-sm border border-slate-200 shrink-0">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="p-1.5 bg-slate-100 text-slate-600 rounded-lg">
+                <span class="material-symbols-outlined text-lg">lock_clock</span>
+              </div>
+              <div>
+                <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gestión Mensual</h4>
+                <div id="monthStatusBadge" class="inline-flex mt-0.5 text-[10px] font-black px-2 py-0.5 rounded-md bg-slate-200 text-slate-500">...</div>
+              </div>
+            </div>
+            <div class="text-right">
+               <button onclick="openCloneModal()" class="text-[9px] font-bold text-indigo-500 hover:text-indigo-700 bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 transition-colors flex items-center gap-1">
+                 <span class="material-symbols-outlined text-xs">content_copy</span> Clonar Mes
+               </button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between border-t border-slate-100 pt-2 mt-2">
+             <div class="text-[9px] font-bold text-slate-400">BALANCE CIERRE</div>
+             <div class="text-sm font-black text-slate-800 tracking-tight" id="monthCloseBalance">...</div>
+          </div>
+          <div id="monthActionContainer" class="w-full mt-2"></div>
+        </div>
+
+        <div class="glass-panel rounded-xl flex flex-col flex-1 overflow-hidden shadow-sm border border-slate-200 min-h-0">
+          <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-white/50 backdrop-blur-sm z-10 shrink-0">
+            <div class="flex items-center gap-2">
+              <div class="p-1.5 bg-orange-50 text-orange-600 rounded-lg">
+                <span class="material-symbols-outlined text-lg">update</span>
+              </div>
+              <h3 class="text-sm font-bold text-slate-800">Gastos Fijos</h3>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="populateRecurringDefaults()" class="text-slate-500 hover:text-primary px-2 py-1 rounded-lg text-[9px] font-bold transition-colors bg-slate-100 hover:bg-primary/5 border border-transparent hover:border-primary/20 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">lightbulb</span> Sugerir
+              </button>
+              <button onclick="addRecurrenteRow()" class="bg-slate-800 text-white px-2 py-1 rounded-lg text-[9px] font-bold hover:bg-slate-700 shadow-sm flex items-center gap-1 transition-all active:scale-95">
+                <span class="material-symbols-outlined text-xs">add</span>
+              </button>
+            </div>
+          </div>
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-2 bg-slate-50/30" id="recurrente-table-body"></div>
+          <div class="p-2 border-t border-slate-100 bg-white z-10 shrink-0">
+            <div class="flex gap-2">
+              <button onclick="saveRecurrentesConfig()" class="flex-1 py-2 rounded-lg border border-slate-200 text-slate-600 text-[9px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
+                GUARDAR
+              </button>
+              <button onclick="executeRecurrentes()" class="flex-1 py-2 rounded-lg bg-primary text-white text-[9px] font-bold hover:bg-primary-dark shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-xs">play_arrow</span> EJECUTAR
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="glass-panel rounded-xl flex flex-col h-full overflow-hidden shadow-sm border border-slate-200">
-        <div class="p-4 border-b border-slate-100 bg-white/50 backdrop-blur-sm z-10">
+        <div class="p-4 border-b border-slate-100 bg-white/50 backdrop-blur-sm z-10 shrink-0">
           <div class="flex items-center gap-2 mb-3">
             <div class="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
               <span class="material-symbols-outlined text-lg">category</span>
@@ -377,56 +435,6 @@
         <div class="flex-1 overflow-y-auto custom-scrollbar p-3 bg-slate-50/50" id="adminTreeContainer"></div>
       </div>
 
-      <div class="flex flex-col gap-4 h-full overflow-hidden">
-        <div class="glass-panel rounded-xl flex flex-col flex-1 overflow-hidden shadow-sm border border-slate-200">
-          <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white/50 backdrop-blur-sm z-10">
-            <div class="flex items-center gap-2">
-              <div class="p-1.5 bg-orange-50 text-orange-600 rounded-lg">
-                <span class="material-symbols-outlined text-lg">update</span>
-              </div>
-              <h3 class="text-sm font-bold text-slate-800">Gastos Fijos</h3>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="populateRecurringDefaults()" class="text-slate-500 hover:text-primary px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors bg-slate-100 hover:bg-primary/5 border border-transparent hover:border-primary/20 flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">lightbulb</span> Sugerir
-              </button>
-              <button onclick="addRecurrenteRow()" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-slate-700 shadow-sm flex items-center gap-1 transition-all active:scale-95">
-                <span class="material-symbols-outlined text-xs">add</span> Agregar
-              </button>
-            </div>
-          </div>
-          <div class="flex-1 overflow-y-auto custom-scrollbar p-2 bg-slate-50/30" id="recurrente-table-body"></div>
-          <div class="p-3 border-t border-slate-100 bg-white z-10">
-            <div class="flex gap-3">
-              <button onclick="saveRecurrentesConfig()" class="flex-1 py-2.5 rounded-lg border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-                GUARDAR CAMBIOS
-              </button>
-              <button onclick="executeRecurrentes()" class="flex-1 py-2.5 rounded-lg bg-primary text-white text-[10px] font-bold hover:bg-primary-dark shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-sm">play_arrow</span> EJECUTAR MES
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass-panel rounded-xl p-4 shadow-sm border border-slate-200 shrink-0">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <div class="p-1.5 bg-slate-100 text-slate-600 rounded-lg">
-                <span class="material-symbols-outlined text-lg">lock_clock</span>
-              </div>
-              <div>
-                <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estado del Mes</h4>
-                <div id="monthStatusBadge" class="inline-flex mt-0.5 text-[10px] font-black px-2 py-0.5 rounded-md bg-slate-200 text-slate-500">ABIERTO</div>
-              </div>
-            </div>
-            <div class="text-right">
-              <p class="text-[9px] font-bold text-slate-400 uppercase">Balance Cierre</p>
-              <p class="text-base font-black text-slate-800 tracking-tight" id="monthCloseBalance">...</p>
-            </div>
-          </div>
-          <div id="monthActionContainer" class="w-full"></div>
-        </div>
-      </div>
     </div>
 
   </main>
@@ -588,6 +596,18 @@
         <button onclick="bulkApplyChanges()" class="w-full py-2 bg-primary text-white rounded-lg font-bold mt-2 shadow hover:bg-primary-dark text-xs">APLICAR</button>
         <button onclick="closeBulkModal()" class="w-full text-[9px] font-bold text-slate-400 py-1 hover:text-slate-600">CANCELAR</button>
       </div>
+    </div>
+  </div>
+
+  <div id="cloneModal" class="fixed inset-0 z-[75] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white rounded-xl p-4 w-full max-w-[280px] shadow-2xl mx-4 animate-fade-in">
+       <h3 class="text-xs font-bold text-slate-800 mb-3 border-b pb-2 flex items-center gap-2"><span class="material-symbols-outlined text-sm text-indigo-500">content_copy</span> Clonar Mes</h3>
+       <p class="text-[10px] text-slate-500 mb-2">Selecciona el mes origen para copiar sus movimientos a <b id="cloneTargetMonth"></b>.</p>
+       <select id="cloneSourceSelect" class="w-full border-slate-200 rounded text-[10px] py-1.5 font-bold text-slate-700 mb-3"></select>
+       <div class="flex gap-2">
+         <button onclick="doCloneMonth()" class="flex-1 py-1.5 bg-indigo-600 text-white rounded text-[10px] font-bold hover:bg-indigo-700">CLONAR</button>
+         <button onclick="closeCloneModal()" class="flex-1 py-1.5 bg-slate-100 text-slate-500 rounded text-[10px] font-bold hover:bg-slate-200">CANCELAR</button>
+       </div>
     </div>
   </div>
 
@@ -1610,6 +1630,100 @@
     function reopenMonth() { if(!confirm("¿Reabrir?")) return; pushHistory(); delete appData.closedMonths[getMonthKey()]; saveData(); }
 
     // =========================================================================
+    // CLONE MONTH
+    // =========================================================================
+    function openCloneModal() {
+      if(isMonthClosed()) return alert("El mes actual está cerrado.");
+      
+      const sel = document.getElementById('cloneSourceSelect');
+      sel.innerHTML = '';
+      
+      const uniqueMonths = new Set();
+      appData.txs.forEach(t => {
+        if(!t.deletedAt) uniqueMonths.add(monthKeyFromDateStr(t.date));
+      });
+      
+      const sorted = Array.from(uniqueMonths).sort().reverse();
+      const current = getMonthKey();
+      
+      sorted.forEach(m => {
+        if(m !== current) {
+          sel.innerHTML += `<option value="${m}">${m}</option>`;
+        }
+      });
+      
+      document.getElementById('cloneTargetMonth').innerText = current;
+      document.getElementById('cloneModal').classList.remove('hidden');
+    }
+
+    function closeCloneModal() {
+      document.getElementById('cloneModal').classList.add('hidden');
+    }
+
+    function doCloneMonth() {
+      const srcMonth = document.getElementById('cloneSourceSelect').value;
+      if(!srcMonth) return;
+      
+      if(!confirm(`¿Clonar movimientos de ${srcMonth} al mes actual?`)) return;
+      
+      pushHistory();
+      
+      const targetMonthKey = getMonthKey();
+      const targetDatePrefix = targetMonthKey + '-01'; // Fijar al dia 1
+      
+      const srcTxs = appData.txs.filter(t => !t.deletedAt && monthKeyFromDateStr(t.date) === srcMonth);
+      
+      // Mapeo de IDs antiguos a nuevos (para mantener links)
+      const idMap = {};
+      
+      // 1. Primero clonar Ingresos (para tener sus nuevos IDs)
+      srcTxs.filter(t => t.type === 'inc').forEach(t => {
+         const newId = Date.now() + Math.random();
+         idMap[t.id] = newId;
+         
+         const newTx = {
+            ...t,
+            id: newId,
+            date: targetDatePrefix,
+            exec: false, // Resetear ejecutado
+            deletedAt: null
+         };
+         appData.txs.push(newTx);
+      });
+      
+      // 2. Clonar Gastos y actualizar Links
+      srcTxs.filter(t => t.type === 'exp').forEach(t => {
+         const newId = Date.now() + Math.random();
+         
+         // Clonar hijos si existen
+         let newChildren = [];
+         if(t.children && t.children.length) {
+            newChildren = t.children.map(c => ({
+               ...c,
+               id: Date.now() + Math.random(),
+               date: targetDatePrefix,
+               linkId: (c.linkId && idMap[c.linkId]) ? idMap[c.linkId] : null
+            }));
+         }
+         
+         const newTx = {
+            ...t,
+            id: newId,
+            date: targetDatePrefix,
+            exec: false,
+            linkId: (t.linkId && idMap[t.linkId]) ? idMap[t.linkId] : null,
+            children: newChildren,
+            deletedAt: null
+         };
+         appData.txs.push(newTx);
+      });
+      
+      saveData();
+      closeCloneModal();
+      alert("Mes clonado con éxito.");
+    }
+
+    // =========================================================================
     // NET WORTH
     // =========================================================================
     function renderNetWorthView() {
@@ -1900,13 +2014,15 @@
         else if(key === 'assets') { iconColor = 'text-blue-500 bg-blue-50'; iconName = 'account_balance'; }
         else { iconColor = 'text-rose-500 bg-rose-50'; iconName = 'trending_down'; }
 
+        // Aquí usamos <details open> para que sea colapsable pero aparezca abierto por defecto
         let html = `
-          <div class="mb-4 last:mb-0">
-            <div class="flex items-center gap-2 mb-2 px-1">
+          <details class="group/section mb-4 last:mb-0" open>
+            <summary class="flex items-center gap-2 mb-2 px-1 cursor-pointer select-none outline-none">
               <span class="material-symbols-outlined text-sm p-1 rounded-md ${iconColor}">${iconName}</span>
               <h4 class="font-bold text-[10px] text-slate-500 uppercase tracking-wider">${title}</h4>
-            </div>
-            <div class="space-y-2">
+              <span class="material-symbols-outlined text-slate-300 text-xs ml-auto group-open/section:rotate-180 transition-transform">expand_more</span>
+            </summary>
+            <div class="space-y-2 pl-2">
         `;
 
         html += list.map(x => `
@@ -1949,7 +2065,7 @@
           </details>
         `).join('');
 
-        html += `</div></div>`;
+        html += `</div></details>`;
         c.innerHTML += html;
       };
 
@@ -2198,7 +2314,6 @@
     function renderLinkChips(sid) {
       const c = document.getElementById('linkChipsContainer'); c.innerHTML = '';
       
-      // NUEVO: Opción "Sin asignar" al principio
       const def = document.createElement('div');
       def.className = `chip px-2 py-0.5 cursor-pointer ${!sid ? 'active' : ''}`;
       def.innerText = 'Sin asignar';
