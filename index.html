@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html class="light" lang="es">
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Finanzas J&M | V19 UI Polish</title>
+  <title>Finanzas J&M | V18 Cloud Safe</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -47,15 +48,25 @@
     .active-nav { background-color: rgba(14, 117, 124, 0.08); color: #0e757c; border-right: 3px solid #0e757c; }
 
     /* FILAS COMPACTAS */
-    .compact-row { padding: 4px 8px; border-bottom: 1px solid #f1f5f9; transition: background-color 0.1s; min-height: 34px; }
+    .compact-row {
+      padding: 4px 8px;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.1s;
+      min-height: 34px;
+    }
     .compact-row:last-child { border-bottom: none; }
     .compact-row:hover { background-color: #f8fafc; }
-    .compact-row.selected { background-color: #e0f2fe !important; border-left: 3px solid #0e757c; padding-left: 5px; }
+    .compact-row.selected {
+      background-color: #e0f2fe !important;
+      border-left: 3px solid #0e757c;
+      padding-left: 5px;
+    }
 
     .chip { border: 1px solid #e2e8f0; background: white; color: #475569; font-size: 10px; font-weight: 600; transition: all 0.1s; border-radius: 12px; }
     .chip:hover { border-color: #0e757c; color: #0e757c; }
     .chip.active { background: #0e757c; color: white; border-color: #0e757c; }
 
+    /* CHECKBOXES */
     .custom-chk { width: 14px; height: 14px; border-radius: 4px; border: 1px solid #cbd5e1; display:flex; align-items:center; justify-content:center; transition:0.1s; cursor: pointer; background: white; }
     .custom-chk:hover { border-color: #0e757c; }
     .custom-chk.checked { background: #0e757c; border-color: #0e757c; }
@@ -67,28 +78,9 @@
     .cat-tag { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: #f1f5f9; color: #64748b; border: 1px solid transparent; }
     .cat-tag:hover { border-color: #cbd5e1; color: #334155; background: white; }
 
-    /* ESTILO INPUTS TASAS (FIXED) */
-    /* 1. Ocultar flechas de spinner */
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
-    }
-    input[type=number] { -moz-appearance: textfield; }
-
-    /* 2. Estilo limpio */
-    .tc-input { 
-      background: transparent; 
-      border: none; 
-      padding: 0; 
-      margin: 0; 
-      font-weight: 700; 
-      text-align: right; 
-      font-size: 11px; 
-      height: 100%; 
-      width: 50px; /* Ancho seguro */
-    }
-    .tc-input:focus { outline: none; ring: 0; }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .tc-input { -moz-appearance: textfield; background: transparent; border: none; padding: 0 4px; margin: 0; font-weight: 700; color: #334155; text-align: right; font-size: 11px; height: 100%; width: 70px;}
+    .tc-input:focus { outline: none; ring: 0; border-bottom: 1px solid #0e757c; }
 
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
@@ -101,12 +93,19 @@
     .btn-disabled { opacity: 0.35; pointer-events: none; }
 
     /* Sync Badge */
-    #syncBadge { display: flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; font-size: 9px; font-weight: 800; letter-spacing: .04em; color: #64748b; transition: all 0.3s ease; height: 24px; }
+    #syncBadge {
+      display: flex; align-items: center; gap: 6px; padding: 2px 8px;
+      border-radius: 6px; background: #f1f5f9; border: 1px solid #e2e8f0;
+      font-size: 9px; font-weight: 800; letter-spacing: .04em; color: #64748b;
+      transition: all 0.3s ease; height: 24px;
+    }
     #syncDot { width: 6px; height: 6px; border-radius: 999px; background: #ef4444; display: inline-block; transition: background 0.3s ease; }
+    
     #syncBadge.ok #syncDot { background: #22c55e; }
     #syncBadge.saving #syncDot { background: #f59e0b; }
     #syncBadge.pending #syncDot { background: #3b82f6; }
     
+    /* Overlay de Bloqueo Inicial */
     #initBlocker { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
   </style>
 </head>
@@ -178,7 +177,8 @@
           <div class="w-px h-3 bg-slate-200 mx-1"></div>
           
           <div id="syncBadge" class="pending" title="Estado de Sincronización">
-            <span id="syncDot"></span><span id="syncTxt">LISTO</span>
+            <span id="syncDot"></span>
+            <span id="syncTxt">LISTO</span>
           </div>
 
           <div class="w-px h-3 bg-slate-200 mx-1"></div>
@@ -188,17 +188,15 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3 bg-white px-3 rounded border border-slate-200 shadow-sm h-7 shrink-0">
-        <span class="material-symbols-outlined text-slate-400 text-sm">currency_exchange</span>
-        
-        <div class="flex items-center gap-1.5 border-r border-slate-100 pr-3 h-full">
-          <span class="text-[9px] font-extrabold text-slate-400 tracking-wider">USD</span>
-          <input type="number" id="rate_ARS" onchange="saveMonthlyRates();" class="tc-input text-emerald-600" placeholder="0">
+      <div class="flex items-center gap-2 bg-white px-2 rounded border border-slate-200 shadow-sm h-7 shrink-0">
+        <span class="material-symbols-outlined text-slate-400 text-xs">currency_exchange</span>
+        <div class="flex items-center gap-1 border-r border-slate-100 pr-2 h-full">
+          <span class="text-[9px] font-bold text-slate-400">USD</span>
+          <input type="number" id="rate_ARS" onchange="saveMonthlyRates();" class="tc-input" placeholder="0">
         </div>
-        
-        <div class="flex items-center gap-1.5 h-full">
-          <span class="text-[9px] font-extrabold text-slate-400 tracking-wider">COP</span>
-          <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates();" class="tc-input text-blue-600" placeholder="0">
+        <div class="flex items-center gap-1 h-full">
+          <span class="text-[9px] font-bold text-slate-400">COP</span>
+          <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates();" class="tc-input" placeholder="0">
         </div>
       </div>
     </header>
@@ -2201,6 +2199,7 @@
     function renderLinkChips(sid) {
       const c = document.getElementById('linkChipsContainer'); c.innerHTML = '';
       
+      // NUEVO: Opción "Sin asignar" al principio
       const def = document.createElement('div');
       def.className = `chip px-2 py-0.5 cursor-pointer ${!sid ? 'active' : ''}`;
       def.innerText = 'Sin asignar';
@@ -2307,10 +2306,12 @@
       document.getElementById('btnDelAcc').classList.add('hidden');
       document.getElementById('accModal').classList.remove('hidden');
       
+      // Default Date: Hoy
       const today = new Date();
       const offset = today.getTimezoneOffset() * 60000;
       document.getElementById('accDate').value = (new Date(today.getTime() - offset)).toISOString().split('T')[0];
 
+      // Populate Categories
       const cs = document.getElementById('accCat');
       cs.innerHTML = '';
       (appData.cats.assets || []).forEach(c => cs.innerHTML += `<option value="${c}">${c}</option>`);
@@ -2353,6 +2354,7 @@
       const a = appData.accounts.find(x => x.id == id);
       if(!a) return;
       
+      // Populate Categories
       const cs = document.getElementById('accCat');
       cs.innerHTML = '';
       (appData.cats.assets || []).forEach(c => cs.innerHTML += `<option value="${c}">${c}</option>`);
