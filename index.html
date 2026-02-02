@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Finanzas J&M | V17 Patrimonio Pro</title>
+  <title>Finanzas J&M | V18 Cloud Safe</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -103,10 +103,19 @@
     #syncBadge.ok #syncDot { background: #22c55e; }
     #syncBadge.saving #syncDot { background: #f59e0b; }
     #syncBadge.pending #syncDot { background: #3b82f6; }
+    
+    /* Overlay de Bloqueo Inicial */
+    #initBlocker { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
   </style>
 </head>
 
 <body class="text-slate-900 h-screen flex overflow-hidden selection:bg-primary/20">
+
+  <div id="initBlocker">
+      <span class="material-symbols-outlined text-4xl text-primary animate-spin mb-4">sync</span>
+      <h2 class="text-lg font-bold text-slate-700">Sincronizando...</h2>
+      <p class="text-xs text-slate-500 mt-2">Verificando datos más recientes en la nube.</p>
+  </div>
 
   <aside class="glass-sidebar w-14 hover:w-56 transition-all duration-300 group fixed h-screen z-40 flex flex-col justify-between py-3 shadow-lg">
     <div class="flex flex-col gap-4">
@@ -182,11 +191,11 @@
         <span class="material-symbols-outlined text-slate-400 text-xs">currency_exchange</span>
         <div class="flex items-center gap-1 border-r border-slate-100 pr-2 h-full">
           <span class="text-[9px] font-bold text-slate-400">USD</span>
-          <input type="number" id="rate_ARS" onchange="pushHistory(); saveMonthlyRates(); renderNetWorthView(); loadMonthData()" class="tc-input" placeholder="0">
+          <input type="number" id="rate_ARS" onchange="saveMonthlyRates();" class="tc-input" placeholder="0">
         </div>
         <div class="flex items-center gap-1 h-full">
           <span class="text-[9px] font-bold text-slate-400">COP</span>
-          <input type="number" id="rate_COP" step="0.01" onchange="pushHistory(); saveMonthlyRates(); renderNetWorthView(); loadMonthData()" class="tc-input" placeholder="0">
+          <input type="number" id="rate_COP" step="0.01" onchange="saveMonthlyRates();" class="tc-input" placeholder="0">
         </div>
       </div>
     </header>
@@ -599,11 +608,11 @@
     })();
 
     // =========================================================================
-    // OPTIMIZACIÓN DE SINCRONIZACIÓN
+    // OPTIMIZACIÓN DE SINCRONIZACIÓN (CLOUD FIRST)
     // =========================================================================
     let __syncTimer = null;
     let __isSyncing = false;
-    let __localDirty = false;
+    let __dataReady = false; // CANDADO DE SEGURIDAD
     const SYNC_DELAY_MS = 3000;
 
     function setSyncState(state, msg) {
@@ -622,11 +631,25 @@
       }
     }
 
+    // =========================================================================
+    // LÓGICA DE GUARDADO SEGURO
+    // =========================================================================
     function saveData() {
+      // 1. BLOQUEO SI NO ESTÁ LISTO
+      if (!__dataReady) {
+          console.warn("Intento de guardado bloqueado: Sincronización inicial pendiente.");
+          return; 
+      }
+
       sanitizeData();
+      
+      // Actualizamos timestamp antes de guardar
+      appData.updatedAt = Date.now();
+      appData._writer = DEVICE_ID;
+      appData._updatedAtClient = Date.now(); // Compatibilidad doble
+
       localStorage.setItem(LS_KEY, JSON.stringify(appData));
       
-      __localDirty = true;
       setSyncState("pending", "GUARDANDO...");
 
       if (__syncTimer) clearTimeout(__syncTimer);
@@ -655,9 +678,6 @@
         __isSyncing = true;
         setSyncState("saving");
 
-        appData._writer = DEVICE_ID;
-        appData._updatedAtClient = Date.now();
-
         const response = await fetch(`${API_URL}?ts=${Date.now()}`, {
           method: "POST",
           body: JSON.stringify(appData)
@@ -666,10 +686,19 @@
         const res = await response.json();
         
         if (res && res.ok) {
-          __localDirty = false;
           setSyncState("ok");
         } else {
-          throw new Error("Error del servidor");
+          // Si el servidor rechaza por versión antigua, nos devuelve la nueva
+          if(res.cloudData) {
+              console.warn("Conflicto de versiones: Cloud es más nuevo.");
+              appData = res.cloudData;
+              sanitizeData();
+              localStorage.setItem(LS_KEY, JSON.stringify(appData));
+              loadMonthData();
+              renderNetWorthView();
+              alert("Se han actualizado los datos desde la nube.");
+          }
+          setSyncState("ok");
         }
 
       } catch (e) {
@@ -682,23 +711,43 @@
     }
 
     async function initialLoad() {
-      if (!navigator.onLine) return;
+      if (!navigator.onLine) {
+          __dataReady = true; // Si offline, confiamos en local
+          document.getElementById('initBlocker').style.display = 'none';
+          return;
+      }
       try {
-        setSyncState("saving", "CARGANDO...");
+        setSyncState("saving", "BUSCANDO...");
         const r = await fetch(`${API_URL}?ts=${Date.now()}`, { redirect: "follow" });
         const cloudData = await r.json();
         
-        if (cloudData && cloudData.txs) {
+        // LÓGICA DE FUSIÓN: Si nube es más nueva, gana nube.
+        const cloudTime = cloudData.updatedAt || cloudData._updatedAtClient || 0;
+        const localTime = appData.updatedAt || appData._updatedAtClient || 0;
+
+        if (cloudData && cloudData.txs && cloudTime > localTime) {
+          console.log("Datos de nube más recientes. Actualizando...");
           appData = cloudData;
           sanitizeData();
           localStorage.setItem(LS_KEY, JSON.stringify(appData));
+          
+          // Refrescamos toda la UI con los nuevos datos
+          updateDateUI();
+          renderAdminTree();
+          updateAccountSelects();
           loadMonthData();
           renderNetWorthView();
-          setSyncState("ok");
         }
+        
+        setSyncState("ok");
+
       } catch (e) {
         console.error("Error carga inicial", e);
         setSyncState("pending", "OFFLINE");
+      } finally {
+        // LIBERAMOS EL CANDADO
+        __dataReady = true;
+        document.getElementById('initBlocker').style.display = 'none';
       }
     }
 
@@ -767,11 +816,35 @@
       return (dateStr && dateStr.length >= 7) ? dateStr.slice(0,7) : getMonthKey();
     }
 
+    // --- LÓGICA DE TASAS INTELIGENTE (COPIADA DE MÓVIL) ---
     function getRatesForMonthKey(k) {
-      const r = (appData.monthlyRates && appData.monthlyRates[k]) ? appData.monthlyRates[k] : null;
+      // 1. Intenta buscar la tasa exacta para el mes "k" (ej: 2026-02)
+      if (appData.monthlyRates && appData.monthlyRates[k]) {
+        return {
+          ARS: (appData.monthlyRates[k].ARS && Number(appData.monthlyRates[k].ARS)) ? Number(appData.monthlyRates[k].ARS) : 1200,
+          COP: (appData.monthlyRates[k].COP && Number(appData.monthlyRates[k].COP)) ? Number(appData.monthlyRates[k].COP) : 3700,
+          USD: 1
+        };
+      }
+
+      // 2. Si no existe, busca la ÚLTIMA tasa configurada (Histórico)
+      if (appData.monthlyRates) {
+        const keys = Object.keys(appData.monthlyRates).sort();
+        if (keys.length > 0) {
+          const lastKey = keys[keys.length - 1];
+          const lastRate = appData.monthlyRates[lastKey];
+          return {
+            ARS: (lastRate.ARS && Number(lastRate.ARS)) ? Number(lastRate.ARS) : 1200,
+            COP: (lastRate.COP && Number(lastRate.COP)) ? Number(lastRate.COP) : 3700,
+            USD: 1
+          };
+        }
+      }
+
+      // 3. Defaults
       return {
-        ARS: (r && Number(r.ARS)) ? Number(r.ARS) : 1500,
-        COP: (r && Number(r.COP)) ? Number(r.COP) : 3700,
+        ARS: 1200,
+        COP: 3700,
         USD: 1
       };
     }
@@ -886,15 +959,18 @@
     // INIT
     // =========================================================================
     window.onload = async () => {
-      loadLocal();
-      sanitizeData();
-      updateDateUI();
+      loadLocal();      // 1. Cargar lo que hay (rápido)
+      sanitizeData();   // 2. Limpiar
+      updateDateUI();   // 3. Pintar fecha
+      
+      // Renderizar UI inicial (aunque sea vieja) para no mostrar pantalla en blanco
       renderAdminTree();
       updateAccountSelects();
       loadMonthData();
       renderNetWorthView();
       
-      setTimeout(initialLoad, 100);
+      // 4. INICIAR DESCARGA FORZADA (El "InitBlocker" tapará la pantalla)
+      await initialLoad();
 
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") scheduleCloudSync();
@@ -1645,7 +1721,7 @@
            if (parseDateInput(a.date || '2000-01-01') < end) {
              balances[a.id] = Number(a.initBal) || 0;
            } else {
-             balances[a.id] = 0;
+             balances[a.id] = 0; 
            }
         });
         
