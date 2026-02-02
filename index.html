@@ -1142,7 +1142,7 @@
             }
             return false;
           })
-          .map(t => ({ id: t.id, desc: t.desc, amount: txValueARS(t), exec: t.exec, parentId: null }));
+          .map(t => ({ id: t.id, desc: t.desc, amount: txValueARS(t), exec: t.exec, parentId: null, date: t.date }));
 
         let splitSubs = [];
         dashTxs.filter(t => t.type === 'exp' && t.children && t.children.length).forEach(parent => {
@@ -1158,7 +1158,8 @@
               parentId: parent.id,
               desc: c.desc,
               amount: childValueARS(c, parent.exec),
-              exec: parent.exec
+              exec: parent.exec,
+              date: c.date
             });
           });
         });
@@ -1173,8 +1174,13 @@
           allSubs.forEach(s => {
             const editFn = s.parentId ? `editTx(${s.parentId})` : `editTx(${s.id})`;
             const isSplitPart = !!s.parentId;
+            const day = s.date ? s.date.split('-')[2] : '';
+
             rows += `<div class="flex justify-between py-1 text-[9px] border-b border-dashed border-slate-100 cursor-pointer hover:bg-slate-50 px-1.5 rounded ${s.exec ? 'line-through text-slate-400' : 'text-slate-600'}" onclick="${editFn}">
-              <span class="truncate pr-2">${isSplitPart ? '(Split) ' : ''}${s.desc || ''}</span>
+              <div class="flex items-center min-w-0 pr-2">
+                <span class="text-[8px] text-slate-400 font-mono mr-1">${day}</span>
+                <span class="truncate">${isSplitPart ? '(Split) ' : ''}${s.desc || ''}</span>
+              </div>
               <span class="font-bold shrink-0">$${fmt(s.amount)}</span>
             </div>`;
           });
@@ -1213,14 +1219,16 @@
                if(!allocatedExpenseIds.has(c.id) && !c.linkId) {
                   const amt = childValueARS(c, t.exec);
                   unassignedSum += amt;
-                  unassignedRows += `<div class="flex justify-between py-1 text-[9px] border-b border-dashed border-slate-100 text-slate-500 px-1.5"><span class="truncate pr-2">(Split) ${c.desc}</span><span class="font-bold shrink-0">$${fmt(amt)}</span></div>`;
+                  const day = c.date ? c.date.split('-')[2] : '';
+                  unassignedRows += `<div class="flex justify-between py-1 text-[9px] border-b border-dashed border-slate-100 text-slate-500 px-1.5"><div class="flex items-center min-w-0 pr-2"><span class="text-[8px] text-slate-400 font-mono mr-1">${day}</span><span class="truncate">(Split) ${c.desc}</span></div><span class="font-bold shrink-0">$${fmt(amt)}</span></div>`;
                }
             });
          } else {
             if(!allocatedExpenseIds.has(t.id) && !t.linkId) {
                 const amt = txValueARS(t);
                 unassignedSum += amt;
-                unassignedRows += `<div class="flex justify-between py-1 text-[9px] border-b border-dashed border-slate-100 text-slate-500 px-1.5"><span class="truncate pr-2">${t.desc}</span><span class="font-bold shrink-0">$${fmt(amt)}</span></div>`;
+                const day = t.date ? t.date.split('-')[2] : '';
+                unassignedRows += `<div class="flex justify-between py-1 text-[9px] border-b border-dashed border-slate-100 text-slate-500 px-1.5"><div class="flex items-center min-w-0 pr-2"><span class="text-[8px] text-slate-400 font-mono mr-1">${day}</span><span class="truncate">${t.desc}</span></div><span class="font-bold shrink-0">$${fmt(amt)}</span></div>`;
             }
          }
       });
@@ -1609,12 +1617,10 @@
       list.innerHTML = '';
 
       const rates = getRatesForMonthKey(getMonthKey());
-      // Fecha límite para mostrar saldos iniciales (fin del mes actual seleccionado)
       const currentViewDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
       const balances = {};
       appData.accounts.forEach(a => {
-        // Solo contar saldo inicial si la fecha de inicio es anterior o igual al mes actual
         const accStartDate = parseDateInput(a.date || '2000-01-01');
         if (accStartDate <= currentViewDate) {
           balances[a.id] = Number(a.initBal) || 0;
@@ -1626,7 +1632,6 @@
       const sortedTxs = appData.txs.filter(t => !t.deletedAt).sort((a,b) => a.date.localeCompare(b.date));
 
       sortedTxs.forEach(t => {
-        // Solo procesar transacciones hasta el mes actual
         const txDate = parseDateInput(t.date);
         if (txDate > currentViewDate) return;
 
@@ -1653,7 +1658,6 @@
       let totalAssets = 0;
       let totalLiabilities = 0;
 
-      // Filtrar cuentas que empiezan despues del mes actual para la lista
       const activeAccounts = appData.accounts.filter(a => parseDateInput(a.date || '2000-01-01') <= currentViewDate);
 
       activeAccounts.forEach(a => {
@@ -1664,7 +1668,6 @@
         if(a.kind === 'asset') totalAssets += balInARS;
         else totalLiabilities += balInARS;
 
-        // Mostrar USD como principal si no es ARS, o convertir ARS a USD
         const displayUSD = `$${fmt(balInUSD)} USD`;
         const displayOrig = a.currency !== 'USD' ? `${a.currency} ${fmt(bal)}` : '';
 
@@ -1714,10 +1717,9 @@
         const rates = getRatesForMonthKey(monthKey);
         const balances = {};
         const end = new Date(monthKey + '-01');
-        end.setMonth(end.getMonth() + 1); // Primer dia del siguiente mes
+        end.setMonth(end.getMonth() + 1); 
 
         appData.accounts.forEach(a => {
-           // Chequeo de fecha para el grafico historico
            if (parseDateInput(a.date || '2000-01-01') < end) {
              balances[a.id] = Number(a.initBal) || 0;
            } else {
@@ -1785,7 +1787,16 @@
           plugins: { legend: { display: false } },
           scales: {
             x: { grid: { display: false }, ticks: { font: { size: 8 } } },
-            y: { ticks: { callback: v => '$' + (v/1000000).toFixed(1) + 'M', font: { size: 8 } } }
+            y: { 
+                ticks: { 
+                    font: { size: 8 },
+                    callback: function(value) {
+                        if (Math.abs(value) >= 1000000) return '$' + (value/1000000).toFixed(1) + 'M';
+                        if (Math.abs(value) >= 1000) return '$' + (value/1000).toFixed(0) + 'K';
+                        return '$' + value;
+                    }
+                } 
+            }
           }
         }
       });
@@ -2186,6 +2197,17 @@
 
     function renderLinkChips(sid) {
       const c = document.getElementById('linkChipsContainer'); c.innerHTML = '';
+      
+      // NUEVO: Opción "Sin asignar" al principio
+      const def = document.createElement('div');
+      def.className = `chip px-2 py-0.5 cursor-pointer ${!sid ? 'active' : ''}`;
+      def.innerText = 'Sin asignar';
+      def.onclick = () => {
+          document.getElementById('fLink').value = '';
+          renderLinkChips('');
+      };
+      c.appendChild(def);
+
       appData.txs
         .filter(t => !t.deletedAt && t.type == 'inc' && t.date.startsWith(getMonthKey()))
         .forEach(i => {
